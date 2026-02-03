@@ -17,6 +17,7 @@ otonom_arac/error.py
 otonom_arac/info.py
 otonom_arac/lane_detection_node.py
 otonom_arac/lidar.py
+otonom_arac/lidar_node.py
 otonom_arac/realsense.py
 otonom_arac/sonKararTabela.py
 otonom_arac/utils.py

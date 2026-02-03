@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'camera_node = otonom_arac.camera_node:main',
             'lane_detection_node = otonom_arac.lane_detection_node:main',
+            'lidar_node = otonom_arac.lidar_node:main',
         ],
     },
 )
