@@ -27,6 +27,7 @@ setup(
             'lane_detection_node = otonom_arac.lane_detection_node:main',
             'lidar_node = otonom_arac.lidar_node:main',
             'object_detection_node = otonom_arac.object_detection_node:main',
+            'control_node = otonom_arac.control_node:main',
         ],
     },
 )

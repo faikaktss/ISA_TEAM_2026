@@ -1,6 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-
+#Todo: Tüm gerekli düğümleri başlatan bir başlatma dosyası oluştur
 def generate_launch_description():
     return LaunchDescription([
         #Todo:Kamera Node
@@ -35,6 +35,15 @@ def generate_launch_description():
             package='otonom_arac',
             executable='object_detection_node',
             name='object_detection_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Control Node (Karar Mekanizması)
+        Node(
+            package='otonom_arac',
+            executable='control_node',
+            name='control_node',
             output='screen',
             emulate_tty=True,
         ),

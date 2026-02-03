@@ -14,6 +14,7 @@ otonom_arac/__init__.py
 otonom_arac/arduino.py
 otonom_arac/camera.py
 otonom_arac/camera_node.py
+otonom_arac/control_node.py
 otonom_arac/error.py
 otonom_arac/info.py
 otonom_arac/lane_detection_node.py
