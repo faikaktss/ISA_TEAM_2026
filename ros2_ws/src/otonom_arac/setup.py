@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'camera_node = otonom_arac.camera_node:main',
         ],
     },
 )

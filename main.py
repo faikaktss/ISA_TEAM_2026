@@ -194,3 +194,4 @@ if __name__ == '__main__':
     #th1.start()  # tabelalı da bunu aç diğerini yorum satır yap
     th2.start()  # tabelasızda bunu aç diğerini yorum satır yap
     main()
+    
