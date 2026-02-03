@@ -66,9 +66,9 @@ class LidarNode(Node):
         scan = LaserScan()
         scan.header.stamp = self.get_clock().now().to_msg()
         scan.header.frame_id = 'lidar_link'
-        scan.angle_min = -3.14159  # -180 derece
-        scan.angle_max = 3.14159   # +180 derece
-        scan.angle_increment = 0.01745  # ~1 derece
+        scan.angle_min = -3.14159  # Todo:-180 derece
+        scan.angle_max = 3.14159   # Todo: +180 derece
+        scan.angle_increment = 0.01745  # Todo: 1 derece
         scan.time_increment = 0.0
         scan.range_min = 0.15
         scan.range_max = 12.0

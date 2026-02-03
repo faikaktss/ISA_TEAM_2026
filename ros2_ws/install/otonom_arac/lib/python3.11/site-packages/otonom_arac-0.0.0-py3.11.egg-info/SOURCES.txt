@@ -8,6 +8,7 @@ setup.py
 ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
 ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
 ../../build/otonom_arac/otonom_arac.egg-info/zip-safe
+launch/otonom_arac_launch.py
 otonom_arac/LaneDetect.py
 otonom_arac/__init__.py
 otonom_arac/arduino.py
@@ -18,6 +19,7 @@ otonom_arac/info.py
 otonom_arac/lane_detection_node.py
 otonom_arac/lidar.py
 otonom_arac/lidar_node.py
+otonom_arac/object_detection_node.py
 otonom_arac/realsense.py
 otonom_arac/sonKararTabela.py
 otonom_arac/utils.py

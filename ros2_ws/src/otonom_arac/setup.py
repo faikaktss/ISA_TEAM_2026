@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'otonom_arac'
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -23,6 +26,7 @@ setup(
             'camera_node = otonom_arac.camera_node:main',
             'lane_detection_node = otonom_arac.lane_detection_node:main',
             'lidar_node = otonom_arac.lidar_node:main',
+            'object_detection_node = otonom_arac.object_detection_node:main',
         ],
     },
 )

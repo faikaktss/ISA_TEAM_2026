@@ -1,4 +1,5 @@
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/error.py
+/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/object_detection_node.py
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/lidar_node.py
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__init__.py
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/LaneDetect.py
@@ -12,6 +13,7 @@
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/info.py
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/arduino.py
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__pycache__/error.cpython-311.pyc
+/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__pycache__/object_detection_node.cpython-311.pyc
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__pycache__/lidar_node.cpython-311.pyc
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__pycache__/__init__.cpython-311.pyc
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__pycache__/LaneDetect.cpython-311.pyc
@@ -26,6 +28,7 @@
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__pycache__/arduino.cpython-311.pyc
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/ament_index/resource_index/packages/otonom_arac
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/otonom_arac/package.xml
+/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/otonom_arac/launch/otonom_arac_launch.py
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info/PKG-INFO
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info/zip-safe
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info/SOURCES.txt
@@ -36,3 +39,4 @@
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/otonom_arac/camera_node
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/otonom_arac/lane_detection_node
 /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/otonom_arac/lidar_node
+/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/otonom_arac/object_detection_node
