@@ -1,0 +1,55 @@
+running egg_info
+creating ../../build/otonom_arac/otonom_arac.egg-info
+writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/__init__.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/LaneDetect.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/realsense.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/sonKararTabela.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/camera.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/utils.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/lidar.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/camera_node.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/info.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/arduino.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+running install
+running install_lib
+creating /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/__init__.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/LaneDetect.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/realsense.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/sonKararTabela.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/camera.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/utils.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/lidar.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/camera_node.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/info.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+copying /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac/arduino.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/__init__.py to __init__.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/LaneDetect.py to LaneDetect.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/realsense.py to realsense.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/sonKararTabela.py to sonKararTabela.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/camera.py to camera.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/utils.py to utils.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/lidar.py to lidar.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/camera_node.py to camera_node.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/info.py to info.cpython-311.pyc
+byte-compiling /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/arduino.py to arduino.cpython-311.pyc
+running install_data
+creating /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/ament_index/resource_index/packages
+copying resource/otonom_arac -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/ament_index/resource_index/packages
+copying package.xml -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/otonom_arac
+running install_egg_info
+Copying ../../build/otonom_arac/otonom_arac.egg-info to /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info
+running install_scripts
+Installing camera_node script to /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/otonom_arac
+writing list of installed files to '/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/install.log'

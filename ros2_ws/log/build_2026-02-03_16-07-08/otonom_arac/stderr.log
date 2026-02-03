@@ -1,0 +1,7 @@
+/opt/homebrew/Caskroom/miniforge/base/envs/isa_env/lib/python3.11/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+  File "/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac/camera_node.py", line 52
+    pass:
+        ^
+SyntaxError: invalid syntax
+
