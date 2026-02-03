@@ -9,7 +9,7 @@
 import cv2
 import numpy as np
 import math
-from error import Except
+from .error import Except
 #Todo: Kameradan gelen görüntüden sadece yol kısmını alır ve şerit çizgilerinin kenarlarını ortaya çıkarır
 class roi:
     def __init__(self,y1=400, y2=900, x1=500, x2=1400):
@@ -19,11 +19,12 @@ class roi:
         self.x2=x2
     #Todo: Roi boyutu gerçekten frame içine sığıyor mu Bunu kontrol eder. Kamera değil sadece yolu kontrol eder
     def get_roi(self,frame,width,height):
-        if (self.x2 - self.x1 < width and self.y2 - self.y1 < height and self.x1 <= self.x2 and self.y2 >= self.y1):
+        if (self.x2 <= width and self.y2 <= height and self.x1 >= 0 and self.y1 >= 0 and self.x1 < self.x2 and self.y1 < self.y2):
             return frame[self.y1:self.y2 , self.x1:self.x2]
         else:
             e = Except("roi ayarlanamadı","get_roi()")
             print(e)
+            print(f"Frame: {width}x{height}, ROI: x1={self.x1} x2={self.x2} y1={self.y1} y2={self.y2}")
             exit()
     
 

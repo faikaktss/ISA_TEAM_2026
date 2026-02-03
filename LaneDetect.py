@@ -9,7 +9,7 @@
 import cv2
 import numpy as np
 import math
-from error import Except
+from .error import Except
 #Todo: Kameradan gelen görüntüden sadece yol kısmını alır ve şerit çizgilerinin kenarlarını ortaya çıkarır
 class roi:
     def __init__(self,y1=400, y2=900, x1=500, x2=1400):

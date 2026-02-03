@@ -1,0 +1,37 @@
+[0.609s] Invoking command in '/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/src/otonom_arac': CONDA_PROMPT_MODIFIER=(isa_env) PYTHONPATH=/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/prefix_override:/opt/homebrew/Caskroom/miniforge/base/envs/isa_env/lib/python3.11/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages:${PYTHONPATH} SHLVL=2 _=/usr/bin/env /opt/homebrew/Caskroom/miniforge/base/envs/isa_env/bin/python3.11 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build install --record /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[0.763s] /opt/homebrew/Caskroom/miniforge/base/envs/isa_env/lib/python3.11/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+[0.763s]   warnings.warn(msg)
+[0.946s] running egg_info
+[0.970s] writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+[0.971s] writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+[0.972s] writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+[0.972s] writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+[0.973s] writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+[1.017s] reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[1.018s] writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[1.018s] running build
+[1.019s] running build_py
+[1.019s] copying otonom_arac/__init__.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.019s] copying otonom_arac/LaneDetect.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.019s] copying otonom_arac/realsense.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.019s] copying otonom_arac/sonKararTabela.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.019s] copying otonom_arac/camera.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.020s] copying otonom_arac/utils.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.020s] copying otonom_arac/lane_detection_node.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.020s] copying otonom_arac/lidar.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.020s] copying otonom_arac/camera_node.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.020s] copying otonom_arac/info.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.021s] copying otonom_arac/arduino.py -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[1.022s] running install
+[1.026s] running install_lib
+[1.048s] running install_data
+[1.048s] copying resource/otonom_arac -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/ament_index/resource_index/packages
+[1.049s] copying package.xml -> /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/share/otonom_arac
+[1.050s] running install_egg_info
+[1.063s] removing '/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info' (and everything under it)
+[1.065s] Copying ../../build/otonom_arac/otonom_arac.egg-info to /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info
+[1.073s] running install_scripts
+[1.103s] Installing camera_node script to /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/otonom_arac
+[1.103s] Installing lane_detection_node script to /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/otonom_arac
+[1.103s] writing list of installed files to '/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/install.log'
+[1.148s] Invoked command in '/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/src/otonom_arac' returned '0': CONDA_PROMPT_MODIFIER=(isa_env) PYTHONPATH=/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/prefix_override:/opt/homebrew/Caskroom/miniforge/base/envs/isa_env/lib/python3.11/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install/otonom_arac/lib/python3.11/site-packages:${PYTHONPATH} SHLVL=2 _=/usr/bin/env /opt/homebrew/Caskroom/miniforge/base/envs/isa_env/bin/python3.11 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/build install --record /Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data

@@ -38,7 +38,7 @@ class CameraNode(Node):
         
         if self.test_mode:
             self.frame_counter = 0
-            self.get_logger().info(' Test kamerası hazır (640x480 sahte görüntü)')
+            self.get_logger().info(' Test kamerası hazır (1920x1080 sahte görüntü)')
         
     def timer_callback(self):
         try:
@@ -68,15 +68,15 @@ class CameraNode(Node):
     def _generate_test_frame(self):
         self.frame_counter += 1
         
-        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        frame = np.zeros((1080, 1920, 3), dtype=np.uint8)
         
         for y in range(480):
             frame[y, :] = [y // 2, 100, 255 - y // 2]
         
         cv2.putText(frame, f'TEST MODE - Frame: {self.frame_counter}', 
-                    (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         cv2.putText(frame, 'ROS 2 Camera Node Active', 
-                    (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
         #Todo: Dinamik bir nokta ekle(faik)
         cx = int(320 + 200 * np.sin(self.frame_counter * 0.1))
