@@ -1,0 +1,2 @@
+/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)

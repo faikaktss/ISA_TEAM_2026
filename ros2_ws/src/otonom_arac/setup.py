@@ -28,6 +28,7 @@ setup(
             'lidar_node = otonom_arac.lidar_node:main',
             'object_detection_node = otonom_arac.object_detection_node:main',
             'control_node = otonom_arac.control_node:main',
+            'encoder_node = otonom_arac.encoder_node:main',
         ],
     },
 )

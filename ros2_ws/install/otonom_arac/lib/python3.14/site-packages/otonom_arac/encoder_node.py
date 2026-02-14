@@ -1,0 +1,84 @@
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Int32 , Float32
+import time
+
+from .arduino import Arduino
+
+class EncoderNode(Node):
+    def __init__(self):
+        super().__init__('encoder_node')
+
+        #Todo: Ros2 için parametreler(faik)
+        self.declare_parameter('port','/dev/ttyUSB0')
+        self.declare_parameter('baudrate',115200)
+
+        port = self.get_parameter('port').value
+        baudrate = self.get_parameter('baudrate').value
+
+        #Todo: Ardunio bağlantısı
+        try:
+            self.arduino =Arduino(COM=port, baudrate=baudrate,timeout=1)
+            time.sleep(2)
+            self.get_logger().info(f'Arduino Encoder bağlandı: {port} @ {baudrate}')
+        except Exception as e:
+            self.get_logger().error(f'Arduino Encoder bağlantı hatası: {e}')
+            raise
+
+        #Todo: Veri yayınlanacak topicler
+        self.distance_pub = self.create_publisher(Int32 , '/encoder/distance',10)
+        self.speed_pub = self.create_publisher(Float32,'/encoder/speed',10)
+
+
+        #Todo: Hız hesabı için değişkenler(faik)
+        self.last_distance = 0
+        self.last_time = time.time()
+
+        self.timer = self.create_timer(0.02,self.read_encoder)
+
+        self.get_logger().info('Encoder Node başlatıldı - 50Hz')
+
+    def read_encoder(self):
+            #Todo: Artık ardunio'dan encoder mesafe verisini okuyup ros2 ile yayınlayacağız
+            try:
+                distance = self.arduino.encoder_distance()
+                if distance is not None:
+                    distance_msg = Int32()
+                    distance_msg.data = distance
+                    self.distance_pub.publish(distance_msg)
+
+                    current_time = time.time()
+                    time_diff = current_time - self.last_time
+
+                    if time_diff > 0:
+                        speed=(distance - self.last_distance) /time_diff
+
+                        speed_msg = Float32()
+                        speed_msg.data = float(speed)
+                        self.speed_pub.publish(speed_msg)
+
+
+                    self.last_distance = distance
+                    self.last_time = current_time
+
+            except Exception as e:
+                self.get_logger().warning(f'Encoder okuma hatası: {e}')
+
+
+
+def main(args=None):
+    #Todo: Ana fonksiyon node'u başlat
+    rclpy.init(args=args)
+
+    node = EncoderNode()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        node.get_logger().info('Klavyeden durduruldu ')
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

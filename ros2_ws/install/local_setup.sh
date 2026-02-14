@@ -6,7 +6,7 @@
 # since a plain shell script can't determine its own path when being sourced
 # either use the provided COLCON_CURRENT_PREFIX
 # or fall back to the build time prefix (if it exists)
-_colcon_prefix_sh_COLCON_CURRENT_PREFIX="/Users/faikaktss/ISA_TEAMM_2025-2026/ros2_ws/install"
+_colcon_prefix_sh_COLCON_CURRENT_PREFIX="/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install"
 if [ -z "$COLCON_CURRENT_PREFIX" ]; then
   if [ ! -d "$_colcon_prefix_sh_COLCON_CURRENT_PREFIX" ]; then
     echo "The build time path \"$_colcon_prefix_sh_COLCON_CURRENT_PREFIX\" doesn't exist. Either source a script for a different shell or set the environment variable \"COLCON_CURRENT_PREFIX\" explicitly." 1>&2
@@ -85,7 +85,7 @@ if [ -n "$COLCON_PYTHON_EXECUTABLE" ]; then
   _colcon_python_executable="$COLCON_PYTHON_EXECUTABLE"
 else
   # try the Python executable known at configure time
-  _colcon_python_executable="/opt/homebrew/Caskroom/miniforge/base/envs/isa_env/bin/python3.11"
+  _colcon_python_executable="/Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14"
   # if it doesn't exist try a fall back
   if [ ! -f "$_colcon_python_executable" ]; then
     if ! /usr/bin/env python3 --version > /dev/null 2> /dev/null; then
