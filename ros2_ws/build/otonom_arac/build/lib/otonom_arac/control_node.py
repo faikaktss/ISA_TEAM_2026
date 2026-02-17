@@ -22,9 +22,10 @@ class ControlNode(Node):
         self.lidar_scan_sub = self.create_subscription(
             LaserScan, '/lidar/scan', self.lidar_callback, 10)
         
-        # Todo: Publisher'lar - motor komutları
-        self.servo_pub = self.create_publisher(Int32, '/control/servo', 10)
-        self.speed_pub = self.create_publisher(Int32, '/control/speed', 10)
+        # Todo: Publisher'lar  (motor komutları)
+        self.sag_sol_pub = self.create_publisher(Int32, '/control/sag_sol', 10)
+        self.ileri_geri_pub = self.create_publisher(Int32, '/control/ileri_geri', 10)
+        self.vites_pub = self.create_publisher(Int32, '/control/vites', 10)
         
         # Todo: Durum değişkenleri
         self.current_angle = None
@@ -113,44 +114,47 @@ class ControlNode(Node):
         else:
             self.engel_durumu = 0  # Engel yok
     
-    def send_teensy_command(self, value):
-        """Teensy'ye servo komutu gönder"""
+    def send_control_command(self, sag_sol, ileri_geri=50, vites=0):
+        """Kontrol komutlarını topic'lere publish et"""
+        # Sağ-sol (direksiyon açısı)
+        sag_sol_msg = Int32()
+        sag_sol_msg.data = int(sag_sol)
+        self.sag_sol_pub.publish(sag_sol_msg)
+        
+        # İleri-geri (motor hızı)
+        ileri_geri_msg = Int32()
+        ileri_geri_msg.data = int(ileri_geri)
+        self.ileri_geri_pub.publish(ileri_geri_msg)
+        
+        # Vites (0=ileri, 1=geri)
+        vites_msg = Int32()
+        vites_msg.data = int(vites)
+        self.vites_pub.publish(vites_msg)
+        
         if self.test_mode:
-            # Todo:Test modunda sadece log yaz
-            servo_msg = Int32()
-            servo_msg.data = int(value)
-            self.servo_pub.publish(servo_msg)
-            self.get_logger().debug(f'[TEST] Teensy komut: {value}')
-        else:
-            try:
-                self.teensy.write(str(value).encode())
-                servo_msg = Int32()
-                servo_msg.data = int(value)
-                self.servo_pub.publish(servo_msg)
-            except Exception as e:
-                self.get_logger().error(f'Teensy yazma hatası: {e}')
-    
+            self.get_logger().debug(f'[CONTROL] sag_sol={sag_sol}, ileri_geri={ileri_geri}, vites={vites}')
+
     def control_loop(self):
         
         # Todo: 1. Engel kontrolü - EN YÜKSEK ÖNCELİK
         if self.engel_durumu == 2:  # Hareketli engel
             self.get_logger().info('Hareketli engel - DUR!')
-            self.send_teensy_command(100)  # Dur komutu
+            self.send_control_command(0, ileri_geri=0, vites=0)  # Dur komutu
             return
         
         elif self.engel_durumu == 1:  # Sabit engel - kaçınma manevrası
             self.get_logger().info('Sabit engel - kaçınma manevrası')
             # Sola dön
             for _ in range(30):  # 3 saniye
-                self.send_teensy_command(-30)
+                self.send_control_command(-30, ileri_geri=50, vites=0)
                 time.sleep(0.1)
             # Sağa dön
             for _ in range(30):  # 3 saniye
-                self.send_teensy_command(30)
+                self.send_control_command(30, ileri_geri=50, vites=0)
                 time.sleep(0.1)
             # İleri git
             for _ in range(67):  # 6.7 saniye
-                self.send_teensy_command(25)
+                self.send_control_command(25, ileri_geri=50, vites=0)
                 time.sleep(0.1)
             self.engel_durumu = 0  # Manevradan sonra engel yok say
             return
@@ -161,23 +165,23 @@ class ControlNode(Node):
             # Durağa yaklaş
             while self.durakPixel < 1200:
                 if self.current_angle is not None:
-                    self.send_teensy_command(self.current_angle)
+                    self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
                 time.sleep(0.1)
                 self.get_logger().info(f'Durak bekleniyor: {self.durakPixel}')
             
             # Durak manevraları
             for _ in range(44):  # 4.4 saniye sağa dön
-                self.send_teensy_command(20)
+                self.send_control_command(20, ileri_geri=50, vites=0)
                 time.sleep(0.1)
             for _ in range(40):  # 4 saniye şerit takibi
                 if self.current_angle is not None:
-                    self.send_teensy_command(self.current_angle)
+                    self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
                 time.sleep(0.1)
             for _ in range(35):  # 3.5 saniye dur
-                self.send_teensy_command(100)
+                self.send_control_command(0, ileri_geri=0, vites=0)
                 time.sleep(0.2)
             for _ in range(46):  # 4.6 saniye sola dön
-                self.send_teensy_command(-23)
+                self.send_control_command(-23, ileri_geri=50, vites=0)
                 time.sleep(0.1)
             
             self.yeni_tab = None
@@ -187,7 +191,7 @@ class ControlNode(Node):
         elif self.yeni_tab == "dur":
             self.get_logger().info('DUR tabelası - 8 saniye duruyorum')
             for _ in range(40):  # 8 saniye dur
-                self.send_teensy_command(100)
+                self.send_control_command(0, ileri_geri=0, vites=0)
                 time.sleep(0.2)
             self.yeni_tab = None
             self.tabela_gecmisi.clear()
@@ -197,11 +201,11 @@ class ControlNode(Node):
             if self.solRedCount >= 10:
                 self.get_logger().info('GİRİLMEZ - Sola dönüyorum')
                 for _ in range(50):  # 5 saniye sola dön
-                    self.send_teensy_command(-20)
+                    self.send_control_command(-20, ileri_geri=50, vites=0)
                     time.sleep(0.1)
                 for _ in range(40):  # 4 saniye şerit takibi
                     if self.current_angle is not None:
-                        self.send_teensy_command(self.current_angle)
+                        self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
                     time.sleep(0.1)
                 self.yeni_tab = None
                 self.tabela_gecmisi.clear()
@@ -211,11 +215,11 @@ class ControlNode(Node):
             if self.sagRedCount >= 0:
                 self.get_logger().info('SAĞ tabelası - Sağa dönüyorum')
                 for _ in range(50):  # 5 saniye sağa dön
-                    self.send_teensy_command(20)
+                    self.send_control_command(20, ileri_geri=50, vites=0)
                     time.sleep(0.1)
                 for _ in range(40):  # 4 saniye şerit takibi
                     if self.current_angle is not None:
-                        self.send_teensy_command(self.current_angle)
+                        self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
                     time.sleep(0.1)
                 self.yeni_tab = None
                 self.tabela_gecmisi.clear()
@@ -227,7 +231,7 @@ class ControlNode(Node):
             for _ in range(100):  # Max 10 saniye bekle
                 if self.current_tabela == "sol_yasak":
                     break
-                self.send_teensy_command(100)
+                self.send_control_command(0, ileri_geri=0, vites=0)
                 time.sleep(0.1)
             self.yeni_tab = None
             self.tabela_gecmisi.clear()
@@ -235,7 +239,7 @@ class ControlNode(Node):
         
         #Todo: 3. Normal şerit takibi
         if self.current_angle is not None:
-            self.send_teensy_command(self.current_angle)
+            self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
         else:
             self.get_logger().debug('Açı verisi yok, bekliyorum')
     

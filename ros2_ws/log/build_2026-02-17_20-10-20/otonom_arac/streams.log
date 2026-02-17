@@ -1,0 +1,59 @@
+[0.245s] Invoking command in '/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac': PYTHONPATH=/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/prefix_override:/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/colcon_core/task/python/colcon_distutils_commands:/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages: SHLVL=2 _=/usr/bin/env /Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build install --record /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[0.310s] /Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+[0.310s]   warnings.warn(msg)
+[0.326s] running egg_info
+[0.328s] writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+[0.328s] writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+[0.329s] writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+[0.329s] writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+[0.329s] writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+[0.334s] reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[0.334s] writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[0.335s] running build
+[0.335s] running build_py
+[0.335s] copying otonom_arac/teensy_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.335s] copying otonom_arac/joystick_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.335s] copying otonom_arac/error.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.336s] copying otonom_arac/encoder_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.336s] copying otonom_arac/object_detection_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.336s] copying otonom_arac/lidar_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.336s] copying otonom_arac/__init__.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.337s] copying otonom_arac/LaneDetect.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.337s] copying otonom_arac/realsense.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.337s] copying otonom_arac/sonKararTabela.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.338s] copying otonom_arac/camera.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.338s] copying otonom_arac/utils.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.338s] copying otonom_arac/lane_detection_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.338s] copying otonom_arac/control_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.339s] copying otonom_arac/lidar.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.339s] copying otonom_arac/camera_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.339s] copying otonom_arac/info.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.340s] copying otonom_arac/arduino.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac
+[0.340s] running install
+[0.343s] running install_lib
+[0.345s] copying /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac/teensy_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac
+[0.346s] copying /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac/joystick_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac
+[0.346s] copying /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac/encoder_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac
+[0.346s] copying /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build/lib/otonom_arac/control_node.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac
+[0.346s] byte-compiling /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/teensy_node.py to teensy_node.cpython-314.pyc
+[0.347s] byte-compiling /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/joystick_node.py to joystick_node.cpython-314.pyc
+[0.348s] byte-compiling /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/encoder_node.py to encoder_node.cpython-314.pyc
+[0.349s] byte-compiling /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/control_node.py to control_node.cpython-314.pyc
+[0.350s] running install_data
+[0.350s] copying resource/otonom_arac -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/ament_index/resource_index/packages
+[0.351s] copying package.xml -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac
+[0.351s] copying launch/otonom_arac_launch.py -> /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/launch
+[0.351s] running install_egg_info
+[0.355s] removing '/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac-0.0.0-py3.14.egg-info' (and everything under it)
+[0.357s] Copying ../../build/otonom_arac/otonom_arac.egg-info to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac-0.0.0-py3.14.egg-info
+[0.358s] running install_scripts
+[0.376s] Installing camera_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.376s] Installing control_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.376s] Installing encoder_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.376s] Installing joystick_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.376s] Installing lane_detection_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.376s] Installing lidar_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.376s] Installing object_detection_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.376s] Installing teensy_node script to /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac
+[0.377s] writing list of installed files to '/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log'
+[0.390s] Invoked command in '/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac' returned '0': PYTHONPATH=/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/prefix_override:/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/colcon_core/task/python/colcon_distutils_commands:/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages: SHLVL=2 _=/usr/bin/env /Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build install --record /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data

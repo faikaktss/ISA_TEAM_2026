@@ -18,12 +18,14 @@ otonom_arac/control_node.py
 otonom_arac/encoder_node.py
 otonom_arac/error.py
 otonom_arac/info.py
+otonom_arac/joystick_node.py
 otonom_arac/lane_detection_node.py
 otonom_arac/lidar.py
 otonom_arac/lidar_node.py
 otonom_arac/object_detection_node.py
 otonom_arac/realsense.py
 otonom_arac/sonKararTabela.py
+otonom_arac/teensy_node.py
 otonom_arac/utils.py
 resource/otonom_arac
 test/test_copyright.py

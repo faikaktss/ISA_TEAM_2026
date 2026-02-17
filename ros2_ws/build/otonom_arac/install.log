@@ -1,3 +1,5 @@
+/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/teensy_node.py
+/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/joystick_node.py
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/error.py
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/encoder_node.py
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/object_detection_node.py
@@ -14,6 +16,8 @@
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/camera_node.py
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/info.py
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/arduino.py
+/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/__pycache__/teensy_node.cpython-314.pyc
+/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/__pycache__/joystick_node.cpython-314.pyc
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/__pycache__/error.cpython-314.pyc
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/__pycache__/encoder_node.cpython-314.pyc
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.14/site-packages/otonom_arac/__pycache__/object_detection_node.cpython-314.pyc
@@ -43,6 +47,8 @@
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/camera_node
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/control_node
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/encoder_node
+/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/joystick_node
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/lane_detection_node
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/lidar_node
 /Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/object_detection_node
+/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/otonom_arac/teensy_node
