@@ -11,8 +11,10 @@ except ImportError:
     pass
 
 if ROS2_AVAILABLE:
+    #Todo: Bu kısım arduino'dan veri okur 
     class EncoderNode(Node):
         def __init__(self):
+            #Todo: Ros2 node'u başlat
             super().__init__('encoder_node')
 
             #Todo: Ros2 için parametreler(faik)
@@ -155,7 +157,6 @@ class MockEncoderNode:
             print(" Test durduruldu")
             print(f" Toplam {iteration} okuma yapıldı")
             print("="*60)
-
 
 
 def test_main():
