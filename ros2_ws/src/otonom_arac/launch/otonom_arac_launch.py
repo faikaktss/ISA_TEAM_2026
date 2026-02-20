@@ -47,4 +47,31 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
         ),
+        
+        #Todo:Encoder Node (Hız Hesaplama)
+        Node(
+            package='otonom_arac',
+            executable='encoder_node',
+            name='encoder_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Joystick Node (Manuel Kontrol)
+        Node(
+            package='otonom_arac',
+            executable='joystick_node',
+            name='joystick_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Teensy Node (ROS2-Hardware Köprüsü)
+        Node(
+            package='otonom_arac',
+            executable='teensy_node',
+            name='teensy_node',
+            output='screen',
+            emulate_tty=True,
+        ),
     ])

@@ -27,7 +27,11 @@ otonom_arac/realsense.py
 otonom_arac/sonKararTabela.py
 otonom_arac/teensy_node.py
 otonom_arac/utils.py
+otonom_arac.egg-info/PKG-INFO
+otonom_arac.egg-info/SOURCES.txt
+otonom_arac.egg-info/dependency_links.txt
+otonom_arac.egg-info/entry_points.txt
+otonom_arac.egg-info/requires.txt
+otonom_arac.egg-info/top_level.txt
+otonom_arac.egg-info/zip-safe
 resource/otonom_arac
-test/test_copyright.py
-test/test_flake8.py
-test/test_pep257.py
