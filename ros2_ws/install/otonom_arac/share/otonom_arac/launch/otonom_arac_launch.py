@@ -1,1 +1,77 @@
-/Applications/PROJELERİM/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/launch/otonom_arac_launch.py
+from launch import LaunchDescription
+from launch_ros.actions import Node
+#Todo: Tüm gerekli düğümleri başlatan bir başlatma dosyası oluştur
+def generate_launch_description():
+    return LaunchDescription([
+        #Todo:Kamera Node
+        Node(
+            package='otonom_arac',
+            executable='camera_node',
+            name='camera_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Şerit Algılama Node
+        Node(
+            package='otonom_arac',
+            executable='lane_detection_node',
+            name='lane_detection_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Lidar Node
+        Node(
+            package='otonom_arac',
+            executable='lidar_node',
+            name='lidar_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Object Detection Node
+        Node(
+            package='otonom_arac',
+            executable='object_detection_node',
+            name='object_detection_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Control Node (Karar Mekanizması)
+        Node(
+            package='otonom_arac',
+            executable='control_node',
+            name='control_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Encoder Node (Hız Hesaplama)
+        Node(
+            package='otonom_arac',
+            executable='encoder_node',
+            name='encoder_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Joystick Node (Manuel Kontrol)
+        Node(
+            package='otonom_arac',
+            executable='joystick_node',
+            name='joystick_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+        
+        #Todo:Teensy Node (ROS2-Hardware Köprüsü)
+        Node(
+            package='otonom_arac',
+            executable='teensy_node',
+            name='teensy_node',
+            output='screen',
+            emulate_tty=True,
+        ),
+    ])

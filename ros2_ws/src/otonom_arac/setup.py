@@ -23,14 +23,14 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'camera_node = otonom_arac.camera_node:main',
-            'lane_detection_node = otonom_arac.lane_detection_node:main',
-            'lidar_node = otonom_arac.lidar_node:main',
-            'object_detection_node = otonom_arac.object_detection_node:main',
-            'control_node = otonom_arac.control_node:main',
-            'encoder_node = otonom_arac.encoder_node:main',
-            'joystick_node = otonom_arac.joystick_node:main',
-            'teensy_node = otonom_arac.teensy_node:main'
+            'camera_node = otonom_arac.nodes.sensors.camera_node:main',
+            'encoder_node = otonom_arac.nodes.sensors.encoder_node:main',
+            'lidar_node = otonom_arac.nodes.sensors.lidar_node:main',
+            'joystick_node = otonom_arac.nodes.sensors.joystick_node:main',
+            'control_node = otonom_arac.nodes.control.control_node:main',
+            'teensy_node = otonom_arac.nodes.control.teensy_node:main',
+            'lane_detection_node = otonom_arac.nodes.perception.lane_detection_node:main',
+            'object_detection_node = otonom_arac.nodes.perception.object_detection_node:main',
         ],
     },
 )
