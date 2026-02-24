@@ -1,0 +1,50 @@
+# RViz Configuration File for Gazebo Simulation
+# Bu dosya RViz2'de otomatik yüklenecek
+
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Description Topic: /robot_description
+      
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      
+    - Class: rviz_default_plugins/Camera
+      Name: Lane Camera
+      Enabled: true
+      Image Topic: /camera/lane/image_raw
+      
+    - Class: rviz_default_plugins/Camera
+      Name: Sign Camera
+      Enabled: true
+      Image Topic: /camera/sign/image_raw
+      
+    - Class: rviz_default_plugins/LaserScan
+      Name: Lidar
+      Enabled: true
+      Topic: /scan
+      
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 10.0
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Yaw: 0.785
+      Pitch: 0.785
