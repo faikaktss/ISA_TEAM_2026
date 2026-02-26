@@ -1,0 +1,83 @@
+[0.000000] (-) TimerEvent: {}
+[0.000282] (otonom_arac) JobQueued: {'identifier': 'otonom_arac', 'dependencies': OrderedDict()}
+[0.000540] (otonom_arac) JobStarted: {'identifier': 'otonom_arac'}
+[0.102659] (-) TimerEvent: {}
+[0.205670] (-) TimerEvent: {}
+[0.307740] (-) TimerEvent: {}
+[0.411276] (-) TimerEvent: {}
+[0.517187] (-) TimerEvent: {}
+[0.620435] (-) TimerEvent: {}
+[0.726882] (-) TimerEvent: {}
+[0.829356] (-) TimerEvent: {}
+[0.932060] (-) TimerEvent: {}
+[1.038093] (-) TimerEvent: {}
+[1.153819] (-) TimerEvent: {}
+[1.261080] (-) TimerEvent: {}
+[1.361830] (-) TimerEvent: {}
+[1.470323] (-) TimerEvent: {}
+[1.574719] (-) TimerEvent: {}
+[1.675171] (-) TimerEvent: {}
+[1.776740] (-) TimerEvent: {}
+[1.877431] (-) TimerEvent: {}
+[1.982627] (-) TimerEvent: {}
+[2.088269] (-) TimerEvent: {}
+[2.195005] (-) TimerEvent: {}
+[2.299069] (-) TimerEvent: {}
+[2.405015] (-) TimerEvent: {}
+[2.515756] (-) TimerEvent: {}
+[2.623432] (-) TimerEvent: {}
+[2.729348] (-) TimerEvent: {}
+[2.839682] (-) TimerEvent: {}
+[2.942349] (otonom_arac) Command: {'cmd': ['/opt/homebrew/opt/python@3.11/bin/python3.11', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../build/otonom_arac', 'build', '--build-base', '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build', 'install', '--record', '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac', 'env': {'TERM_PROGRAM': 'vscode', 'PROJ_DATA': '/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env/share/proj', 'AUTO_CONFIG_PATH': '/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/gradle/latest/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/maven/latest/bin', 'TERM': 'xterm-256color', 'SHELL': '/bin/zsh', 'TMPDIR': '/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/', 'CONDA_SHLVL': '2', 'VSCODE_PYTHON_AUTOACTIVATE_GUARD': '1', 'CONDA_PROMPT_MODIFIER': '(ros2_env)', 'TERM_PROGRAM_VERSION': '1.106.3', 'GSETTINGS_SCHEMA_DIR_CONDA_BACKUP': '', 'ROS_PYTHON_VERSION': '3', 'ZDOTDIR': '/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk', 'ORIGINAL_XDG_CURRENT_DESKTOP': 'undefined', 'MallocNanoZone': '0', 'ROS_VERSION': '2', 'AMENT_PREFIX_PATH': '/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env', '_CONDA_EXE': '/opt/homebrew/Caskroom/miniforge/base/bin/conda', 'USER': 'faikaktss', 'COMMAND_MODE': 'unix2003', 'CONDA_EXE': '/opt/homebrew/Caskroom/miniforge/base/bin/conda', 'SSH_AUTH_SOCK': '/private/tmp/com.apple.launchd.ZRePSqODRu/Listeners', '__CF_USER_TEXT_ENCODING': '0x1F5:0x23:0x18', 'ROS_OS_OVERRIDE': 'conda:osx', 'PYDEVD_DISABLE_FILE_VALIDATION': '1', '_CE_CONDA': '', 'CONDA_PREFIX_1': '/opt/homebrew/Caskroom/miniforge/base', 'MAVEN_HOME': '/usr/local/apache-maven', 'PATH': '/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env/bin:/opt/homebrew/Caskroom/miniforge/base/condabin:/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/gradle/latest/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/maven/latest/bin:/Users/faikaktss/Library/Python/3.11/bin:/usr/local/apache-maven/bin:/usr/local/apache-maven/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli:/Users/faikaktss/Library/Python/3.11/bin:/usr/local/apache-maven/bin:/usr/local/apache-maven/bin:/Library/Frameworks/Python.framework/Versions/3.14/bin:/Library/Frameworks/Python.framework/Versions/3.14/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/opt/homebrew/bin:/Users/faikaktss/.vscode/extensions/ms-python.debugpy-2025.18.0-darwin-arm64/bundled/scripts/noConfigScripts', 'PROJ_NETWORK': 'ON', 'GSETTINGS_SCHEMA_DIR': '/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env/share/glib-2.0/schemas', 'XML_CATALOG_FILES': 'file:///opt/homebrew/Caskroom/miniforge/base/etc/xml/catalog file:///etc/xml/catalog file:///opt/homebrew/Caskroom/miniforge/base/envs/ros2_env/etc/xml/catalog file:///etc/xml/catalog', 'LaunchInstanceID': 'B6AEF537-0331-4A38-AFB7-D8F76CD3791C', 'CONDA_PREFIX': '/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env', 'USER_ZDOTDIR': '/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk', '__CFBundleIdentifier': 'com.microsoft.VSCode', 'PWD': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac', 'COLCON': '1', 'JAVA_HOME': '/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home', 'LANG': 'C.UTF-8', 'PYTHONSTARTUP': '/Users/faikaktss/Library/Application Support/Code/User/workspaceStorage/e7ed6971385a5466d2a6758616d4523b/ms-python.python/pythonrc.py', 'BUNDLED_DEBUGPY_PATH': '/Users/faikaktss/.vscode/extensions/ms-python.debugpy-2025.18.0-darwin-arm64/bundled/libs/debugpy', 'RMW_IMPLEMENTATION': 'rmw_cyclonedds_cpp', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'XPC_FLAGS': '0x0', '_CONDA_ROOT': '/opt/homebrew/Caskroom/miniforge/base', '_CE_M': '', 'XPC_SERVICE_NAME': '0', 'VSCODE_INJECTION': '1', 'VSCODE_DEBUGPY_ADAPTER_ENDPOINTS': '/Users/faikaktss/.vscode/extensions/ms-python.debugpy-2025.18.0-darwin-arm64/.noConfigDebugAdapterEndpoints/endpoint-13ac5d90e1ee3eb3.txt', 'M2_HOME': '/usr/local/apache-maven', 'SHLVL': '2', 'HOME': '/Users/faikaktss', 'ROS_DISTRO': 'humble', 'VSCODE_GIT_ASKPASS_MAIN': '/private/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/AppTranslocation/29E1895D-9ECF-4A98-98B0-01B10C29DB17/d/Visual Studio Code.app/Contents/Resources/app/extensions/git/dist/askpass-main.js', 'PYTHON_BASIC_REPL': '1', 'GK_GL_ADDR': 'http://127.0.0.1:58771', 'PYTHONPATH': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/prefix_override:/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.11/site-packages:/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env/lib/python310/site-packages:/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env/lib/python3.10/site-packages', 'CONDA_PYTHON_EXE': '/opt/homebrew/Caskroom/miniforge/base/bin/python', 'LOGNAME': 'faikaktss', 'VSCODE_GIT_IPC_HANDLE': '/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/vscode-git-0790bb7d8b.sock', 'GK_GL_PATH': '/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/gitkraken/gitlens/gitlens-ipc-server-634-58771.json', 'CONDA_DEFAULT_ENV': 'ros2_env', 'VSCODE_GIT_ASKPASS_NODE': '/private/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/AppTranslocation/29E1895D-9ECF-4A98-98B0-01B10C29DB17/d/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)', 'GIT_ASKPASS': '/private/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/AppTranslocation/29E1895D-9ECF-4A98-98B0-01B10C29DB17/d/Visual Studio Code.app/Contents/Resources/app/extensions/git/dist/askpass.sh', 'ROS_LOCALHOST_ONLY': '0', 'OSLogRateLimit': '64', 'SECURITYSESSIONID': '186b5', 'ROS_ETC_DIR': '/opt/homebrew/Caskroom/miniforge/base/envs/ros2_env/etc/ros', 'COLORTERM': 'truecolor', '_': '/usr/bin/env'}, 'shell': False}
+[2.946770] (-) TimerEvent: {}
+[3.047207] (-) TimerEvent: {}
+[3.151789] (-) TimerEvent: {}
+[3.255133] (-) TimerEvent: {}
+[3.360409] (-) TimerEvent: {}
+[3.464472] (-) TimerEvent: {}
+[3.565239] (-) TimerEvent: {}
+[3.668765] (-) TimerEvent: {}
+[3.773673] (-) TimerEvent: {}
+[3.875294] (-) TimerEvent: {}
+[3.981628] (-) TimerEvent: {}
+[4.048098] (otonom_arac) StdoutLine: {'line': b'running egg_info\n'}
+[4.082163] (-) TimerEvent: {}
+[4.156905] (otonom_arac) StdoutLine: {'line': b'writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO\n'}
+[4.185049] (otonom_arac) StdoutLine: {'line': b'writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt\n'}
+[4.185207] (-) TimerEvent: {}
+[4.291252] (-) TimerEvent: {}
+[4.345511] (otonom_arac) StdoutLine: {'line': b'writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt\n'}
+[4.393462] (-) TimerEvent: {}
+[4.433489] (otonom_arac) StdoutLine: {'line': b'writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt\n'}
+[4.481020] (otonom_arac) StdoutLine: {'line': b'writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt\n'}
+[4.495574] (-) TimerEvent: {}
+[4.575413] (otonom_arac) StdoutLine: {'line': b"reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[4.575608] (otonom_arac) StdoutLine: {'line': b"writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[4.575668] (otonom_arac) StdoutLine: {'line': b'running build\n'}
+[4.575718] (otonom_arac) StdoutLine: {'line': b'running build_py\n'}
+[4.577500] (otonom_arac) StdoutLine: {'line': b'running install\n'}
+[4.592240] (otonom_arac) StdoutLine: {'line': b'running install_lib\n'}
+[4.602298] (-) TimerEvent: {}
+[4.653334] (otonom_arac) StdoutLine: {'line': b'running install_data\n'}
+[4.653546] (otonom_arac) StdoutLine: {'line': b'running install_egg_info\n'}
+[4.706539] (-) TimerEvent: {}
+[4.728106] (otonom_arac) StdoutLine: {'line': b"removing '/opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info' (and everything under it)\n"}
+[4.729105] (otonom_arac) StdoutLine: {'line': b'Copying ../../build/otonom_arac/otonom_arac.egg-info to /opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info\n'}
+[4.735134] (otonom_arac) StdoutLine: {'line': b'running install_scripts\n'}
+[4.810858] (-) TimerEvent: {}
+[4.912723] (-) TimerEvent: {}
+[5.000803] (otonom_arac) StdoutLine: {'line': b'Installing camera_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.001155] (otonom_arac) StdoutLine: {'line': b'Installing control_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.001379] (otonom_arac) StdoutLine: {'line': b'Installing encoder_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.003058] (otonom_arac) StdoutLine: {'line': b'Installing joystick_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.003177] (otonom_arac) StdoutLine: {'line': b'Installing lane_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.003956] (otonom_arac) StdoutLine: {'line': b'Installing lidar_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.004929] (otonom_arac) StdoutLine: {'line': b'Installing object_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.005791] (otonom_arac) StdoutLine: {'line': b'Installing teensy_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.005975] (otonom_arac) StdoutLine: {'line': b'Installing video_player_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[5.023931] (otonom_arac) StdoutLine: {'line': b"writing list of installed files to '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log'\n"}
+[5.024198] (-) TimerEvent: {}
+[5.119473] (otonom_arac) CommandEnded: {'returncode': 0}
+[5.124313] (-) TimerEvent: {}
+[5.165017] (otonom_arac) JobEnded: {'identifier': 'otonom_arac', 'rc': 0}
+[5.188268] (-) EventReactorShutdown: {}

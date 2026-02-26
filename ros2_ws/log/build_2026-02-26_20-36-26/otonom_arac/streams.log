@@ -1,0 +1,29 @@
+[2.946s] Invoking command in '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac': CONDA_PROMPT_MODIFIER=(ros2_env) PYTHONPATH=/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/prefix_override:/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.11/site-packages:${PYTHONPATH} SHLVL=2 _=/usr/bin/env /opt/homebrew/opt/python@3.11/bin/python3.11 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build install --record /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[4.048s] running egg_info
+[4.156s] writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+[4.185s] writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+[4.345s] writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+[4.433s] writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+[4.480s] writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+[4.575s] reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[4.575s] writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[4.575s] running build
+[4.575s] running build_py
+[4.577s] running install
+[4.592s] running install_lib
+[4.653s] running install_data
+[4.653s] running install_egg_info
+[4.728s] removing '/opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info' (and everything under it)
+[4.729s] Copying ../../build/otonom_arac/otonom_arac.egg-info to /opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info
+[4.735s] running install_scripts
+[5.000s] Installing camera_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.001s] Installing control_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.001s] Installing encoder_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.002s] Installing joystick_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.003s] Installing lane_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.003s] Installing lidar_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.004s] Installing object_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.005s] Installing teensy_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.005s] Installing video_player_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+[5.023s] writing list of installed files to '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log'
+[5.122s] Invoked command in '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac' returned '0': CONDA_PROMPT_MODIFIER=(ros2_env) PYTHONPATH=/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/prefix_override:/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.11/site-packages:${PYTHONPATH} SHLVL=2 _=/usr/bin/env /opt/homebrew/opt/python@3.11/bin/python3.11 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build install --record /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data

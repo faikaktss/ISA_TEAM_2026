@@ -1,0 +1,4 @@
+/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)

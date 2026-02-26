@@ -1,0 +1,3 @@
+/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+error: [Errno 17] File exists: '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/resource/otonom_arac' -> '/opt/homebrew/share/ament_index/resource_index/packages/otonom_arac'

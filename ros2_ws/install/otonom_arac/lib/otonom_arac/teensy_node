@@ -1,4 +1,4 @@
-#!/Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+#!/usr/bin/python3
 # EASY-INSTALL-ENTRY-SCRIPT: 'otonom-arac==0.0.0','console_scripts','teensy_node'
 import re
 import sys

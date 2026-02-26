@@ -1,0 +1,123 @@
+[0.541s] DEBUG:colcon:Command line arguments: ['/Users/faikaktss/Library/Python/3.11/bin/colcon', 'build', '--packages-select', 'otonom_arac']
+[0.541s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=10, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=['otonom_arac'], packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x1066f8ad0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x10662c5d0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x10662c5d0>>)
+[1.398s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[1.398s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[1.398s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[1.398s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[1.398s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[1.398s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[1.400s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws'
+[1.401s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[1.402s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[1.575s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[1.576s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[1.576s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[1.576s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[1.576s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[1.576s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[1.577s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extensions ['ignore', 'ignore_ament_install']
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extension 'ignore'
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extension 'ignore_ament_install'
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extensions ['colcon_pkg']
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extension 'colcon_pkg'
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extensions ['colcon_meta']
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extension 'colcon_meta'
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extensions ['ros']
+[1.578s] Level 1:colcon.colcon_core.package_identification:_identify(src/otonom_arac) by extension 'ros'
+[1.590s] DEBUG:colcon.colcon_core.package_identification:Package 'src/otonom_arac' with type 'ros.ament_python' and name 'otonom_arac'
+[1.590s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[1.590s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[1.590s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[1.590s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[1.590s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[1.635s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'cmake_args' from command line to 'None'
+[1.635s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'cmake_target' from command line to 'None'
+[1.636s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[1.636s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'cmake_clean_cache' from command line to 'False'
+[1.636s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'cmake_clean_first' from command line to 'False'
+[1.636s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'cmake_force_configure' from command line to 'False'
+[1.636s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'ament_cmake_args' from command line to 'None'
+[1.636s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'catkin_cmake_args' from command line to 'None'
+[1.636s] Level 5:colcon.colcon_core.verb:set package 'otonom_arac' build argument 'catkin_skip_building_tests' from command line to 'False'
+[1.636s] DEBUG:colcon.colcon_core.verb:Building package 'otonom_arac' with the following arguments: {'ament_cmake_args': None, 'build_base': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac', 'merge_install': False, 'path': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac', 'symlink_install': False, 'test_result_base': None}
+[1.636s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[1.637s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[1.637s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac' with build type 'ament_python'
+[1.637s] Level 1:colcon.colcon_core.shell:create_environment_hook('otonom_arac', 'ament_prefix_path')
+[1.644s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[1.645s] INFO:colcon.colcon_core.shell:Creating environment hook '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/hook/ament_prefix_path.ps1'
+[1.651s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/hook/ament_prefix_path.dsv'
+[1.655s] INFO:colcon.colcon_core.shell:Creating environment hook '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/hook/ament_prefix_path.sh'
+[1.657s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.657s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[2.693s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac'
+[2.694s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[2.694s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[4.583s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac': CONDA_PROMPT_MODIFIER=(ros2_env) PYTHONPATH=/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/prefix_override:/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.11/site-packages:${PYTHONPATH} SHLVL=2 _=/usr/bin/env /opt/homebrew/opt/python@3.11/bin/python3.11 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build install --record /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[6.760s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac' returned '0': CONDA_PROMPT_MODIFIER=(ros2_env) PYTHONPATH=/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/prefix_override:/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.11/site-packages:${PYTHONPATH} SHLVL=2 _=/usr/bin/env /opt/homebrew/opt/python@3.11/bin/python3.11 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/build install --record /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[6.768s] Level 1:colcon.colcon_core.environment:checking '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac' for CMake module files
+[6.769s] Level 1:colcon.colcon_core.environment:checking '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac' for CMake config files
+[6.772s] Level 1:colcon.colcon_core.environment:checking '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib'
+[6.773s] Level 1:colcon.colcon_core.environment:checking '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/bin'
+[6.773s] Level 1:colcon.colcon_core.environment:checking '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/pkgconfig/otonom_arac.pc'
+[6.773s] Level 1:colcon.colcon_core.environment:checking '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/lib/python3.11/site-packages'
+[6.774s] Level 1:colcon.colcon_core.shell:create_environment_hook('otonom_arac', 'pythonpath')
+[6.774s] INFO:colcon.colcon_core.shell:Creating environment hook '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/hook/pythonpath.ps1'
+[6.777s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/hook/pythonpath.dsv'
+[6.779s] INFO:colcon.colcon_core.shell:Creating environment hook '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/hook/pythonpath.sh'
+[6.784s] Level 1:colcon.colcon_core.environment:checking '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/bin'
+[6.785s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(otonom_arac)
+[6.786s] INFO:colcon.colcon_core.shell:Creating package script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/package.ps1'
+[6.789s] INFO:colcon.colcon_core.shell:Creating package descriptor '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/package.dsv'
+[6.796s] INFO:colcon.colcon_core.shell:Creating package script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/package.sh'
+[6.797s] INFO:colcon.colcon_core.shell:Creating package script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/package.bash'
+[6.799s] INFO:colcon.colcon_core.shell:Creating package script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/otonom_arac/package.zsh'
+[6.800s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/otonom_arac/share/colcon-core/packages/otonom_arac)
+[6.818s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[6.820s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[6.820s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[6.825s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[6.829s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify2': 'notify2' not found
+[6.829s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Not used on non-Linux systems
+[6.830s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[6.830s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'terminal_notifier'
+[6.943s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[6.945s] INFO:colcon.colcon_core.shell:Creating prefix script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/local_setup.ps1'
+[6.950s] INFO:colcon.colcon_core.shell:Creating prefix util module '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/_local_setup_util_ps1.py'
+[6.952s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/setup.ps1'
+[6.954s] INFO:colcon.colcon_core.shell:Creating prefix script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/local_setup.sh'
+[6.964s] INFO:colcon.colcon_core.shell:Creating prefix util module '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/_local_setup_util_sh.py'
+[6.967s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/setup.sh'
+[6.973s] INFO:colcon.colcon_core.shell:Creating prefix script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/local_setup.bash'
+[6.975s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/setup.bash'
+[6.978s] INFO:colcon.colcon_core.shell:Creating prefix script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/local_setup.zsh'
+[6.979s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/install/setup.zsh'
