@@ -1,0 +1,33 @@
+[9.202s] Invoking command in '/workspace/ros2_ws/src/otonom_arac': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[11.559s] running egg_info
+[11.609s] writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+[11.613s] writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+[11.626s] writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+[11.662s] writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+[11.670s] writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+[11.871s] reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[11.898s] writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[11.911s] running build
+[11.919s] running build_py
+[11.954s] copying otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception
+[12.036s] running install
+[12.044s] running install_lib
+[12.132s] copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception
+[12.207s] byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/lane_detection_node.py to lane_detection_node.cpython-312.pyc
+[12.272s] running install_data
+[12.294s] running install_egg_info
+[12.394s] removing '/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info' (and everything under it)
+[12.411s] Copying ../../build/otonom_arac/otonom_arac.egg-info to /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info
+[12.664s] running install_scripts
+[14.318s] Installing camera_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.319s] Installing control_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.321s] Installing encoder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.321s] Installing joystick_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.322s] Installing lane_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.323s] Installing lidar_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.358s] Installing object_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.377s] Installing teensy_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.410s] Installing video_player_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.437s] Installing video_recorder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[14.500s] writing list of installed files to '/workspace/ros2_ws/build/otonom_arac/install.log'
+[14.909s] Invoked command in '/workspace/ros2_ws/src/otonom_arac' returned '0': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data

@@ -1,0 +1,33 @@
+[12.355s] Invoking command in '/workspace/ros2_ws/src/otonom_arac': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[16.211s] running egg_info
+[16.392s] writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+[16.406s] writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+[16.425s] writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+[16.438s] writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+[16.454s] writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+[16.681s] reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[16.855s] writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[16.857s] running build
+[16.857s] running build_py
+[17.001s] copying otonom_arac/nodes/testing/video_recorder_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/testing
+[17.187s] running install
+[17.271s] running install_lib
+[17.917s] copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/testing/video_recorder_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing
+[18.398s] byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/video_recorder_node.py to video_recorder_node.cpython-312.pyc
+[18.542s] running install_data
+[18.617s] running install_egg_info
+[18.902s] removing '/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info' (and everything under it)
+[18.992s] Copying ../../build/otonom_arac/otonom_arac.egg-info to /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info
+[19.621s] running install_scripts
+[21.125s] Installing camera_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.149s] Installing control_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.209s] Installing encoder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.262s] Installing joystick_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.382s] Installing lane_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.417s] Installing lidar_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.447s] Installing object_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.534s] Installing teensy_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.607s] Installing video_player_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.631s] Installing video_recorder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[21.771s] writing list of installed files to '/workspace/ros2_ws/build/otonom_arac/install.log'
+[22.407s] Invoked command in '/workspace/ros2_ws/src/otonom_arac' returned '0': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data

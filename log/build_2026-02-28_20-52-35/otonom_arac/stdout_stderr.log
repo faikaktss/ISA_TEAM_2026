@@ -1,0 +1,63 @@
+/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+running egg_info
+creating ../../../build/otonom_arac/otonom_arac.egg-info
+writing ../../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+writing dependency_links to ../../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+writing entry points to ../../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+writing requirements to ../../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+writing top-level names to ../../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+writing manifest file '../../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+reading manifest file '../../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+writing manifest file '../../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac
+copying otonom_arac/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac
+creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes
+copying otonom_arac/nodes/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes
+creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors
+copying otonom_arac/nodes/sensors/joystick_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors
+copying otonom_arac/nodes/sensors/encoder_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors
+copying otonom_arac/nodes/sensors/lidar_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors
+copying otonom_arac/nodes/sensors/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors
+copying otonom_arac/nodes/sensors/camera_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors
+creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing
+copying otonom_arac/nodes/testing/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing
+copying otonom_arac/nodes/testing/video_player_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing
+copying otonom_arac/nodes/testing/video_recorder_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing
+creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception
+copying otonom_arac/nodes/perception/object_detection_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception
+copying otonom_arac/nodes/perception/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception
+copying otonom_arac/nodes/perception/lane_detection_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception
+creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control
+copying otonom_arac/nodes/control/teensy_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control
+copying otonom_arac/nodes/control/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control
+copying otonom_arac/nodes/control/control_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control
+running install
+running install_lib
+copying /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing/video_player_node.py -> /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing
+copying /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing/video_recorder_node.py -> /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing
+copying /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception/lane_detection_node.py -> /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/perception
+byte-compiling /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing/video_player_node.py to video_player_node.cpython-311.pyc
+byte-compiling /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing/video_recorder_node.py to video_recorder_node.cpython-311.pyc
+byte-compiling /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/perception/lane_detection_node.py to lane_detection_node.cpython-311.pyc
+running install_data
+copying resource/otonom_arac -> /opt/homebrew/share/ament_index/resource_index/packages
+copying package.xml -> /opt/homebrew/share/otonom_arac
+copying launch/otonom_arac_launch.py -> /opt/homebrew/share/otonom_arac/launch
+running install_egg_info
+removing '/opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info' (and everything under it)
+Copying ../../../build/otonom_arac/otonom_arac.egg-info to /opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info
+running install_scripts
+Installing camera_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing control_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing encoder_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing joystick_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing lane_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing lidar_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing object_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing teensy_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing video_player_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing video_recorder_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+writing list of installed files to '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/install.log'

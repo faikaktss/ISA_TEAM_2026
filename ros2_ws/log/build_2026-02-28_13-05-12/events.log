@@ -1,0 +1,164 @@
+[0.000000] (-) TimerEvent: {}
+[0.007326] (otonom_arac) JobQueued: {'identifier': 'otonom_arac', 'dependencies': OrderedDict()}
+[0.014225] (otonom_arac) JobStarted: {'identifier': 'otonom_arac'}
+[0.096966] (-) TimerEvent: {}
+[0.244496] (-) TimerEvent: {}
+[0.348976] (-) TimerEvent: {}
+[0.457895] (-) TimerEvent: {}
+[0.566779] (-) TimerEvent: {}
+[0.686733] (-) TimerEvent: {}
+[0.789627] (-) TimerEvent: {}
+[0.894932] (-) TimerEvent: {}
+[1.002255] (-) TimerEvent: {}
+[1.110168] (-) TimerEvent: {}
+[1.215060] (-) TimerEvent: {}
+[1.317480] (-) TimerEvent: {}
+[1.420639] (-) TimerEvent: {}
+[1.523804] (-) TimerEvent: {}
+[1.627018] (-) TimerEvent: {}
+[1.744393] (-) TimerEvent: {}
+[1.850601] (-) TimerEvent: {}
+[1.956227] (-) TimerEvent: {}
+[2.059861] (-) TimerEvent: {}
+[2.167269] (-) TimerEvent: {}
+[2.277003] (-) TimerEvent: {}
+[2.382130] (-) TimerEvent: {}
+[2.491892] (-) TimerEvent: {}
+[2.617769] (-) TimerEvent: {}
+[2.753617] (-) TimerEvent: {}
+[2.860232] (-) TimerEvent: {}
+[2.976953] (-) TimerEvent: {}
+[3.082856] (-) TimerEvent: {}
+[3.190751] (-) TimerEvent: {}
+[3.310248] (-) TimerEvent: {}
+[3.414756] (-) TimerEvent: {}
+[3.518407] (-) TimerEvent: {}
+[3.622963] (-) TimerEvent: {}
+[3.787606] (-) TimerEvent: {}
+[3.894389] (-) TimerEvent: {}
+[4.009738] (-) TimerEvent: {}
+[4.112706] (-) TimerEvent: {}
+[4.215258] (-) TimerEvent: {}
+[4.321936] (-) TimerEvent: {}
+[4.435814] (-) TimerEvent: {}
+[4.551360] (-) TimerEvent: {}
+[4.660677] (-) TimerEvent: {}
+[4.776952] (-) TimerEvent: {}
+[4.878433] (-) TimerEvent: {}
+[4.980775] (-) TimerEvent: {}
+[5.084138] (-) TimerEvent: {}
+[5.186599] (-) TimerEvent: {}
+[5.289899] (-) TimerEvent: {}
+[5.393263] (-) TimerEvent: {}
+[5.495606] (-) TimerEvent: {}
+[5.624048] (-) TimerEvent: {}
+[5.726645] (-) TimerEvent: {}
+[5.833682] (-) TimerEvent: {}
+[5.943435] (-) TimerEvent: {}
+[6.051170] (-) TimerEvent: {}
+[6.156516] (-) TimerEvent: {}
+[6.267565] (-) TimerEvent: {}
+[6.377526] (-) TimerEvent: {}
+[6.489943] (-) TimerEvent: {}
+[6.601066] (-) TimerEvent: {}
+[6.720520] (-) TimerEvent: {}
+[6.848052] (-) TimerEvent: {}
+[6.953665] (-) TimerEvent: {}
+[7.060684] (-) TimerEvent: {}
+[7.170116] (-) TimerEvent: {}
+[7.284373] (-) TimerEvent: {}
+[7.434751] (-) TimerEvent: {}
+[7.552100] (-) TimerEvent: {}
+[7.662420] (-) TimerEvent: {}
+[7.806735] (-) TimerEvent: {}
+[7.912682] (-) TimerEvent: {}
+[8.015624] (-) TimerEvent: {}
+[8.119275] (-) TimerEvent: {}
+[8.224363] (-) TimerEvent: {}
+[8.327655] (-) TimerEvent: {}
+[8.433842] (-) TimerEvent: {}
+[8.552743] (-) TimerEvent: {}
+[8.676621] (-) TimerEvent: {}
+[8.785526] (-) TimerEvent: {}
+[8.893713] (-) TimerEvent: {}
+[8.913505] (otonom_arac) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../build/otonom_arac', 'build', '--build-base', '/workspace/ros2_ws/build/otonom_arac/build', 'install', '--record', '/workspace/ros2_ws/build/otonom_arac/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/workspace/ros2_ws/src/otonom_arac', 'env': {'HOSTNAME': 'e7f275444e19', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/root', 'OLDPWD': '/workspace/ros2_ws', 'ROS_PYTHON_VERSION': '3', 'COLCON_PREFIX_PATH': '/workspace/ros2_ws/install', 'ROS_DISTRO': 'jazzy', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'PATH': '/opt/ros/jazzy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'AMENT_PREFIX_PATH': '/workspace/ros2_ws/install/otonom_arac:/opt/ros/jazzy', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/workspace/ros2_ws/build/otonom_arac', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor'}, 'shell': False}
+[9.030078] (-) TimerEvent: {}
+[9.144260] (-) TimerEvent: {}
+[9.249339] (-) TimerEvent: {}
+[9.352207] (-) TimerEvent: {}
+[9.458016] (-) TimerEvent: {}
+[9.567088] (-) TimerEvent: {}
+[9.671556] (-) TimerEvent: {}
+[9.789098] (-) TimerEvent: {}
+[9.892361] (-) TimerEvent: {}
+[10.002517] (-) TimerEvent: {}
+[10.113227] (-) TimerEvent: {}
+[10.224313] (-) TimerEvent: {}
+[10.338909] (-) TimerEvent: {}
+[10.441597] (-) TimerEvent: {}
+[10.493455] (otonom_arac) StdoutLine: {'line': b'running egg_info\n'}
+[10.543023] (-) TimerEvent: {}
+[10.553370] (otonom_arac) StdoutLine: {'line': b'writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO\n'}
+[10.564757] (otonom_arac) StdoutLine: {'line': b'writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt\n'}
+[10.588063] (otonom_arac) StdoutLine: {'line': b'writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt\n'}
+[10.610738] (otonom_arac) StdoutLine: {'line': b'writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt\n'}
+[10.644827] (otonom_arac) StdoutLine: {'line': b'writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt\n'}
+[10.652288] (-) TimerEvent: {}
+[10.756158] (-) TimerEvent: {}
+[10.858974] (otonom_arac) StdoutLine: {'line': b"reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[10.881581] (-) TimerEvent: {}
+[10.922114] (otonom_arac) StdoutLine: {'line': b"writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[10.931046] (otonom_arac) StdoutLine: {'line': b'running build\n'}
+[10.943889] (otonom_arac) StdoutLine: {'line': b'running build_py\n'}
+[10.983362] (-) TimerEvent: {}
+[11.036436] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[11.085267] (-) TimerEvent: {}
+[11.124352] (otonom_arac) StdoutLine: {'line': b'running install\n'}
+[11.156400] (otonom_arac) StdoutLine: {'line': b'running install_lib\n'}
+[11.188916] (-) TimerEvent: {}
+[11.268433] (otonom_arac) StdoutLine: {'line': b'copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception\n'}
+[11.293651] (-) TimerEvent: {}
+[11.411643] (otonom_arac) StdoutLine: {'line': b'byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/lane_detection_node.py to lane_detection_node.cpython-312.pyc\n'}
+[11.422511] (-) TimerEvent: {}
+[11.526642] (-) TimerEvent: {}
+[11.568770] (otonom_arac) StdoutLine: {'line': b'running install_data\n'}
+[11.583208] (otonom_arac) StdoutLine: {'line': b'running install_egg_info\n'}
+[11.629506] (-) TimerEvent: {}
+[11.737396] (-) TimerEvent: {}
+[11.771555] (otonom_arac) StdoutLine: {'line': b"removing '/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info' (and everything under it)\n"}
+[11.814375] (otonom_arac) StdoutLine: {'line': b'Copying ../../build/otonom_arac/otonom_arac.egg-info to /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info\n'}
+[11.839058] (-) TimerEvent: {}
+[11.953763] (-) TimerEvent: {}
+[12.056951] (-) TimerEvent: {}
+[12.161492] (-) TimerEvent: {}
+[12.304568] (-) TimerEvent: {}
+[12.352405] (otonom_arac) StdoutLine: {'line': b'running install_scripts\n'}
+[12.407223] (-) TimerEvent: {}
+[12.513058] (-) TimerEvent: {}
+[12.620657] (-) TimerEvent: {}
+[12.732421] (-) TimerEvent: {}
+[12.862026] (-) TimerEvent: {}
+[12.946205] (otonom_arac) StdoutLine: {'line': b'Installing camera_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[12.950310] (otonom_arac) StdoutLine: {'line': b'Installing control_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[12.954003] (otonom_arac) StdoutLine: {'line': b'Installing encoder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[12.956889] (otonom_arac) StdoutLine: {'line': b'Installing joystick_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[12.982428] (-) TimerEvent: {}
+[12.989420] (otonom_arac) StdoutLine: {'line': b'Installing lane_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[13.029563] (otonom_arac) StdoutLine: {'line': b'Installing lidar_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[13.037751] (otonom_arac) StdoutLine: {'line': b'Installing object_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[13.048333] (otonom_arac) StdoutLine: {'line': b'Installing teensy_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[13.082926] (otonom_arac) StdoutLine: {'line': b'Installing video_player_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[13.091097] (-) TimerEvent: {}
+[13.120252] (otonom_arac) StdoutLine: {'line': b'Installing video_recorder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[13.172958] (otonom_arac) StdoutLine: {'line': b"writing list of installed files to '/workspace/ros2_ws/build/otonom_arac/install.log'\n"}
+[13.192271] (-) TimerEvent: {}
+[13.304642] (-) TimerEvent: {}
+[13.388082] (otonom_arac) CommandEnded: {'returncode': 0}
+[13.408066] (-) TimerEvent: {}
+[13.514615] (-) TimerEvent: {}
+[13.623835] (-) TimerEvent: {}
+[13.729061] (-) TimerEvent: {}
+[13.843105] (-) TimerEvent: {}
+[13.916848] (otonom_arac) JobEnded: {'identifier': 'otonom_arac', 'rc': 0}
+[14.044336] (-) TimerEvent: {}
+[14.050022] (-) EventReactorShutdown: {}

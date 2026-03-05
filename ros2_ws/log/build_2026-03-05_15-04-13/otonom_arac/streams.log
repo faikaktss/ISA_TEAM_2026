@@ -1,0 +1,33 @@
+[1.564s] Invoking command in '/workspace/ros2_ws/src/otonom_arac': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[2.011s] running egg_info
+[2.052s] writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+[2.056s] writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+[2.058s] writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+[2.061s] writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+[2.068s] writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+[2.130s] reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[2.133s] writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[2.134s] running build
+[2.134s] running build_py
+[2.143s] copying otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception
+[2.148s] running install
+[2.157s] running install_lib
+[2.182s] copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception
+[2.188s] byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/lane_detection_node.py to lane_detection_node.cpython-312.pyc
+[2.204s] running install_data
+[2.205s] running install_egg_info
+[2.224s] removing '/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info' (and everything under it)
+[2.227s] Copying ../../build/otonom_arac/otonom_arac.egg-info to /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info
+[2.243s] running install_scripts
+[2.386s] Installing camera_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.391s] Installing control_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.392s] Installing encoder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.393s] Installing joystick_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.394s] Installing lane_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.395s] Installing lidar_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.401s] Installing object_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.402s] Installing teensy_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.403s] Installing video_player_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.404s] Installing video_recorder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[2.413s] writing list of installed files to '/workspace/ros2_ws/build/otonom_arac/install.log'
+[2.468s] Invoked command in '/workspace/ros2_ws/src/otonom_arac' returned '0': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data

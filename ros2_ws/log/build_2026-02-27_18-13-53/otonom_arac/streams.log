@@ -1,0 +1,32 @@
+[4.225s] Invoking command in '/workspace/ros2_ws/src/otonom_arac': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data
+[5.429s] running egg_info
+[5.465s] writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO
+[5.478s] writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt
+[5.486s] writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt
+[5.488s] writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt
+[5.488s] writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt
+[5.609s] reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[5.618s] writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'
+[5.627s] running build
+[5.630s] running build_py
+[5.646s] copying otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception
+[5.681s] running install
+[5.690s] running install_lib
+[5.756s] copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception
+[5.760s] byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/lane_detection_node.py to lane_detection_node.cpython-312.pyc
+[5.818s] running install_data
+[5.829s] running install_egg_info
+[5.884s] removing '/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info' (and everything under it)
+[5.897s] Copying ../../build/otonom_arac/otonom_arac.egg-info to /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info
+[6.025s] running install_scripts
+[6.597s] Installing camera_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.663s] Installing control_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.687s] Installing encoder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.697s] Installing joystick_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.720s] Installing lane_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.726s] Installing lidar_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.733s] Installing object_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.751s] Installing teensy_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.768s] Installing video_player_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac
+[6.805s] writing list of installed files to '/workspace/ros2_ws/build/otonom_arac/install.log'
+[6.998s] Invoked command in '/workspace/ros2_ws/src/otonom_arac' returned '0': PYTHONPATH=/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/otonom_arac build --build-base /workspace/ros2_ws/build/otonom_arac/build install --record /workspace/ros2_ws/build/otonom_arac/install.log --single-version-externally-managed install_data

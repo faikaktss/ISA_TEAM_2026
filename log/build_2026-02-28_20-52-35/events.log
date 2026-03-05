@@ -1,0 +1,257 @@
+[0.000000] (-) TimerEvent: {}
+[0.083335] (otonom_arac) JobQueued: {'identifier': 'otonom_arac', 'dependencies': OrderedDict()}
+[0.134161] (-) TimerEvent: {}
+[0.137654] (otonom_arac) JobStarted: {'identifier': 'otonom_arac'}
+[0.245091] (-) TimerEvent: {}
+[0.365109] (-) TimerEvent: {}
+[0.504930] (-) TimerEvent: {}
+[0.632228] (-) TimerEvent: {}
+[0.736035] (-) TimerEvent: {}
+[0.846865] (-) TimerEvent: {}
+[0.957075] (-) TimerEvent: {}
+[1.057899] (-) TimerEvent: {}
+[1.160517] (-) TimerEvent: {}
+[1.292536] (-) TimerEvent: {}
+[1.411624] (-) TimerEvent: {}
+[1.549611] (-) TimerEvent: {}
+[1.671801] (-) TimerEvent: {}
+[1.775671] (-) TimerEvent: {}
+[1.876601] (-) TimerEvent: {}
+[1.984764] (-) TimerEvent: {}
+[2.090153] (-) TimerEvent: {}
+[2.226786] (-) TimerEvent: {}
+[2.330275] (-) TimerEvent: {}
+[2.443033] (-) TimerEvent: {}
+[2.550309] (-) TimerEvent: {}
+[2.653944] (-) TimerEvent: {}
+[2.763225] (-) TimerEvent: {}
+[2.885790] (-) TimerEvent: {}
+[2.992814] (-) TimerEvent: {}
+[3.098666] (-) TimerEvent: {}
+[3.212564] (-) TimerEvent: {}
+[3.328747] (-) TimerEvent: {}
+[3.431730] (-) TimerEvent: {}
+[3.545643] (-) TimerEvent: {}
+[3.655093] (-) TimerEvent: {}
+[3.758803] (-) TimerEvent: {}
+[3.921621] (-) TimerEvent: {}
+[4.046619] (-) TimerEvent: {}
+[4.178507] (-) TimerEvent: {}
+[4.297842] (-) TimerEvent: {}
+[4.421629] (-) TimerEvent: {}
+[4.528390] (-) TimerEvent: {}
+[4.666573] (-) TimerEvent: {}
+[4.772468] (-) TimerEvent: {}
+[4.878340] (-) TimerEvent: {}
+[5.046791] (-) TimerEvent: {}
+[5.193320] (-) TimerEvent: {}
+[5.312296] (-) TimerEvent: {}
+[5.419222] (-) TimerEvent: {}
+[5.538910] (-) TimerEvent: {}
+[5.676132] (-) TimerEvent: {}
+[5.796112] (-) TimerEvent: {}
+[5.900624] (-) TimerEvent: {}
+[6.007206] (-) TimerEvent: {}
+[6.111474] (-) TimerEvent: {}
+[6.225335] (-) TimerEvent: {}
+[6.328948] (-) TimerEvent: {}
+[6.458567] (-) TimerEvent: {}
+[6.576747] (-) TimerEvent: {}
+[6.687495] (-) TimerEvent: {}
+[6.809900] (-) TimerEvent: {}
+[6.915083] (-) TimerEvent: {}
+[7.019055] (-) TimerEvent: {}
+[7.132274] (-) TimerEvent: {}
+[7.271741] (-) TimerEvent: {}
+[7.425493] (-) TimerEvent: {}
+[7.552577] (-) TimerEvent: {}
+[7.655792] (-) TimerEvent: {}
+[7.763999] (-) TimerEvent: {}
+[7.918786] (-) TimerEvent: {}
+[8.022055] (-) TimerEvent: {}
+[8.140696] (-) TimerEvent: {}
+[8.257826] (-) TimerEvent: {}
+[8.394206] (-) TimerEvent: {}
+[8.524401] (-) TimerEvent: {}
+[8.629864] (-) TimerEvent: {}
+[8.736197] (-) TimerEvent: {}
+[8.855138] (-) TimerEvent: {}
+[8.962514] (-) TimerEvent: {}
+[9.063451] (-) TimerEvent: {}
+[9.175107] (-) TimerEvent: {}
+[9.277373] (-) TimerEvent: {}
+[9.396068] (-) TimerEvent: {}
+[9.499705] (-) TimerEvent: {}
+[9.609105] (-) TimerEvent: {}
+[9.713054] (-) TimerEvent: {}
+[9.815352] (-) TimerEvent: {}
+[9.925395] (-) TimerEvent: {}
+[10.050109] (-) TimerEvent: {}
+[10.164675] (-) TimerEvent: {}
+[10.265786] (-) TimerEvent: {}
+[10.391182] (-) TimerEvent: {}
+[10.495247] (-) TimerEvent: {}
+[10.596516] (-) TimerEvent: {}
+[10.703777] (-) TimerEvent: {}
+[10.810627] (-) TimerEvent: {}
+[10.912398] (-) TimerEvent: {}
+[11.014901] (-) TimerEvent: {}
+[11.121395] (-) TimerEvent: {}
+[11.228981] (-) TimerEvent: {}
+[11.339111] (-) TimerEvent: {}
+[11.453456] (-) TimerEvent: {}
+[11.561156] (-) TimerEvent: {}
+[11.684418] (-) TimerEvent: {}
+[11.786728] (-) TimerEvent: {}
+[11.893557] (-) TimerEvent: {}
+[12.007698] (-) TimerEvent: {}
+[12.116638] (-) TimerEvent: {}
+[12.228750] (-) TimerEvent: {}
+[12.334618] (-) TimerEvent: {}
+[12.445466] (-) TimerEvent: {}
+[12.563386] (-) TimerEvent: {}
+[12.665543] (-) TimerEvent: {}
+[12.772119] (-) TimerEvent: {}
+[12.894748] (-) TimerEvent: {}
+[13.022762] (-) TimerEvent: {}
+[13.129192] (-) TimerEvent: {}
+[13.231556] (-) TimerEvent: {}
+[13.340349] (-) TimerEvent: {}
+[13.456795] (-) TimerEvent: {}
+[13.567487] (-) TimerEvent: {}
+[13.677890] (-) TimerEvent: {}
+[13.779174] (-) TimerEvent: {}
+[13.889410] (-) TimerEvent: {}
+[14.023833] (-) TimerEvent: {}
+[14.128746] (-) TimerEvent: {}
+[14.254625] (-) TimerEvent: {}
+[14.379249] (otonom_arac) Command: {'cmd': ['/opt/homebrew/opt/python@3.11/bin/python3.11', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../../build/otonom_arac', 'build', '--build-base', '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build', 'install', '--record', '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/ros2_ws/src/otonom_arac', 'env': {'TERM_PROGRAM': 'vscode', 'AUTO_CONFIG_PATH': '/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/gradle/latest/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/maven/latest/bin', 'TERM': 'xterm-256color', 'SHELL': '/bin/zsh', 'TMPDIR': '/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/', 'VSCODE_PYTHON_AUTOACTIVATE_GUARD': '1', 'TERM_PROGRAM_VERSION': '1.106.3', 'ZDOTDIR': '/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk', 'ORIGINAL_XDG_CURRENT_DESKTOP': 'undefined', 'MallocNanoZone': '0', 'USER': 'faikaktss', 'COMMAND_MODE': 'unix2003', 'SSH_AUTH_SOCK': '/private/tmp/com.apple.launchd.uWuB59W7hL/Listeners', '__CF_USER_TEXT_ENCODING': '0x1F5:0x23:0x18', 'PYDEVD_DISABLE_FILE_VALIDATION': '1', 'MAVEN_HOME': '/usr/local/apache-maven', 'PATH': '/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/gradle/latest/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/maven/latest/bin:/Users/faikaktss/Library/Python/3.11/bin:/usr/local/apache-maven/bin:/usr/local/apache-maven/bin:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand:/Users/faikaktss/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli:/Users/faikaktss/Library/Python/3.11/bin:/usr/local/apache-maven/bin:/usr/local/apache-maven/bin:/Library/Frameworks/Python.framework/Versions/3.14/bin:/Library/Frameworks/Python.framework/Versions/3.14/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/opt/homebrew/bin:/Users/faikaktss/.vscode/extensions/ms-python.debugpy-2025.18.0-darwin-arm64/bundled/scripts/noConfigScripts', 'LaunchInstanceID': '1EB31E43-FE8E-412E-9DB5-28678B4AB82E', 'USER_ZDOTDIR': '/Users/faikaktss/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk', '__CFBundleIdentifier': 'com.microsoft.VSCode', 'PWD': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac', 'COLCON': '1', 'JAVA_HOME': '/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home', 'LANG': 'C.UTF-8', 'PYTHONSTARTUP': '/Users/faikaktss/Library/Application Support/Code/User/workspaceStorage/e7ed6971385a5466d2a6758616d4523b/ms-python.python/pythonrc.py', 'BUNDLED_DEBUGPY_PATH': '/Users/faikaktss/.vscode/extensions/ms-python.debugpy-2025.18.0-darwin-arm64/bundled/libs/debugpy', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'XPC_FLAGS': '0x0', 'XPC_SERVICE_NAME': '0', 'VSCODE_INJECTION': '1', 'VSCODE_DEBUGPY_ADAPTER_ENDPOINTS': '/Users/faikaktss/.vscode/extensions/ms-python.debugpy-2025.18.0-darwin-arm64/.noConfigDebugAdapterEndpoints/endpoint-13ac5d90e1ee3eb3.txt', 'M2_HOME': '/usr/local/apache-maven', 'SHLVL': '2', 'HOME': '/Users/faikaktss', 'VSCODE_GIT_ASKPASS_MAIN': '/private/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/AppTranslocation/C495B042-4C9F-4CA1-8351-F6B7C1472E4B/d/Visual Studio Code.app/Contents/Resources/app/extensions/git/dist/askpass-main.js', 'PYTHON_BASIC_REPL': '1', 'GK_GL_ADDR': 'http://127.0.0.1:55592', 'LOGNAME': 'faikaktss', 'VSCODE_GIT_IPC_HANDLE': '/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/vscode-git-0790bb7d8b.sock', 'GK_GL_PATH': '/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/gitkraken/gitlens/gitlens-ipc-server-638-55592.json', 'VSCODE_GIT_ASKPASS_NODE': '/private/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/AppTranslocation/C495B042-4C9F-4CA1-8351-F6B7C1472E4B/d/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)', 'GIT_ASKPASS': '/private/var/folders/sx/tw64tmbx6knd9w65177vb0v40000gn/T/AppTranslocation/C495B042-4C9F-4CA1-8351-F6B7C1472E4B/d/Visual Studio Code.app/Contents/Resources/app/extensions/git/dist/askpass.sh', 'OSLogRateLimit': '64', 'SECURITYSESSIONID': '186b5', 'COLORTERM': 'truecolor', '_': '/usr/bin/env', 'PYTHONPATH': '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/prefix_override:/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/colcon_core/task/python/colcon_distutils_commands:/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/install/otonom_arac/lib/python3.11/site-packages:'}, 'shell': False}
+[14.442291] (-) TimerEvent: {}
+[14.549156] (-) TimerEvent: {}
+[14.651686] (-) TimerEvent: {}
+[14.774686] (-) TimerEvent: {}
+[14.884930] (-) TimerEvent: {}
+[14.996509] (-) TimerEvent: {}
+[15.120487] (-) TimerEvent: {}
+[15.226436] (-) TimerEvent: {}
+[15.342510] (-) TimerEvent: {}
+[15.461402] (-) TimerEvent: {}
+[15.565216] (-) TimerEvent: {}
+[15.693305] (-) TimerEvent: {}
+[15.814833] (-) TimerEvent: {}
+[15.915533] (-) TimerEvent: {}
+[16.055202] (-) TimerEvent: {}
+[16.164287] (-) TimerEvent: {}
+[16.289302] (-) TimerEvent: {}
+[16.412470] (-) TimerEvent: {}
+[16.519335] (-) TimerEvent: {}
+[16.621927] (-) TimerEvent: {}
+[16.727062] (-) TimerEvent: {}
+[16.833666] (-) TimerEvent: {}
+[16.976447] (-) TimerEvent: {}
+[17.085448] (-) TimerEvent: {}
+[17.191916] (-) TimerEvent: {}
+[17.301078] (-) TimerEvent: {}
+[17.407796] (-) TimerEvent: {}
+[17.520733] (-) TimerEvent: {}
+[17.707682] (-) TimerEvent: {}
+[17.829498] (-) TimerEvent: {}
+[17.937070] (-) TimerEvent: {}
+[18.054422] (-) TimerEvent: {}
+[18.155003] (-) TimerEvent: {}
+[18.210862] (otonom_arac) StderrLine: {'line': b"/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'\n"}
+[18.219030] (otonom_arac) StderrLine: {'line': b'  warnings.warn(msg)\n'}
+[18.259630] (-) TimerEvent: {}
+[18.378963] (-) TimerEvent: {}
+[18.430596] (otonom_arac) StdoutLine: {'line': b'running egg_info\n'}
+[18.461484] (otonom_arac) StdoutLine: {'line': b'creating ../../../build/otonom_arac/otonom_arac.egg-info\n'}
+[18.462658] (otonom_arac) StdoutLine: {'line': b'writing ../../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO\n'}
+[18.465395] (otonom_arac) StdoutLine: {'line': b'writing dependency_links to ../../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt\n'}
+[18.467480] (otonom_arac) StdoutLine: {'line': b'writing entry points to ../../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt\n'}
+[18.467576] (otonom_arac) StdoutLine: {'line': b'writing requirements to ../../../build/otonom_arac/otonom_arac.egg-info/requires.txt\n'}
+[18.467683] (otonom_arac) StdoutLine: {'line': b'writing top-level names to ../../../build/otonom_arac/otonom_arac.egg-info/top_level.txt\n'}
+[18.467845] (otonom_arac) StdoutLine: {'line': b"writing manifest file '../../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[18.480295] (-) TimerEvent: {}
+[18.588173] (-) TimerEvent: {}
+[18.700132] (-) TimerEvent: {}
+[18.805193] (-) TimerEvent: {}
+[18.880587] (otonom_arac) StdoutLine: {'line': b"reading manifest file '../../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[18.882452] (otonom_arac) StdoutLine: {'line': b"writing manifest file '../../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[18.882553] (otonom_arac) StdoutLine: {'line': b'running build\n'}
+[18.882639] (otonom_arac) StdoutLine: {'line': b'running build_py\n'}
+[18.882686] (otonom_arac) StdoutLine: {'line': b'creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac\n'}
+[18.882839] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac\n'}
+[18.883103] (otonom_arac) StdoutLine: {'line': b'creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes\n'}
+[18.883344] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes\n'}
+[18.884733] (otonom_arac) StdoutLine: {'line': b'creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[18.884999] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/joystick_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[18.885490] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/encoder_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[18.885561] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/lidar_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[18.887492] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[18.889735] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/camera_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[18.891908] (otonom_arac) StdoutLine: {'line': b'creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing\n'}
+[18.892037] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/testing/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing\n'}
+[18.892864] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/testing/video_player_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing\n'}
+[18.895867] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/testing/video_recorder_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing\n'}
+[18.900953] (otonom_arac) StdoutLine: {'line': b'creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[18.909102] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/perception/object_detection_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[18.909975] (-) TimerEvent: {}
+[18.910123] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/perception/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[18.914809] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/perception/lane_detection_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[18.927229] (otonom_arac) StdoutLine: {'line': b'creating /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control\n'}
+[18.927471] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/control/teensy_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control\n'}
+[18.927541] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/control/__init__.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control\n'}
+[18.927660] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/control/control_node.py -> /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/control\n'}
+[18.936294] (otonom_arac) StdoutLine: {'line': b'running install\n'}
+[18.942263] (otonom_arac) StdoutLine: {'line': b'running install_lib\n'}
+[18.956152] (otonom_arac) StdoutLine: {'line': b'copying /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing/video_player_node.py -> /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing\n'}
+[18.957198] (otonom_arac) StdoutLine: {'line': b'copying /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/testing/video_recorder_node.py -> /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing\n'}
+[18.957378] (otonom_arac) StdoutLine: {'line': b'copying /Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/build/lib/otonom_arac/nodes/perception/lane_detection_node.py -> /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/perception\n'}
+[18.979218] (otonom_arac) StdoutLine: {'line': b'byte-compiling /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing/video_player_node.py to video_player_node.cpython-311.pyc\n'}
+[19.017546] (-) TimerEvent: {}
+[19.061000] (otonom_arac) StdoutLine: {'line': b'byte-compiling /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/testing/video_recorder_node.py to video_recorder_node.cpython-311.pyc\n'}
+[19.075765] (otonom_arac) StdoutLine: {'line': b'byte-compiling /opt/homebrew/lib/python3.11/site-packages/otonom_arac/nodes/perception/lane_detection_node.py to lane_detection_node.cpython-311.pyc\n'}
+[19.078076] (otonom_arac) StdoutLine: {'line': b'running install_data\n'}
+[19.081970] (otonom_arac) StdoutLine: {'line': b'copying resource/otonom_arac -> /opt/homebrew/share/ament_index/resource_index/packages\n'}
+[19.084572] (otonom_arac) StdoutLine: {'line': b'copying package.xml -> /opt/homebrew/share/otonom_arac\n'}
+[19.141240] (-) TimerEvent: {}
+[19.234543] (otonom_arac) StdoutLine: {'line': b'copying launch/otonom_arac_launch.py -> /opt/homebrew/share/otonom_arac/launch\n'}
+[19.263660] (-) TimerEvent: {}
+[19.276092] (otonom_arac) StdoutLine: {'line': b'running install_egg_info\n'}
+[19.312573] (otonom_arac) StdoutLine: {'line': b"removing '/opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info' (and everything under it)\n"}
+[19.314499] (otonom_arac) StdoutLine: {'line': b'Copying ../../../build/otonom_arac/otonom_arac.egg-info to /opt/homebrew/lib/python3.11/site-packages/otonom_arac-0.0.0-py3.11.egg-info\n'}
+[19.328769] (otonom_arac) StdoutLine: {'line': b'running install_scripts\n'}
+[19.357020] (-) TimerEvent: {}
+[19.507313] (-) TimerEvent: {}
+[19.610937] (-) TimerEvent: {}
+[19.727918] (-) TimerEvent: {}
+[19.857521] (-) TimerEvent: {}
+[19.965550] (-) TimerEvent: {}
+[20.078095] (-) TimerEvent: {}
+[20.191948] (-) TimerEvent: {}
+[20.295893] (-) TimerEvent: {}
+[20.372585] (otonom_arac) StdoutLine: {'line': b'Installing camera_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.374087] (otonom_arac) StdoutLine: {'line': b'Installing control_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.374207] (otonom_arac) StdoutLine: {'line': b'Installing encoder_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.374287] (otonom_arac) StdoutLine: {'line': b'Installing joystick_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.374338] (otonom_arac) StdoutLine: {'line': b'Installing lane_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.374684] (otonom_arac) StdoutLine: {'line': b'Installing lidar_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.375097] (otonom_arac) StdoutLine: {'line': b'Installing object_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.375127] (otonom_arac) StdoutLine: {'line': b'Installing teensy_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.375154] (otonom_arac) StdoutLine: {'line': b'Installing video_player_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.375355] (otonom_arac) StdoutLine: {'line': b'Installing video_recorder_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac\n'}
+[20.380618] (otonom_arac) StdoutLine: {'line': b"writing list of installed files to '/Users/faikaktss/ISA_TEAM_2025-2026_ROS2/build/otonom_arac/install.log'\n"}
+[20.412341] (-) TimerEvent: {}
+[20.527754] (-) TimerEvent: {}
+[20.648110] (-) TimerEvent: {}
+[20.770909] (-) TimerEvent: {}
+[20.901249] (-) TimerEvent: {}
+[21.019488] (-) TimerEvent: {}
+[21.141286] (-) TimerEvent: {}
+[21.264801] (-) TimerEvent: {}
+[21.322139] (otonom_arac) CommandEnded: {'returncode': 0}
+[21.371193] (-) TimerEvent: {}
+[21.488295] (-) TimerEvent: {}
+[21.574694] (otonom_arac) JobEnded: {'identifier': 'otonom_arac', 'rc': 0}
+[21.768950] (-) TimerEvent: {}
+[21.818167] (-) EventReactorShutdown: {}
