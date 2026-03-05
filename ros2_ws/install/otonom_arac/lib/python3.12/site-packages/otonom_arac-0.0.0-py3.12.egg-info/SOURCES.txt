@@ -24,7 +24,6 @@ otonom_arac/nodes/sensors/joystick_node.py
 otonom_arac/nodes/sensors/lidar_node.py
 otonom_arac/nodes/testing/__init__.py
 otonom_arac/nodes/testing/video_player_node.py
-otonom_arac/nodes/testing/video_recorder_node.py
 resource/otonom_arac
 test/test_copyright.py
 test/test_flake8.py

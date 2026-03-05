@@ -1,6 +1,0 @@
-source;share/otonom_arac/hook/pythonpath.ps1
-source;share/otonom_arac/hook/pythonpath.dsv
-source;share/otonom_arac/hook/pythonpath.sh
-source;share/otonom_arac/hook/ament_prefix_path.ps1
-source;share/otonom_arac/hook/ament_prefix_path.dsv
-source;share/otonom_arac/hook/ament_prefix_path.sh

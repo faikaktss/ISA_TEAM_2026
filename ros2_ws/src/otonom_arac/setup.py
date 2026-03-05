@@ -43,7 +43,6 @@ setup(
             'object_detection_node = otonom_arac.nodes.perception.object_detection_node:main',
             # Testing nodes
             'video_player_node = otonom_arac.nodes.testing.video_player_node:main',
-            'video_recorder_node = otonom_arac.nodes.testing.video_recorder_node:main',
         ],
     },
 )

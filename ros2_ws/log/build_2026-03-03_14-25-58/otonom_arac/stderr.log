@@ -1,2 +1,0 @@
-/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/lane_detection_node.py:24: SyntaxWarning: invalid escape sequence '\ '
-  """

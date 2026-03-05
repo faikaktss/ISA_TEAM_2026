@@ -7,7 +7,6 @@
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/sensors/camera_node.py
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/__init__.py
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/video_player_node.py
-/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/video_recorder_node.py
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/object_detection_node.py
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/__init__.py
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/lane_detection_node.py
@@ -23,7 +22,6 @@
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/sensors/__pycache__/camera_node.cpython-312.pyc
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/__pycache__/__init__.cpython-312.pyc
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/__pycache__/video_player_node.cpython-312.pyc
-/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/__pycache__/video_recorder_node.cpython-312.pyc
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/__pycache__/object_detection_node.cpython-312.pyc
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/__pycache__/__init__.cpython-312.pyc
 /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/__pycache__/lane_detection_node.cpython-312.pyc
@@ -53,4 +51,3 @@
 /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac/object_detection_node
 /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac/teensy_node
 /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac/video_player_node
-/workspace/ros2_ws/install/otonom_arac/lib/otonom_arac/video_recorder_node
