@@ -4,7 +4,12 @@ from rclpy.node import Node
 from std_msgs.msg import Float32, String, Int32
 from sensor_msgs.msg import LaserScan
 import time
-import serial
+
+try:
+    import serial
+    SERIAL_AVAILABLE = True
+except ImportError:
+    SERIAL_AVAILABLE = False
 
 class ControlNode(Node):
     def __init__(self):
@@ -58,7 +63,7 @@ class ControlNode(Node):
         
         # Todo: Teensy ve Arduino bağlantısı
         try:
-            if not self.test_mode:
+            if not self.test_mode and SERIAL_AVAILABLE:
                 self.teensy = serial.Serial(teensy_port, teensy_baudrate, timeout=1)
                 self.arduino = serial.Serial(arduino_port, arduino_baudrate, timeout=1)
                 self.get_logger().info(f'Teensy ({teensy_port}) ve Arduino ({arduino_port}) bağlandı')
@@ -144,7 +149,7 @@ class ControlNode(Node):
         self.vites_pub.publish(vites_msg)
         
         if self.test_mode:
-            self.get_logger().debug(f'[CONTROL] sag_sol={sag_sol}, ileri_geri={ileri_geri}, vites={vites}')
+            self.get_logger().info(f'[CONTROL] sag_sol={sag_sol}, ileri_geri={ileri_geri}, vites={vites}')
 
     def control_loop(self):
         
