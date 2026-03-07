@@ -1,0 +1,55 @@
+[0.000000] (-) TimerEvent: {}
+[0.000259] (otonom_arac) JobQueued: {'identifier': 'otonom_arac', 'dependencies': OrderedDict()}
+[0.001901] (otonom_arac) JobStarted: {'identifier': 'otonom_arac'}
+[0.099170] (-) TimerEvent: {}
+[0.206617] (-) TimerEvent: {}
+[0.311299] (-) TimerEvent: {}
+[0.413163] (-) TimerEvent: {}
+[0.514470] (-) TimerEvent: {}
+[0.617887] (-) TimerEvent: {}
+[0.725193] (-) TimerEvent: {}
+[0.830075] (-) TimerEvent: {}
+[0.931488] (-) TimerEvent: {}
+[1.038113] (-) TimerEvent: {}
+[1.141354] (-) TimerEvent: {}
+[1.245195] (-) TimerEvent: {}
+[1.347113] (-) TimerEvent: {}
+[1.386990] (otonom_arac) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../build/otonom_arac', 'build', '--build-base', '/workspace/ros2_ws/build/otonom_arac/build', 'install', '--record', '/workspace/ros2_ws/build/otonom_arac/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/workspace/ros2_ws/src/otonom_arac', 'env': {'HOSTNAME': 'ce0c9459c9fd', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/root', 'OLDPWD': '/', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'jazzy', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'PATH': '/opt/ros/jazzy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/opt/ros/jazzy', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/workspace/ros2_ws/build/otonom_arac', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor'}, 'shell': False}
+[1.449095] (-) TimerEvent: {}
+[1.550039] (-) TimerEvent: {}
+[1.659023] (-) TimerEvent: {}
+[1.739175] (otonom_arac) StdoutLine: {'line': b'running egg_info\n'}
+[1.752099] (otonom_arac) StdoutLine: {'line': b'writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO\n'}
+[1.754051] (otonom_arac) StdoutLine: {'line': b'writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt\n'}
+[1.754783] (otonom_arac) StdoutLine: {'line': b'writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt\n'}
+[1.759833] (otonom_arac) StdoutLine: {'line': b'writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt\n'}
+[1.762257] (-) TimerEvent: {}
+[1.762774] (otonom_arac) StdoutLine: {'line': b'writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt\n'}
+[1.796598] (otonom_arac) StdoutLine: {'line': b"reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[1.798335] (otonom_arac) StdoutLine: {'line': b"writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[1.798875] (otonom_arac) StdoutLine: {'line': b'running build\n'}
+[1.799250] (otonom_arac) StdoutLine: {'line': b'running build_py\n'}
+[1.812031] (otonom_arac) StdoutLine: {'line': b'running install\n'}
+[1.822731] (otonom_arac) StdoutLine: {'line': b'running install_lib\n'}
+[1.846043] (otonom_arac) StdoutLine: {'line': b'running install_data\n'}
+[1.850650] (otonom_arac) StdoutLine: {'line': b'running install_egg_info\n'}
+[1.863086] (-) TimerEvent: {}
+[1.878932] (otonom_arac) StdoutLine: {'line': b"removing '/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info' (and everything under it)\n"}
+[1.884317] (otonom_arac) StdoutLine: {'line': b'Copying ../../build/otonom_arac/otonom_arac.egg-info to /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info\n'}
+[1.914318] (otonom_arac) StdoutLine: {'line': b'running install_scripts\n'}
+[1.964188] (-) TimerEvent: {}
+[2.065249] (otonom_arac) StdoutLine: {'line': b'Installing camera_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.066174] (-) TimerEvent: {}
+[2.066482] (otonom_arac) StdoutLine: {'line': b'Installing control_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.068048] (otonom_arac) StdoutLine: {'line': b'Installing encoder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.070207] (otonom_arac) StdoutLine: {'line': b'Installing joystick_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.073203] (otonom_arac) StdoutLine: {'line': b'Installing lane_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.077160] (otonom_arac) StdoutLine: {'line': b'Installing lidar_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.080203] (otonom_arac) StdoutLine: {'line': b'Installing object_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.081177] (otonom_arac) StdoutLine: {'line': b'Installing teensy_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.082261] (otonom_arac) StdoutLine: {'line': b'Installing video_player_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[2.084992] (otonom_arac) StdoutLine: {'line': b"writing list of installed files to '/workspace/ros2_ws/build/otonom_arac/install.log'\n"}
+[2.129649] (otonom_arac) CommandEnded: {'returncode': 0}
+[2.166967] (-) TimerEvent: {}
+[2.179768] (otonom_arac) JobEnded: {'identifier': 'otonom_arac', 'rc': 0}
+[2.200832] (-) EventReactorShutdown: {}

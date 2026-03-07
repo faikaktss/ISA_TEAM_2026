@@ -4,17 +4,13 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32MultiArray
 import numpy as np
 
-# ============================================================================
-# Lidar sınıfı kaldırıldı - Şimdilik test modu ile çalışıyoruz
-# Gerçek donanım bağlandığında RPLidar kütüphanesi kullanılacak
-# ============================================================================
 
 class LidarNode(Node):
     def __init__(self):
         super().__init__('lidar_node')
         
         # Todo: Parametreler - Lidar ayarları
-        self.declare_parameter('lidar_port', '/dev/ttyUSB0')
+        self.declare_parameter('lidar_port', '/dev/ttyUSB1')
         self.declare_parameter('lidar_baudrate', 115200)
         self.declare_parameter('test_mode', True)  # Gerçek donanım yoksa True
         

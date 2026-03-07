@@ -36,7 +36,7 @@ class ObjectDetectionNode(Node):
         if YOLO_AVAILABLE:
             try:
                 #Todo: YOLO modelini yükle
-                model_path = '/Users/faikaktss/ISA_TEAMM_2025-2026/modeller/bestv11L.pt'
+                model_path = '/workspace/model/best.pt'
                 self.model = YOLO(model_path)
                 self.get_logger().info('YOLO modeli yüklendi')
             except Exception as e:

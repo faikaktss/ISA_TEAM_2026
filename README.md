@@ -81,10 +81,10 @@ ISA_TEAM_2025-2026_ROS2/
 ## ✨ Ana Özellikler
 
 | 🚦 Özellik                | Açıklama                                                                |
-|--------------------------|------------------------------------------------------------------------|
+|--------------------------|------------------------------------------------------------------------ |
 | Şerit & Yol Algılama     | Kamera görüntüsünden yol & şerit konumunu ve açı hesabını otomatik bulur|
 | Trafik Tabelası Tanıma   | YOLO ile tabela tanıma ve sınıflandırma                                 |
-| Lidar ile Engel          | Lidar ile çevresel engel & mesafe analizi                              |
+| Lidar ile Engel          | Lidar ile çevresel engel & mesafe analizi                               |
 | Donanım Karar Mekanizması| Arduino/Teensy kartlar ile hız, servo ve aktüatör komutları yönetimi    |
 | PyQt5 GUI                | Tüm verileri/kararları görsel olarak izlemenize imkan sağlar            |
 
@@ -100,7 +100,6 @@ python main.py
 `yardımcıDosyalar/main_logitech.py` veya kendi çalışma ortamına uygun scriptleri kullanabilirsin.
 
 ---
-
 ## 🧭 Örnek Kullanım Senaryosu
 
 1. 🪫 Arduino, Teensy ve sensörleri bilgisayara bağla

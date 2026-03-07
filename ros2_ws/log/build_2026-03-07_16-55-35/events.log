@@ -1,0 +1,70 @@
+[0.000000] (-) TimerEvent: {}
+[0.000642] (otonom_arac) JobQueued: {'identifier': 'otonom_arac', 'dependencies': OrderedDict()}
+[0.000773] (otonom_arac) JobStarted: {'identifier': 'otonom_arac'}
+[0.101203] (-) TimerEvent: {}
+[0.202436] (-) TimerEvent: {}
+[0.305677] (-) TimerEvent: {}
+[0.416466] (-) TimerEvent: {}
+[0.520396] (-) TimerEvent: {}
+[0.623441] (-) TimerEvent: {}
+[0.636772] (otonom_arac) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../build/otonom_arac', 'build', '--build-base', '/workspace/ros2_ws/build/otonom_arac/build', 'install', '--record', '/workspace/ros2_ws/build/otonom_arac/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/workspace/ros2_ws/src/otonom_arac', 'env': {'HOSTNAME': '1fe0de53bcb5', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/root', 'OLDPWD': '/workspace', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'jazzy', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'PATH': '/opt/ros/jazzy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/opt/ros/jazzy', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/workspace/ros2_ws/build/otonom_arac', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/ros2_ws/build/otonom_arac/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor'}, 'shell': False}
+[0.724572] (-) TimerEvent: {}
+[0.832885] (-) TimerEvent: {}
+[0.837421] (otonom_arac) StderrLine: {'line': b"/usr/local/lib/python3.12/dist-packages/setuptools/_distutils/dist.py:287: UserWarning: Unknown distribution option: 'tests_require'\n"}
+[0.845551] (otonom_arac) StderrLine: {'line': b'  warnings.warn(msg)\n'}
+[0.898281] (otonom_arac) StdoutLine: {'line': b'running egg_info\n'}
+[0.908247] (otonom_arac) StdoutLine: {'line': b'writing ../../build/otonom_arac/otonom_arac.egg-info/PKG-INFO\n'}
+[0.909756] (otonom_arac) StdoutLine: {'line': b'writing dependency_links to ../../build/otonom_arac/otonom_arac.egg-info/dependency_links.txt\n'}
+[0.910554] (otonom_arac) StdoutLine: {'line': b'writing entry points to ../../build/otonom_arac/otonom_arac.egg-info/entry_points.txt\n'}
+[0.911167] (otonom_arac) StdoutLine: {'line': b'writing requirements to ../../build/otonom_arac/otonom_arac.egg-info/requires.txt\n'}
+[0.911452] (otonom_arac) StdoutLine: {'line': b'writing top-level names to ../../build/otonom_arac/otonom_arac.egg-info/top_level.txt\n'}
+[0.933414] (-) TimerEvent: {}
+[0.935227] (otonom_arac) StdoutLine: {'line': b"reading manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[0.937283] (otonom_arac) StdoutLine: {'line': b"writing manifest file '../../build/otonom_arac/otonom_arac.egg-info/SOURCES.txt'\n"}
+[0.937674] (otonom_arac) StdoutLine: {'line': b'running build\n'}
+[0.937935] (otonom_arac) StdoutLine: {'line': b'running build_py\n'}
+[0.938460] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/__init__.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac\n'}
+[0.939500] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/__init__.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes\n'}
+[0.940211] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/joystick_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[0.941194] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/encoder_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[0.942087] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/lidar_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[0.942835] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/__init__.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[0.943845] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/sensors/camera_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/sensors\n'}
+[0.944986] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/testing/__init__.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/testing\n'}
+[0.945629] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/testing/video_player_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/testing\n'}
+[0.946621] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/perception/object_detection_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[0.947558] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/perception/__init__.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[0.948210] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/perception/lane_detection_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception\n'}
+[0.950068] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/control/teensy_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/control\n'}
+[0.950841] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/control/__init__.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/control\n'}
+[0.951344] (otonom_arac) StdoutLine: {'line': b'copying otonom_arac/nodes/control/control_node.py -> /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/control\n'}
+[0.953693] (otonom_arac) StdoutLine: {'line': b'running install\n'}
+[0.957646] (otonom_arac) StdoutLine: {'line': b'running install_lib\n'}
+[0.971101] (otonom_arac) StdoutLine: {'line': b'copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/testing/video_player_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing\n'}
+[0.972295] (otonom_arac) StdoutLine: {'line': b'copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/perception/object_detection_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception\n'}
+[0.973717] (otonom_arac) StdoutLine: {'line': b'copying /workspace/ros2_ws/build/otonom_arac/build/lib/otonom_arac/nodes/control/control_node.py -> /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/control\n'}
+[0.976199] (otonom_arac) StdoutLine: {'line': b'byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/testing/video_player_node.py to video_player_node.cpython-312.pyc\n'}
+[0.980521] (otonom_arac) StdoutLine: {'line': b'byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/perception/object_detection_node.py to object_detection_node.cpython-312.pyc\n'}
+[0.982609] (otonom_arac) StdoutLine: {'line': b'byte-compiling /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac/nodes/control/control_node.py to control_node.cpython-312.pyc\n'}
+[0.987017] (otonom_arac) StdoutLine: {'line': b'running install_data\n'}
+[0.987606] (otonom_arac) StdoutLine: {'line': b'copying resource/otonom_arac -> /workspace/ros2_ws/install/otonom_arac/share/ament_index/resource_index/packages\n'}
+[0.988277] (otonom_arac) StdoutLine: {'line': b'copying package.xml -> /workspace/ros2_ws/install/otonom_arac/share/otonom_arac\n'}
+[0.989153] (otonom_arac) StdoutLine: {'line': b'copying launch/otonom_arac_launch.py -> /workspace/ros2_ws/install/otonom_arac/share/otonom_arac/launch\n'}
+[0.990858] (otonom_arac) StdoutLine: {'line': b'running install_egg_info\n'}
+[1.001867] (otonom_arac) StdoutLine: {'line': b"removing '/workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info' (and everything under it)\n"}
+[1.003042] (otonom_arac) StdoutLine: {'line': b'Copying ../../build/otonom_arac/otonom_arac.egg-info to /workspace/ros2_ws/install/otonom_arac/lib/python3.12/site-packages/otonom_arac-0.0.0-py3.12.egg-info\n'}
+[1.007878] (otonom_arac) StdoutLine: {'line': b'running install_scripts\n'}
+[1.029176] (otonom_arac) StdoutLine: {'line': b'Installing camera_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.029950] (otonom_arac) StdoutLine: {'line': b'Installing control_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.030482] (otonom_arac) StdoutLine: {'line': b'Installing encoder_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.030948] (otonom_arac) StdoutLine: {'line': b'Installing joystick_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.031468] (otonom_arac) StdoutLine: {'line': b'Installing lane_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.031832] (otonom_arac) StdoutLine: {'line': b'Installing lidar_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.032623] (otonom_arac) StdoutLine: {'line': b'Installing object_detection_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.033340] (otonom_arac) StdoutLine: {'line': b'Installing teensy_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.033643] (-) TimerEvent: {}
+[1.033913] (otonom_arac) StdoutLine: {'line': b'Installing video_player_node script to /workspace/ros2_ws/install/otonom_arac/lib/otonom_arac\n'}
+[1.036013] (otonom_arac) StdoutLine: {'line': b"writing list of installed files to '/workspace/ros2_ws/build/otonom_arac/install.log'\n"}
+[1.060183] (otonom_arac) CommandEnded: {'returncode': 0}
+[1.080806] (otonom_arac) JobEnded: {'identifier': 'otonom_arac', 'rc': 0}
+[1.086082] (-) EventReactorShutdown: {}

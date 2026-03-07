@@ -17,6 +17,7 @@ import numpy as np
 
 
 
+#Todo: Kameranın normal görünütüsünü kuş bakışı görünümüne çevirir
 class PerspectiveTransformer:
     """
     KALİBRASYON (1280x720):
