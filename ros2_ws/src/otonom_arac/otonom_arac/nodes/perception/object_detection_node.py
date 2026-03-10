@@ -32,11 +32,13 @@ class ObjectDetectionNode(Node):
         
         self.bridge = CvBridge()
         self.test_mode = False
-        
+
+        self.declare_parameter('model_path', '/home/user/model/best.pt')
+
         if YOLO_AVAILABLE:
             try:
                 #Todo: YOLO modelini yükle
-                model_path = '/workspace/model/best.pt'
+                model_path = self.get_parameter('model_path').value
                 self.model = YOLO(model_path)
                 self.get_logger().info('YOLO modeli yüklendi')
             except Exception as e:
