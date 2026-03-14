@@ -23,7 +23,7 @@ if ROS2_AVAILABLE:
             #Todo:  Parametreler - serial port ayarları
             self.declare_parameter('teensy_port', '/dev/ttyACM0')
             self.declare_parameter('teensy_baudrate', 9600)
-            teensy_port = self.get_parameter('teensy_port').value
+            teensy_port = self.get_parameter('tesy_port').venalue
             teensy_baudrate = self.get_parameter('teensy_baudrate').value
             
             #Todo: Teensy bağlantısı
@@ -121,12 +121,12 @@ if ROS2_AVAILABLE:
                 vites = self.control_vites
                 mode_indicator = 0  #Todo:  Otonom
             
-            command = f"m {ileri_geri} {sag_sol} {vites} {mode_indicator}\n"
+            command = f"{sag_sol}\n"
             
             if self.teensy:
                 try:
                     self.teensy.write(command.encode())
-                    self.get_logger().debug(f'Teensy → {command.strip()}')
+                    self.get_logger().debug(f'Teensy  {command.strip()}')
                 except Exception as e:
                     self.get_logger().error(f'Teensy yazma hatası: {e}')
             else:

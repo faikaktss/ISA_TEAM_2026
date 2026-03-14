@@ -1,0 +1,11 @@
+services:
+  ros2:
+    build: .
+    devices:
+      - /dev/ttyACM0:/dev/ttyACM0
+    volumes:
+      - ./ros2_ws:/workspace/ros2_ws
+    network_mode: host
+    command: bash
+    stdin_open: true
+    tty: true
