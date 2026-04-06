@@ -45,9 +45,10 @@ if ROS2_AVAILABLE:
             self.control_sag_sol = 0
             self.control_vites = 0
             
-            # Todo: Mod kontrolü 
+            # Todo: Mod kontrolü
             self.manual_mode = False
-            
+            self.pc_aci = 0
+
             # Todo: Subscriber'lar - MANUEL MOD 
             self.joystick_ileri_geri_sub = self.create_subscription(
                 Int32, '/joystick/ileri_geri', self.joystick_ileri_geri_callback, 10)
@@ -113,21 +114,19 @@ if ROS2_AVAILABLE:
                 ileri_geri = self.joystick_ileri_geri
                 sag_sol = self.joystick_sag_sol
                 vites = self.joystick_vites
-                mode_indicator = 1  # Manuel
             else:
                 # Todo: OTONOM MOD: control verilerini kullan
                 ileri_geri = self.control_ileri_geri
                 sag_sol = self.control_sag_sol
                 vites = self.control_vites
-                mode_indicator = 0  #Todo:  Otonom
 
             otonom = 0 if self.manual_mode else 1
-            command = f"{sag_sol},{ileri_geri},{vites},{otonom}\n"
-            
+            command = f"{sag_sol},{ileri_geri},{vites},{otonom},{self.pc_aci}\n"
+
             if self.teensy:
                 try:
                     self.teensy.write(command.encode())
-                    self.get_logger().debug(f'Teensy  {command.strip()}')
+                    self.get_logger().info(f'Teensy → {command.strip()}')
                 except Exception as e:
                     self.get_logger().error(f'Teensy yazma hatası: {e}')
             else:
@@ -183,7 +182,8 @@ class MockTeensyNode:
                     self.sag_sol = (self.sag_sol + 10) % 40 - 20
                 
                 mode_str = "MANUEL" if self.manual_mode else "OTONOM"
-                command = f"{self.sag_sol}\n"
+                otonom = 0 if self.manual_mode else 1
+                command = f"{self.sag_sol},{self.ileri_geri},{self.vites},{otonom},0\n"
 
                 if self.teensy:
                     self.teensy.write(command.encode())
