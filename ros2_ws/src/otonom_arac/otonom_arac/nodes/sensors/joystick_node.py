@@ -83,7 +83,7 @@ if ROS2_AVAILABLE:
                 mode_msg.data = (otonom == 0)
                 self.mode_pub.publish(mode_msg)
 
-                self.get_logger().debug(
+                self.get_logger().info(
                     f'Kumanda → sag_sol={dumen} ileri_geri={ileri} '
                     f'vites={vites} otonom={otonom}'
                 )
