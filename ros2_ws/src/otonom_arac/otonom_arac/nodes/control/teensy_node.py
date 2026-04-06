@@ -23,7 +23,7 @@ if ROS2_AVAILABLE:
             #Todo:  Parametreler - serial port ayarları
             self.declare_parameter('teensy_port', '/dev/ttyACM0')
             self.declare_parameter('teensy_baudrate', 9600)
-            teensy_port = self.get_parameter('tesy_port').venalue
+            teensy_port = self.get_parameter('teensy_port').value
             teensy_baudrate = self.get_parameter('teensy_baudrate').value
             
             #Todo: Teensy bağlantısı
@@ -120,8 +120,9 @@ if ROS2_AVAILABLE:
                 sag_sol = self.control_sag_sol
                 vites = self.control_vites
                 mode_indicator = 0  #Todo:  Otonom
-            
-            command = f"{sag_sol}\n"
+
+            otonom = 0 if self.manual_mode else 1
+            command = f"{sag_sol},{ileri_geri},{vites},{otonom}\n"
             
             if self.teensy:
                 try:
@@ -151,14 +152,21 @@ class MockTeensyNode:
     def __init__(self):
         print(" ROS2 (rclpy) bulunamadı - Test modunda çalışıyor")
         print("=" * 60)
-        
+
         # Todo: Sabit test değerleri
         self.manual_mode = False
         self.ileri_geri = 50
         self.sag_sol = 0
         self.vites = 0
-        
         self.counter = 0
+
+        try:
+            self.teensy = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+            time.sleep(2)
+            print("Teensy /dev/ttyACM0 portuna BAGLANDI!")
+        except Exception as e:
+            self.teensy = None
+            print(f"Teensy baglanilamadi: {e}")
     
     def run(self):
         """Test verilerini göster"""
@@ -175,9 +183,12 @@ class MockTeensyNode:
                     self.sag_sol = (self.sag_sol + 10) % 40 - 20
                 
                 mode_str = "MANUEL" if self.manual_mode else "OTONOM"
-                command = f"m {self.ileri_geri} {self.sag_sol} {self.vites} {int(self.manual_mode)}"
-                
-                print(f"[{mode_str}] Teensy komut: {command} | "
+                command = f"{self.sag_sol}\n"
+
+                if self.teensy:
+                    self.teensy.write(command.encode())
+
+                print(f"[{mode_str}] Teensy komut: {command.strip()} | "
                       f"ileri={self.ileri_geri}, sol={self.sag_sol}, vites={self.vites}")
                 
                 if self.counter % 50 == 0:
