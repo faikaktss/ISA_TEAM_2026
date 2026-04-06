@@ -234,6 +234,9 @@ class CameraNode(Node):
 
                 self.publisher.publish(msg)
 
+                cv2.imshow('Kamera', frame)
+                cv2.waitKey(1)
+
         except SystemExit:
             self.get_logger().info('Kamera bağlantısı koptu')
             self.destroy_node()
@@ -272,6 +275,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        cv2.destroyAllWindows()
         camera_node.destroy_node()
         rclpy.shutdown()
 
