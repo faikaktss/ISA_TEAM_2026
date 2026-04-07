@@ -33,7 +33,7 @@ class ObjectDetectionNode(Node):
         self.bridge = CvBridge()
         self.test_mode = False
 
-        self.declare_parameter('model_path', '/home/user/model/best.pt')
+        self.declare_parameter('model_path', '/home/isateam/ISA_TEAM_2025-2026_ROS2_HUMBLE/model/best.pt')
 
         if YOLO_AVAILABLE:
             try:

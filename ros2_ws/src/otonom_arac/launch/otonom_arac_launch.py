@@ -74,4 +74,16 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
         ),
+
+        #Todo:GUI Node (Arayüz)
+        Node(
+            package='otonom_arac',
+            executable='gui_node',
+            name='gui_node',
+            output='screen',
+            emulate_tty=True,
+        ),
     ])
+
+
+
