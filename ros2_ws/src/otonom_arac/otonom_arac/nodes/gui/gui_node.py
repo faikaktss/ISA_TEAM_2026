@@ -3,7 +3,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32, Bool, String
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, LaserScan
 
 import cv2
 import numpy as np
@@ -39,6 +39,10 @@ class GuiNode(Node):
         # Lidar
         self.lidar_points = []
 
+        # Bird Eye ve nesne tespiti
+        self.bev_frame = None
+        self.detection_text = "Nesne yok"
+
         # Subscriber'lar
         self.create_subscription(Image, '/zed/image_raw', self.zed_callback, 10)
         self.create_subscription(Image, '/realsense/image_raw', self.realsense_callback, 10)
@@ -47,6 +51,9 @@ class GuiNode(Node):
         self.create_subscription(Int32, '/joystick/sag_sol', self.sag_sol_callback, 10)
         self.create_subscription(Int32, '/joystick/vites', self.vites_callback, 10)
         self.create_subscription(String, '/algorithm/current', self.algorithm_callback, 10)
+        self.create_subscription(Image, '/lane/bev_image', self.bev_callback, 10)
+        self.create_subscription(String, '/detection/objects', self.detection_callback, 10)
+        self.create_subscription(LaserScan, '/lidar/scan', self.lidar_callback, 10)
 
     # ─── Callback'ler ───────────────────────────────────
     def zed_callback(self, msg):
@@ -69,6 +76,15 @@ class GuiNode(Node):
 
     def algorithm_callback(self, msg):
         self.algorithm = msg.data
+
+    def bev_callback(self, msg):
+        self.bev_frame = self.imgmsg_to_cv2(msg)
+
+    def detection_callback(self, msg):
+        self.detection_text = msg.data
+
+    def lidar_callback(self, msg):
+        self.lidar_points = msg.ranges
 
     def imgmsg_to_cv2(self, msg):
         """ROS2 Image mesajını OpenCV formatına çevirir"""
@@ -119,7 +135,6 @@ class MainWindow(QWidget):
         main_layout.addLayout(btn_layout)
         self.setLayout(main_layout)
 
-    # ─── Yardımcı fonksiyonlar ──────────────────────────
     def _make_camera_label(self, title):
         label = QLabel()
         label.setStyleSheet("background-color: black; color: white; font-size: 14px;")
@@ -158,7 +173,6 @@ class MainWindow(QWidget):
     def update(self):
         node = self.ros_node
 
-        # Bilgi panelini güncelle
         mod_str = "MANUEL" if node.manual_mode else "OTONOM"
         self.lbl_mod.setText(f"Mod: {mod_str}")
         self.lbl_hiz.setText(f"Hız: {node.ileri_geri}")
@@ -171,6 +185,9 @@ class MainWindow(QWidget):
 
         if node.realsense_frame is not None:
             self._show_frame(self.label_realsense, node.realsense_frame)
+
+        if node.bev_frame is not None:
+            self._show_frame(self.label_birdeye, node.bev_frame)
 
     def _show_frame(self, label, frame):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

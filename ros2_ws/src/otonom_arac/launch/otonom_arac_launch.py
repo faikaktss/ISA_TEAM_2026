@@ -82,6 +82,7 @@ def generate_launch_description():
             name='gui_node',
             output='screen',
             emulate_tty=True,
+            additional_env={'DISPLAY': ':1', 'QT_X11_NO_MITSHM': '1'},
         ),
     ])
 
