@@ -190,18 +190,50 @@ except ImportError as e:
     CAMERA_AVAILABLE = False
     print(f" ZED kamera bulunamadı: {e}")
 
+try:
+    import pyrealsense2 as rs
+    REALSENSE_AVAILABLE = True
+except ImportError as e:
+    REALSENSE_AVAILABLE = False
+    print(f"RealSense kamera bulunamadı: {e}")
+
+if REALSENSE_AVAILABLE:
+    class RealsenseCam:
+        def __init__(self):
+            self.pipeline = rs.pipeline()
+            config = rs.config()
+            config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+            config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+            self.pipeline.start(config)
+
+        def get_frame(self):
+            frames = self.pipeline.wait_for_frames()
+            color_frame = frames.get_color_frame()
+            if not color_frame:
+                return None
+            frame = np.asanyarray(color_frame.get_data())
+            return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        def stop(self):
+            self.pipeline.stop()
+
 
 class CameraNode(Node):
     def __init__(self):
         super().__init__('camera_node')
-        self.publisher = self.create_publisher(Image, 'camera/image_raw', 10)
+        # ZED publisher
+        self.zed_publisher = self.create_publisher(Image, '/zed/image_raw', 10)
+        # RealSense publisher
+        self.realsense_publisher = self.create_publisher(Image, '/realsense/image_raw', 10)
+
         self.timer_period = 1.0/30 #Todo: 30 FPS
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
         self.bridge = CvBridge()
 
         self.info = Info()
         self.test_mode = False
-        
+
+        # ZED başlat
         if CAMERA_AVAILABLE:
             try:
                 self.camera = cam(self.info)
@@ -212,30 +244,46 @@ class CameraNode(Node):
         else:
             self.get_logger().warn(' ZED SDK bulunamadı. Test modu aktif.')
             self.test_mode = True
-        
+
+        # RealSense başlat
+        self.realsense = None
+        if REALSENSE_AVAILABLE:
+            try:
+                self.realsense = RealsenseCam()
+                self.get_logger().info('RealSense kamera başlatıldı.')
+            except Exception as e:
+                self.get_logger().warn(f'RealSense başlatılamadı: {str(e)}')
+
         if self.test_mode:
             self.frame_counter = 0
             self.get_logger().info(' Test kamerası hazır (1920x1080 sahte görüntü)')
         
     def timer_callback(self):
         try:
-            #Todo: Sahte görüntü üret veya gerçek kamera görüntüsü al
+            # --- ZED ---
             if self.test_mode:
-                frame = self._generate_test_frame()
+                zed_frame = self._generate_test_frame()
             else:
-                #Todo: Kameradan görüntü al ve nokta bulutunu al
-                frame, point_cloud = self.camera.img_and_point_cloud()
+                zed_frame, point_cloud = self.camera.img_and_point_cloud()
 
-            if frame is not None:
-                #Todo: OpenCV görüntüsünü ROS Image mesajına dönüştür
-                msg = self.bridge.cv2_to_imgmsg(frame, encoding='rgb8')
-                msg.header.stamp = self.get_clock().now().to_msg()#Todo: Zaman damgası ekle
-                msg.header.frame_id = 'camera_link' #Todo: Çerçeve kimliği ekle
+            if zed_frame is not None:
+                msg = self.bridge.cv2_to_imgmsg(zed_frame, encoding='rgb8')
+                msg.header.stamp = self.get_clock().now().to_msg()
+                msg.header.frame_id = 'zed_camera_link'
+                self.zed_publisher.publish(msg)
+                cv2.imshow('ZED Kamera', zed_frame)
 
-                self.publisher.publish(msg)
+            # --- RealSense ---
+            if self.realsense is not None:
+                rs_frame = self.realsense.get_frame()
+                if rs_frame is not None:
+                    rs_msg = self.bridge.cv2_to_imgmsg(rs_frame, encoding='rgb8')
+                    rs_msg.header.stamp = self.get_clock().now().to_msg()
+                    rs_msg.header.frame_id = 'realsense_camera_link'
+                    self.realsense_publisher.publish(rs_msg)
+                    cv2.imshow('RealSense Kamera', rs_frame)
 
-                cv2.imshow('Kamera', frame)
-                cv2.waitKey(1)
+            cv2.waitKey(1)
 
         except SystemExit:
             self.get_logger().info('Kamera bağlantısı koptu')
@@ -275,6 +323,9 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        if camera_node.realsense is not None:
+            camera_node.realsense.stop()
+            print('RealSense kamera kapatıldı.')
         cv2.destroyAllWindows()
         camera_node.destroy_node()
         rclpy.shutdown()
