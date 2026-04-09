@@ -7,7 +7,7 @@ from sensor_msgs.msg import Image, LaserScan
 
 import cv2
 import numpy as np
-import math
+import threading
 
 import sys
 import pyqtgraph as pg
@@ -72,10 +72,9 @@ class LidarPlotWidget(pg.PlotWidget):
         self.addItem(self.scatter)
         self.setXRange(-5000, 5000)
         self.setYRange(-5000, 5000)
-        self.guide_items = []
+        self._draw_guides()
 
     def update_points(self, points, labels, label_to_name):
-        self._draw_guides()
         color_map = [
             (255, 0, 0), (0, 255, 0), (0, 0, 255),
             (255, 255, 0), (255, 0, 255), (0, 255, 255)
@@ -92,25 +91,18 @@ class LidarPlotWidget(pg.PlotWidget):
         self.scatter.setData(spots)
 
     def _draw_guides(self):
-        for item in self.guide_items:
-            self.removeItem(item)
-        self.guide_items.clear()
-
         # X ve Y eksen çizgileri
         for line in [
             pg.PlotCurveItem([-5000, 5000], [0, 0], pen=pg.mkPen('w', width=0.7)),
             pg.PlotCurveItem([0, 0], [-5000, 5000], pen=pg.mkPen('w', width=0.7)),
         ]:
             self.addItem(line)
-            self.guide_items.append(line)
 
         # Mesafe daireleri: yeşil=5m, sarı=3m, kırmızı=1m
         theta = np.linspace(0, 2 * np.pi, 200)
         for r, color in [(5000, 'g'), (3000, 'y'), (1000, 'r')]:
-            curve = pg.PlotCurveItem(r * np.cos(theta), r * np.sin(theta),
-                                     pen=pg.mkPen(color, width=0.7))
-            self.addItem(curve)
-            self.guide_items.append(curve)
+            self.addItem(pg.PlotCurveItem(r * np.cos(theta), r * np.sin(theta),
+                                          pen=pg.mkPen(color, width=0.7)))
 
 
 class GuiNode(Node):
@@ -132,7 +124,9 @@ class GuiNode(Node):
 
         # Lidar
         self.lidar_data = None          # (points_np, labels, label_to_name)
+        self._lidar_lock = threading.Lock()
         self._cluster_tracker = ClusterTracker()
+        self._dbscan = DBSCAN(eps=200, min_samples=4)
 
         # Bird Eye ve nesne tespiti
         self.bev_frame = None
@@ -185,18 +179,22 @@ class GuiNode(Node):
             if not (msg.range_min <= dist <= msg.range_max):
                 continue
             angle = msg.angle_min + i * msg.angle_increment
-            x = dist * 1000 * math.sin(angle)
-            y = dist * 1000 * math.cos(angle)
+            x = dist * 1000 * np.sin(angle)
+            y = dist * 1000 * np.cos(angle)
             points.append((x, y))
 
         if len(points) < 4:
             return
 
         points_np = np.array(points)
-        clustering = DBSCAN(eps=200, min_samples=4).fit(points_np)
-        labels = clustering.labels_
+        labels = self._dbscan.fit(points_np).labels_
         label_to_name = self._cluster_tracker.update_clusters(points_np, labels)
-        self.lidar_data = (points_np, labels, label_to_name)
+        with self._lidar_lock:
+            self.lidar_data = (points_np, labels, label_to_name)
+
+    @property
+    def mode_str(self):
+        return "MANUEL" if self.manual_mode else "OTONOM"
 
     def imgmsg_to_cv2(self, msg):
         frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
@@ -242,7 +240,7 @@ class InfoWindow(QWidget):
 
     def _refresh(self):
         n = self.ros_node
-        self.lbl_mod.setText(f"Mod:        {'MANUEL' if n.manual_mode else 'OTONOM'}")
+        self.lbl_mod.setText(f"Mod:        {n.mode_str}")
         self.lbl_hiz.setText(f"Hız:        {n.ileri_geri}")
         self.lbl_direksiyon.setText(f"Direksiyon: {n.sag_sol}")
         self.lbl_vites.setText(f"Vites:      {n.vites}")
@@ -324,17 +322,19 @@ class MainWindow(QWidget):
         main_layout.addLayout(btn_layout)
         self.setLayout(main_layout)
 
+    def _open_window(self, attr, cls, *args):
+        win = getattr(self, attr)
+        if win is None or not win.isVisible():
+            win = cls(*args)
+            setattr(self, attr, win)
+        win.show()
+        win.raise_()
+
     def _open_info(self):
-        if self._info_win is None or not self._info_win.isVisible():
-            self._info_win = InfoWindow(self.ros_node)
-        self._info_win.show()
-        self._info_win.raise_()
+        self._open_window('_info_win', InfoWindow, self.ros_node)
 
     def _open_console(self):
-        if self._console_win is None or not self._console_win.isVisible():
-            self._console_win = ConsoleWindow()
-        self._console_win.show()
-        self._console_win.raise_()
+        self._open_window('_console_win', ConsoleWindow)
 
     def _make_camera_label(self, title):
         label = QLabel()
@@ -366,8 +366,7 @@ class MainWindow(QWidget):
     def update_ui(self):
         node = self.ros_node
 
-        mod_str = "MANUEL" if node.manual_mode else "OTONOM"
-        self.lbl_mod.setText(f"Mod: {mod_str}")
+        self.lbl_mod.setText(f"Mod: {node.mode_str}")
         self.lbl_hiz.setText(f"Hız: {node.ileri_geri}")
         self.lbl_direksiyon.setText(f"Direksiyon: {node.sag_sol}")
         self.lbl_vites.setText(f"Vites: {node.vites}")
@@ -384,9 +383,10 @@ class MainWindow(QWidget):
 
         self.label_traffic.setText(f"Traffic Signage\n{node.detection_text}")
 
-        if node.lidar_data is not None:
-            pts, lbls, l2n = node.lidar_data
-            self.label_lidar.update_points(pts, lbls, l2n)
+        with node._lidar_lock:
+            lidar_snapshot = node.lidar_data
+        if lidar_snapshot is not None:
+            self.label_lidar.update_points(*lidar_snapshot)
 
     def _show_frame(self, label, frame):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
