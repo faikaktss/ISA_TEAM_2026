@@ -7,16 +7,110 @@ from sensor_msgs.msg import Image, LaserScan
 
 import cv2
 import numpy as np
+import math
 
 import sys
+import pyqtgraph as pg
+from sklearn.cluster import DBSCAN
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel,
     QGridLayout, QVBoxLayout, QHBoxLayout,
     QPushButton, QTextEdit
 )
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QTextCursor
-from PyQt5.QtCore import QPointF
+from PyQt5.QtGui import QImage, QPixmap
+
+
+class ClusterTracker:
+    """Her lidar taramasında nesneleri takip eder ve kalıcı isim (A,B,C...) verir."""
+    def __init__(self, distance_threshold=500):
+        self.label_to_name = {}
+        self.name_to_centroid = {}
+        self.next_name_index = 0
+        self.distance_threshold = distance_threshold
+
+    def update_clusters(self, points, labels):
+        unique_labels = set(labels)
+        current_centroids = {}
+        for label in unique_labels:
+            if label == -1:
+                continue
+            cluster_points = points[labels == label]
+            current_centroids[label] = np.mean(cluster_points, axis=0)
+
+        new_label_to_name = {}
+        used_names = set()
+
+        for label, centroid in current_centroids.items():
+            matched = False
+            for name, prev_centroid in self.name_to_centroid.items():
+                dist = np.linalg.norm(centroid - prev_centroid)
+                if dist < self.distance_threshold and name not in used_names:
+                    new_label_to_name[label] = name
+                    self.name_to_centroid[name] = centroid
+                    used_names.add(name)
+                    matched = True
+                    break
+            if not matched:
+                new_name = chr(ord('A') + self.next_name_index % 26)
+                self.name_to_centroid[new_name] = centroid
+                new_label_to_name[label] = new_name
+                used_names.add(new_name)
+                self.next_name_index += 1
+
+        self.label_to_name = new_label_to_name
+        return new_label_to_name
+
+
+class LidarPlotWidget(pg.PlotWidget):
+    """Lidar nokta bulutu + DBSCAN kümeleri + mesafe daireleri çizen widget."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAspectLocked(True)
+        self.setBackground('k')
+        self.scatter = pg.ScatterPlotItem(size=5, pen=None)
+        self.addItem(self.scatter)
+        self.setXRange(-5000, 5000)
+        self.setYRange(-5000, 5000)
+        self.guide_items = []
+
+    def update_points(self, points, labels, label_to_name):
+        self._draw_guides()
+        color_map = [
+            (255, 0, 0), (0, 255, 0), (0, 0, 255),
+            (255, 255, 0), (255, 0, 255), (0, 255, 255)
+        ]
+        spots = []
+        for idx, (x, y) in enumerate(points):
+            label = labels[idx]
+            if label == -1:
+                color = (100, 100, 100)
+            else:
+                cname = label_to_name.get(label, '?')
+                color = color_map[ord(cname) % len(color_map)]
+            spots.append({'pos': (x, y), 'brush': pg.mkBrush(*color)})
+        self.scatter.setData(spots)
+
+    def _draw_guides(self):
+        for item in self.guide_items:
+            self.removeItem(item)
+        self.guide_items.clear()
+
+        # X ve Y eksen çizgileri
+        for line in [
+            pg.PlotCurveItem([-5000, 5000], [0, 0], pen=pg.mkPen('w', width=0.7)),
+            pg.PlotCurveItem([0, 0], [-5000, 5000], pen=pg.mkPen('w', width=0.7)),
+        ]:
+            self.addItem(line)
+            self.guide_items.append(line)
+
+        # Mesafe daireleri: yeşil=5m, sarı=3m, kırmızı=1m
+        theta = np.linspace(0, 2 * np.pi, 200)
+        for r, color in [(5000, 'g'), (3000, 'y'), (1000, 'r')]:
+            curve = pg.PlotCurveItem(r * np.cos(theta), r * np.sin(theta),
+                                     pen=pg.mkPen(color, width=0.7))
+            self.addItem(curve)
+            self.guide_items.append(curve)
 
 
 class GuiNode(Node):
@@ -37,7 +131,8 @@ class GuiNode(Node):
         self.algorithm = "Bekleniyor"
 
         # Lidar
-        self.lidar_points = []
+        self.lidar_data = None          # (points_np, labels, label_to_name)
+        self._cluster_tracker = ClusterTracker()
 
         # Bird Eye ve nesne tespiti
         self.bev_frame = None
@@ -84,11 +179,99 @@ class GuiNode(Node):
         self.detection_text = msg.data
 
     def lidar_callback(self, msg):
-        self.lidar_points = msg.ranges
+        # Kutupsal → Kartezyen dönüşümü (metre → mm)
+        points = []
+        for i, dist in enumerate(msg.ranges):
+            if not (msg.range_min <= dist <= msg.range_max):
+                continue
+            angle = msg.angle_min + i * msg.angle_increment
+            x = dist * 1000 * math.sin(angle)
+            y = dist * 1000 * math.cos(angle)
+            points.append((x, y))
+
+        if len(points) < 4:
+            return
+
+        points_np = np.array(points)
+        clustering = DBSCAN(eps=200, min_samples=4).fit(points_np)
+        labels = clustering.labels_
+        label_to_name = self._cluster_tracker.update_clusters(points_np, labels)
+        self.lidar_data = (points_np, labels, label_to_name)
 
     def imgmsg_to_cv2(self, msg):
-        """ROS2 Image mesajını OpenCV formatına çevirir"""
-        return np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+        frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+        if msg.encoding == 'rgb8':
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        elif msg.encoding == 'mono8':
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        return frame
+
+
+class InfoWindow(QWidget):
+    """Eski kodun InfoWindow'u — angle, encoder, IMU, tabela bilgisi gösterir."""
+    def __init__(self, ros_node):
+        super().__init__()
+        self.ros_node = ros_node
+        self.setWindowTitle("Veri Bilgisi")
+        self.resize(400, 300)
+        self.setStyleSheet("background-color: rgb(94, 94, 87); color: white;")
+
+        layout = QVBoxLayout()
+        self.lbl_mod       = QLabel()
+        self.lbl_hiz       = QLabel()
+        self.lbl_direksiyon= QLabel()
+        self.lbl_vites     = QLabel()
+        self.lbl_algoritma = QLabel()
+        self.lbl_nesne     = QLabel()
+
+        for lbl in [self.lbl_mod, self.lbl_hiz, self.lbl_direksiyon,
+                    self.lbl_vites, self.lbl_algoritma, self.lbl_nesne]:
+            lbl.setStyleSheet("font-size: 14px; padding: 4px;")
+            layout.addWidget(lbl)
+
+        btn_kapat = QPushButton("Kapat")
+        btn_kapat.setStyleSheet("background-color: rgb(255,228,117); font-size: 13pt;")
+        btn_kapat.clicked.connect(self.close)
+        layout.addWidget(btn_kapat)
+        self.setLayout(layout)
+
+        self._timer = QTimer()
+        self._timer.timeout.connect(self._refresh)
+        self._timer.start(100)
+        self._refresh()
+
+    def _refresh(self):
+        n = self.ros_node
+        self.lbl_mod.setText(f"Mod:        {'MANUEL' if n.manual_mode else 'OTONOM'}")
+        self.lbl_hiz.setText(f"Hız:        {n.ileri_geri}")
+        self.lbl_direksiyon.setText(f"Direksiyon: {n.sag_sol}")
+        self.lbl_vites.setText(f"Vites:      {n.vites}")
+        self.lbl_algoritma.setText(f"Algoritma:  {n.algorithm}")
+        self.lbl_nesne.setText(f"Tespit:     {n.detection_text}")
+
+
+class ConsoleWindow(QWidget):
+    """ROS2 node log mesajlarını gösteren konsol penceresi."""
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Console")
+        self.resize(600, 400)
+        self.setStyleSheet("background-color: rgb(20,20,20);")
+
+        layout = QVBoxLayout()
+        self.text_area = QTextEdit()
+        self.text_area.setReadOnly(True)
+        self.text_area.setStyleSheet("background-color: black; color: lime; font-family: monospace; font-size: 12px;")
+        layout.addWidget(self.text_area)
+
+        btn_temizle = QPushButton("Temizle")
+        btn_temizle.setStyleSheet("background-color: rgb(255,228,117); font-size: 13pt;")
+        btn_temizle.clicked.connect(self.text_area.clear)
+        layout.addWidget(btn_temizle)
+        self.setLayout(layout)
+
+    def log(self, msg: str):
+        self.text_area.append(msg)
 
 
 class MainWindow(QWidget):
@@ -105,7 +288,8 @@ class MainWindow(QWidget):
 
         self.label_zed = self._make_camera_label("ZED Kamera")
         self.label_realsense = self._make_camera_label("RealSense")
-        self.label_lidar = self._make_lidar_label("Lidar")
+        self.label_lidar = LidarPlotWidget()
+        self.label_lidar.setMinimumSize(380, 300)
 
         grid.addWidget(self.label_zed, 0, 0)
         grid.addWidget(self.label_realsense, 0, 1)
@@ -128,6 +312,11 @@ class MainWindow(QWidget):
             btn.setStyleSheet("background-color: rgb(255,228,117); font-size: 13pt;")
             btn_layout.addWidget(btn)
 
+        self._info_win    = None
+        self._console_win = None
+
+        self.btn_info.clicked.connect(self._open_info)
+        self.btn_console.clicked.connect(self._open_console)
         self.btn_exit.clicked.connect(self.close)
 
         main_layout = QVBoxLayout()
@@ -135,15 +324,19 @@ class MainWindow(QWidget):
         main_layout.addLayout(btn_layout)
         self.setLayout(main_layout)
 
-    def _make_camera_label(self, title):
-        label = QLabel()
-        label.setStyleSheet("background-color: black; color: white; font-size: 14px;")
-        label.setAlignment(Qt.AlignCenter)
-        label.setText(title)
-        label.setMinimumSize(380, 300)
-        return label
+    def _open_info(self):
+        if self._info_win is None or not self._info_win.isVisible():
+            self._info_win = InfoWindow(self.ros_node)
+        self._info_win.show()
+        self._info_win.raise_()
 
-    def _make_lidar_label(self, title):
+    def _open_console(self):
+        if self._console_win is None or not self._console_win.isVisible():
+            self._console_win = ConsoleWindow()
+        self._console_win.show()
+        self._console_win.raise_()
+
+    def _make_camera_label(self, title):
         label = QLabel()
         label.setStyleSheet("background-color: black; color: white; font-size: 14px;")
         label.setAlignment(Qt.AlignCenter)
@@ -170,7 +363,7 @@ class MainWindow(QWidget):
         widget.setLayout(layout)
         return widget
 
-    def update(self):
+    def update_ui(self):
         node = self.ros_node
 
         mod_str = "MANUEL" if node.manual_mode else "OTONOM"
@@ -188,6 +381,12 @@ class MainWindow(QWidget):
 
         if node.bev_frame is not None:
             self._show_frame(self.label_birdeye, node.bev_frame)
+
+        self.label_traffic.setText(f"Traffic Signage\n{node.detection_text}")
+
+        if node.lidar_data is not None:
+            pts, lbls, l2n = node.lidar_data
+            self.label_lidar.update_points(pts, lbls, l2n)
 
     def _show_frame(self, label, frame):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -208,7 +407,7 @@ def main(args=None):
     timer = QTimer()
     timer.timeout.connect(lambda: (
         rclpy.spin_once(ros_node, timeout_sec=0),
-        window.update()
+        window.update_ui()
     ))
     timer.start(30)
 
