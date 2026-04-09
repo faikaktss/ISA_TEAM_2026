@@ -45,8 +45,8 @@ if ROS2_AVAILABLE:
             self.control_sag_sol = 0
             self.control_vites = 0
             
-            # Todo: Mod kontrolü
-            self.manual_mode = False
+            # Güvenli başlangıç: manuel mod (joystick aktif)
+            self.manual_mode = True
             self.pc_aci = 0
 
             # Todo: Subscriber'lar - MANUEL MOD 
