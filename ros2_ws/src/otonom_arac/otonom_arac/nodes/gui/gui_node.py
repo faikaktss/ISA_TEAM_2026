@@ -10,8 +10,12 @@ import numpy as np
 import threading
 
 import sys
-import pyqtgraph as pg
-from sklearn.cluster import DBSCAN
+try:
+    import pyqtgraph as pg
+    from sklearn.cluster import DBSCAN
+    ADVANCED_LIDAR = True
+except ImportError:
+    ADVANCED_LIDAR = False
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel,
     QGridLayout, QVBoxLayout, QHBoxLayout,
@@ -21,88 +25,85 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QImage, QPixmap
 
 
-class ClusterTracker:
-    """Her lidar taramasında nesneleri takip eder ve kalıcı isim (A,B,C...) verir."""
-    def __init__(self, distance_threshold=500):
-        self.label_to_name = {}
-        self.name_to_centroid = {}
-        self.next_name_index = 0
-        self.distance_threshold = distance_threshold
+if ADVANCED_LIDAR:
+    class ClusterTracker:
+        """Her lidar taramasında nesneleri takip eder ve kalıcı isim (A,B,C...) verir."""
+        def __init__(self, distance_threshold=500):
+            self.label_to_name = {}
+            self.name_to_centroid = {}
+            self.next_name_index = 0
+            self.distance_threshold = distance_threshold
 
-    def update_clusters(self, points, labels):
-        unique_labels = set(labels)
-        current_centroids = {}
-        for label in unique_labels:
-            if label == -1:
-                continue
-            cluster_points = points[labels == label]
-            current_centroids[label] = np.mean(cluster_points, axis=0)
+        def update_clusters(self, points, labels):
+            unique_labels = set(labels)
+            current_centroids = {}
+            for label in unique_labels:
+                if label == -1:
+                    continue
+                cluster_points = points[labels == label]
+                current_centroids[label] = np.mean(cluster_points, axis=0)
 
-        new_label_to_name = {}
-        used_names = set()
+            new_label_to_name = {}
+            used_names = set()
 
-        for label, centroid in current_centroids.items():
-            matched = False
-            for name, prev_centroid in self.name_to_centroid.items():
-                dist = np.linalg.norm(centroid - prev_centroid)
-                if dist < self.distance_threshold and name not in used_names:
-                    new_label_to_name[label] = name
-                    self.name_to_centroid[name] = centroid
-                    used_names.add(name)
-                    matched = True
-                    break
-            if not matched:
-                new_name = chr(ord('A') + self.next_name_index % 26)
-                self.name_to_centroid[new_name] = centroid
-                new_label_to_name[label] = new_name
-                used_names.add(new_name)
-                self.next_name_index += 1
+            for label, centroid in current_centroids.items():
+                matched = False
+                for name, prev_centroid in self.name_to_centroid.items():
+                    dist = np.linalg.norm(centroid - prev_centroid)
+                    if dist < self.distance_threshold and name not in used_names:
+                        new_label_to_name[label] = name
+                        self.name_to_centroid[name] = centroid
+                        used_names.add(name)
+                        matched = True
+                        break
+                if not matched:
+                    new_name = chr(ord('A') + self.next_name_index % 26)
+                    self.name_to_centroid[new_name] = centroid
+                    new_label_to_name[label] = new_name
+                    used_names.add(new_name)
+                    self.next_name_index += 1
 
-        self.label_to_name = new_label_to_name
-        return new_label_to_name
+            self.label_to_name = new_label_to_name
+            return new_label_to_name
 
+    class LidarPlotWidget(pg.PlotWidget):
+        """Lidar nokta bulutu + DBSCAN kümeleri + mesafe daireleri çizen widget."""
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.setAspectLocked(True)
+            self.setBackground('k')
+            self.scatter = pg.ScatterPlotItem(size=5, pen=None)
+            self.addItem(self.scatter)
+            self.setXRange(-5000, 5000)
+            self.setYRange(-5000, 5000)
+            self._draw_guides()
 
-class LidarPlotWidget(pg.PlotWidget):
-    """Lidar nokta bulutu + DBSCAN kümeleri + mesafe daireleri çizen widget."""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setAspectLocked(True)
-        self.setBackground('k')
-        self.scatter = pg.ScatterPlotItem(size=5, pen=None)
-        self.addItem(self.scatter)
-        self.setXRange(-5000, 5000)
-        self.setYRange(-5000, 5000)
-        self._draw_guides()
+        def update_points(self, points, labels, label_to_name):
+            color_map = [
+                (255, 0, 0), (0, 255, 0), (0, 0, 255),
+                (255, 255, 0), (255, 0, 255), (0, 255, 255)
+            ]
+            spots = []
+            for idx, (x, y) in enumerate(points):
+                label = labels[idx]
+                if label == -1:
+                    color = (100, 100, 100)
+                else:
+                    cname = label_to_name.get(label, '?')
+                    color = color_map[ord(cname) % len(color_map)]
+                spots.append({'pos': (x, y), 'brush': pg.mkBrush(*color)})
+            self.scatter.setData(spots)
 
-    def update_points(self, points, labels, label_to_name):
-        color_map = [
-            (255, 0, 0), (0, 255, 0), (0, 0, 255),
-            (255, 255, 0), (255, 0, 255), (0, 255, 255)
-        ]
-        spots = []
-        for idx, (x, y) in enumerate(points):
-            label = labels[idx]
-            if label == -1:
-                color = (100, 100, 100)
-            else:
-                cname = label_to_name.get(label, '?')
-                color = color_map[ord(cname) % len(color_map)]
-            spots.append({'pos': (x, y), 'brush': pg.mkBrush(*color)})
-        self.scatter.setData(spots)
-
-    def _draw_guides(self):
-        # X ve Y eksen çizgileri
-        for line in [
-            pg.PlotCurveItem([-5000, 5000], [0, 0], pen=pg.mkPen('w', width=0.7)),
-            pg.PlotCurveItem([0, 0], [-5000, 5000], pen=pg.mkPen('w', width=0.7)),
-        ]:
-            self.addItem(line)
-
-        # Mesafe daireleri: yeşil=5m, sarı=3m, kırmızı=1m
-        theta = np.linspace(0, 2 * np.pi, 200)
-        for r, color in [(5000, 'g'), (3000, 'y'), (1000, 'r')]:
-            self.addItem(pg.PlotCurveItem(r * np.cos(theta), r * np.sin(theta),
-                                          pen=pg.mkPen(color, width=0.7)))
+        def _draw_guides(self):
+            for line in [
+                pg.PlotCurveItem([-5000, 5000], [0, 0], pen=pg.mkPen('w', width=0.7)),
+                pg.PlotCurveItem([0, 0], [-5000, 5000], pen=pg.mkPen('w', width=0.7)),
+            ]:
+                self.addItem(line)
+            theta = np.linspace(0, 2 * np.pi, 200)
+            for r, color in [(5000, 'g'), (3000, 'y'), (1000, 'r')]:
+                self.addItem(pg.PlotCurveItem(r * np.cos(theta), r * np.sin(theta),
+                                              pen=pg.mkPen(color, width=0.7)))
 
 
 class GuiNode(Node):
@@ -123,10 +124,11 @@ class GuiNode(Node):
         self.algorithm = "Bekleniyor"
 
         # Lidar
-        self.lidar_data = None          # (points_np, labels, label_to_name)
+        self.lidar_data = None
         self._lidar_lock = threading.Lock()
-        self._cluster_tracker = ClusterTracker()
-        self._dbscan = DBSCAN(eps=200, min_samples=4)
+        if ADVANCED_LIDAR:
+            self._cluster_tracker = ClusterTracker()
+            self._dbscan = DBSCAN(eps=200, min_samples=4)
 
         # Bird Eye ve nesne tespiti
         self.bev_frame = None
@@ -173,7 +175,13 @@ class GuiNode(Node):
         self.detection_text = msg.data
 
     def lidar_callback(self, msg):
-        # Kutupsal → Kartezyen dönüşümü (metre → mm)
+        if not ADVANCED_LIDAR:
+            # Basit mod: ham mesafe listesini sakla
+            with self._lidar_lock:
+                self.lidar_data = msg.ranges
+            return
+
+        # Gelişmiş mod: Kutupsal → Kartezyen + DBSCAN kümeleme
         points = []
         for i, dist in enumerate(msg.ranges):
             if not (msg.range_min <= dist <= msg.range_max):
@@ -286,8 +294,11 @@ class MainWindow(QWidget):
 
         self.label_zed = self._make_camera_label("ZED Kamera")
         self.label_realsense = self._make_camera_label("RealSense")
-        self.label_lidar = LidarPlotWidget()
-        self.label_lidar.setMinimumSize(380, 300)
+        if ADVANCED_LIDAR:
+            self.label_lidar = LidarPlotWidget()
+            self.label_lidar.setMinimumSize(380, 300)
+        else:
+            self.label_lidar = self._make_camera_label("Lidar")
 
         grid.addWidget(self.label_zed, 0, 0)
         grid.addWidget(self.label_realsense, 0, 1)
@@ -386,7 +397,10 @@ class MainWindow(QWidget):
         with node._lidar_lock:
             lidar_snapshot = node.lidar_data
         if lidar_snapshot is not None:
-            self.label_lidar.update_points(*lidar_snapshot)
+            if ADVANCED_LIDAR:
+                self.label_lidar.update_points(*lidar_snapshot)
+            else:
+                self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
 
     def _show_frame(self, label, frame):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
