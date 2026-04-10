@@ -32,7 +32,7 @@ class ObjectDetectionNode(Node):
         
         self.bridge = CvBridge()
 
-        self.declare_parameter('model_path', '/home/isateam/ISA_TEAM_2025-2026_ROS2_HUMBLE/model/best.pt')
+        self.declare_parameter('model_path', '/home/isateam/ISA_TEAM_2025-2026_HUMBLE_ANA_KOD/model/best.pt')
 
         if YOLO_AVAILABLE:
             #Todo: YOLO modelini yükle
