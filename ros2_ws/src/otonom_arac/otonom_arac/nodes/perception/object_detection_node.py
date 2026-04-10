@@ -1,3 +1,4 @@
+import os
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -13,6 +14,12 @@ try:
 except ImportError:
     YOLO_AVAILABLE = False
     print("Ultralytics YOLO bulunamadı")
+
+# Model yolunu otomatik bul: bu dosya → 5 üst klasör → model/best.pt
+# object_detection_node.py → nodes/perception/ → nodes/ → otonom_arac/ → otonom_arac/ → src/ → ros2_ws/ → PROJE_KOKU/
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.abspath(os.path.join(_THIS_DIR, '..', '..', '..', '..', '..'))
+_DEFAULT_MODEL = os.path.join(_PROJECT_ROOT, 'model', 'best.pt')
 
 class ObjectDetectionNode(Node):
     def __init__(self):
@@ -32,7 +39,7 @@ class ObjectDetectionNode(Node):
         
         self.bridge = CvBridge()
 
-        self.declare_parameter('model_path', '/home/isateam/ISA_TEAM_2025-2026_HUMBLE_ANA_KOD/model/best.pt')
+        self.declare_parameter('model_path', _DEFAULT_MODEL)
 
         if YOLO_AVAILABLE:
             #Todo: YOLO modelini yükle
