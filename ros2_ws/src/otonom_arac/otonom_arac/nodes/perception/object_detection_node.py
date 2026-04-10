@@ -15,8 +15,6 @@ except ImportError:
     YOLO_AVAILABLE = False
     print("Ultralytics YOLO bulunamadı")
 
-# Model yolunu otomatik bul: bu dosya → 5 üst klasör → model/best.pt
-# object_detection_node.py → nodes/perception/ → nodes/ → otonom_arac/ → otonom_arac/ → src/ → ros2_ws/ → PROJE_KOKU/
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.abspath(os.path.join(_THIS_DIR, '..', '..', '..', '..', '..'))
 _DEFAULT_MODEL = os.path.join(_PROJECT_ROOT, 'model', 'best.pt')
@@ -93,7 +91,10 @@ def main(args=None):
         pass
     finally:
         detection_node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
 
 if __name__ == '__main__':
     main()

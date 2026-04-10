@@ -115,7 +115,10 @@ if ROS2_AVAILABLE:
             node.get_logger().info('Klavyeden durduruldu ')
         finally:
             node.destroy_node()
-            rclpy.shutdown()
+            try:
+                rclpy.shutdown()
+            except Exception:
+                pass
 
 
 

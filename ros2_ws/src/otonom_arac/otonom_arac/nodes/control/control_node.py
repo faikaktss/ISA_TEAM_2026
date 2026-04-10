@@ -55,12 +55,16 @@ class ControlNode(Node):
         self.state = 'lane_following'
         self.state_counter = 0
 
+        self.arduino = None
         if SERIAL_AVAILABLE:
-            self.arduino = serial.Serial(arduino_port, arduino_baudrate, timeout=1)
-            self.get_logger().info(f'Arduino bağlandı: {arduino_port} @ {arduino_baudrate}')
+            try:
+                self.arduino = serial.Serial(arduino_port, arduino_baudrate, timeout=1)
+                self.get_logger().info(f'Arduino bağlandı: {arduino_port} @ {arduino_baudrate}')
+            except Exception as e:
+                self.get_logger().warn(f'Arduino bağlantı hatası ({arduino_port}): {e}')
+                self.get_logger().warn('Control node Arduino olmadan devam ediyor')
         else:
             self.get_logger().error('pyserial bulunamadı, arduino bağlantısı kurulamıyor')
-            self.arduino = None
 
         self.control_timer = self.create_timer(0.1, self.control_loop)
 
@@ -291,7 +295,10 @@ def main(args=None):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
 
 if __name__ == '__main__':
     main()
