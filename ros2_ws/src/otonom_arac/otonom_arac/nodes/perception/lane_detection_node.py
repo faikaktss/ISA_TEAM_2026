@@ -253,7 +253,19 @@ def _ros_node_class():
         from rclpy.node import Node
         from sensor_msgs.msg import Image
         from std_msgs.msg import Float32
-        from cv_bridge import CvBridge
+        import numpy as np
+
+        def _imgmsg_to_numpy(msg):
+            return np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1).copy()
+
+        def _numpy_to_imgmsg(cv_image, encoding='rgb8'):
+            msg = Image()
+            msg.height, msg.width = cv_image.shape[:2]
+            msg.encoding = encoding
+            msg.is_bigendian = False
+            msg.step = cv_image.shape[1] * cv_image.shape[2]
+            msg.data = cv_image.tobytes()
+            return msg
 
         class LaneDetectionNode(Node):
             def __init__(self):
@@ -263,20 +275,19 @@ def _ros_node_class():
                 self.p_off   = self.create_publisher(Float32,'/lane/offset',10)
                 self.p_debug = self.create_publisher(Image,'/lane/debug_image',10)
                 self.p_bev   = self.create_publisher(Image,'/lane/bev_image',10)
-                self.bridge  = CvBridge()
                 self.det     = LaneDetection()
                 self.get_logger().info('Serit algilama (BEV) basladi')
                 self.get_logger().info(f'SRC: {self.det.tf.src.tolist()}')
 
             def cb(self, msg):
                 try:
-                    fr  = self.bridge.imgmsg_to_cv2(msg,'rgb8')
+                    fr  = _imgmsg_to_numpy(msg)
                     bgr = cv2.cvtColor(fr, cv2.COLOR_RGB2BGR)
                     h,w = bgr.shape[:2]
                     res,bev,_ = self.det.process(bgr,w,h)
 
                     def pub(p,img):
-                        p.publish(self.bridge.cv2_to_imgmsg(
+                        p.publish(_numpy_to_imgmsg(
                             cv2.cvtColor(img,cv2.COLOR_BGR2RGB),'rgb8'))
 
                     pub(self.p_debug, res)
@@ -295,6 +306,9 @@ def _ros_node_class():
 def main(args=None):
     import rclpy
     NodeCls = _ros_node_class()
+    if NodeCls is None:
+        print("[ERROR] LaneDetectionNode başlatılamadı.")
+        return
     rclpy.init(args=args)
     node = NodeCls()
     try:    rclpy.spin(node)

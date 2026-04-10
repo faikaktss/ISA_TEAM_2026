@@ -1,10 +1,21 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
-import cv2
 import numpy as np
 import math
+
+import cv2
+
+def _numpy_to_imgmsg(cv_image, encoding='rgb8'):
+    """cv_bridge gerektirmeden numpy array -> ROS Image mesajı."""
+    from sensor_msgs.msg import Image as ImageMsg
+    msg = ImageMsg()
+    msg.height, msg.width = cv_image.shape[:2]
+    msg.encoding = encoding
+    msg.is_bigendian = False
+    msg.step = cv_image.shape[1] * cv_image.shape[2]
+    msg.data = cv_image.tobytes()
+    return msg
 
 
 # Todo: Robotun tüm sensör ve verilerini saklamak için kullanılan bilgi sınıfı
@@ -229,7 +240,7 @@ class CameraNode(Node):
 
         self.timer_period = 1.0/30 #Todo: 30 FPS
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
-        self.bridge = CvBridge()
+        
 
         self.info = Info()
 
@@ -262,7 +273,7 @@ class CameraNode(Node):
                 zed_frame, point_cloud = self.camera.img_and_point_cloud()
 
             if zed_frame is not None:
-                msg = self.bridge.cv2_to_imgmsg(zed_frame, encoding='rgb8')
+                msg = _numpy_to_imgmsg(zed_frame, encoding='rgb8')
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.header.frame_id = 'zed_camera_link'
                 self.zed_publisher.publish(msg)
@@ -272,7 +283,7 @@ class CameraNode(Node):
             if self.realsense is not None:
                 rs_frame = self.realsense.get_frame()
                 if rs_frame is not None:
-                    rs_msg = self.bridge.cv2_to_imgmsg(rs_frame, encoding='rgb8')
+                    rs_msg = _numpy_to_imgmsg(rs_frame, encoding='rgb8')
                     rs_msg.header.stamp = self.get_clock().now().to_msg()
                     rs_msg.header.frame_id = 'realsense_camera_link'
                     self.realsense_publisher.publish(rs_msg)

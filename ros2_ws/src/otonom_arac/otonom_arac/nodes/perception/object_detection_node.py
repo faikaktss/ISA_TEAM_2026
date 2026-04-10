@@ -3,9 +3,13 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from std_msgs.msg import String, Float32
-from cv_bridge import CvBridge
-import cv2
 import numpy as np
+
+import cv2
+
+def _imgmsg_to_numpy(msg):
+    """cv_bridge gerektirmeden ROS Image mesajı -> numpy array."""
+    return np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1).copy()
 
 #Todo:YOLO modelini import et
 try:
@@ -35,23 +39,30 @@ class ObjectDetectionNode(Node):
         self.detection_publisher = self.create_publisher(String, '/detection/objects', 10)
         self.distance_publisher = self.create_publisher(Float32, '/detection/distance', 10)
         
-        self.bridge = CvBridge()
-
         self.declare_parameter('model_path', _DEFAULT_MODEL)
+        self.model = None
 
         if YOLO_AVAILABLE:
             #Todo: YOLO modelini yükle
             model_path = self.get_parameter('model_path').value
-            self.model = YOLO(model_path)
-            self.get_logger().info('YOLO modeli yüklendi')
+            try:
+                self.model = YOLO(model_path)
+                self.get_logger().info('YOLO modeli yüklendi')
+            except Exception as e:
+                self.get_logger().error(
+                    f'YOLO modeli yüklenemedi: {e}\n'
+                    f'Model dosyası bozuk olabilir. '
+                    f'"git lfs pull" veya modeli yeniden indirin.')
+                self.model = None
         else:
             self.get_logger().error('YOLO bulunamadı, nesne tespiti çalışmayacak.')
-            self.model = None
     
     def image_callback(self, msg):
+        if self.model is None:
+            return
         try:
             #Todo : ROS Image 'ten OpenCV'ye dönüştürür
-            frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='rgb8')
+            frame = _imgmsg_to_numpy(msg)
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             
             if self.model is not None:

@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 
+import os
+# OpenCV kendi Qt plugin'lerini yüklüyor ve PyQt5 ile çakışıyor.
+# Sistem Qt plugin yolunu önce ayarla.
+if 'QT_QPA_PLATFORM_PLUGIN_PATH' not in os.environ:
+    _sys_qt = '/usr/lib/x86_64-linux-gnu/qt5/plugins/platforms'
+    if os.path.isdir(_sys_qt):
+        os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = _sys_qt
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32, Bool, String
 from sensor_msgs.msg import Image, LaserScan
 
 import cv2
+# cv2 import sırasında QT_QPA_PLATFORM_PLUGIN_PATH'i kendi dizinine çekiyor.
+# PyQt5'ten önce sistem yoluna geri döndür.
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = '/usr/lib/x86_64-linux-gnu/qt5/plugins/platforms'
 import numpy as np
 import threading
 
