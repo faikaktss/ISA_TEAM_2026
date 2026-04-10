@@ -289,7 +289,7 @@ def main(args=None):
     camera_node = CameraNode()
 
     try:
-        rclpy.spin(camera_node)#Todo: timer çalıştığı sürece programı ayakta tutar
+        rclpy.spin(camera_node)
     except KeyboardInterrupt:
         pass
     finally:
@@ -298,7 +298,10 @@ def main(args=None):
             print('RealSense kamera kapatıldı.')
         cv2.destroyAllWindows()
         camera_node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
 
 if __name__ == '__main__':
     main()
