@@ -156,7 +156,9 @@ try:
             init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE
             init_params.coordinate_units = sl.UNIT.CENTIMETER
 
-            self.zed.open(init_params)
+            err = self.zed.open(init_params)
+            if err != sl.ERROR_CODE.SUCCESS:
+                raise RuntimeError(f'ZED açılamadı: {err}')
 
             cam_info = self.zed.get_camera_information()
             resolution = cam_info.camera_configuration.resolution
@@ -172,8 +174,7 @@ try:
 
                 self.zed.retrieve_measure(self.point_cloud, sl.MEASURE.XYZ)
                 return self.img, self.point_cloud
-            print("zed grab() hatası.", err)
-            exit()
+            return None, None
 
         def get_distance(self, point_cloud, x, y):
             err, point_cloud_value = point_cloud.get_value(x, y)
@@ -231,7 +232,6 @@ class CameraNode(Node):
         self.bridge = CvBridge()
 
         self.info = Info()
-        self.test_mode = False
 
         # ZED başlat
         if CAMERA_AVAILABLE:
@@ -239,11 +239,11 @@ class CameraNode(Node):
                 self.camera = cam(self.info)
                 self.get_logger().info('ZED kamera başlatıldı.')
             except Exception as e:
-                self.get_logger().warn(f' ZED başlatılamadı: {str(e)}. Test moduna geçiliyor.')
-                self.test_mode = True
+                self.get_logger().error(f'ZED başlatılamadı: {str(e)}')
+                self.camera = None
         else:
-            self.get_logger().warn(' ZED SDK bulunamadı. Test modu aktif.')
-            self.test_mode = True
+            self.get_logger().error('ZED SDK bulunamadı.')
+            self.camera = None
 
         # RealSense başlat
         self.realsense = None
@@ -253,17 +253,12 @@ class CameraNode(Node):
                 self.get_logger().info('RealSense kamera başlatıldı.')
             except Exception as e:
                 self.get_logger().warn(f'RealSense başlatılamadı: {str(e)}')
-
-        if self.test_mode:
-            self.frame_counter = 0
-            self.get_logger().info(' Test kamerası hazır (1920x1080 sahte görüntü)')
         
     def timer_callback(self):
         try:
             # --- ZED ---
-            if self.test_mode:
-                zed_frame = self._generate_test_frame()
-            else:
+            zed_frame = None
+            if self.camera is not None:
                 zed_frame, point_cloud = self.camera.img_and_point_cloud()
 
             if zed_frame is not None:
@@ -285,34 +280,9 @@ class CameraNode(Node):
 
             cv2.waitKey(1)
 
-        except SystemExit:
-            self.get_logger().info('Kamera bağlantısı koptu')
-            self.destroy_node()
         except Exception as e:
             self.get_logger().error(f'Görüntü işleme hatası: {str(e)}')
     
-
-    #Todo: Test aşaması için sahte görüntü üret(faik)
-    def _generate_test_frame(self):
-        self.frame_counter += 1
-        
-        frame = np.zeros((1080, 1920, 3), dtype=np.uint8)
-        
-        for y in range(480):
-            frame[y, :] = [y // 2, 100, 255 - y // 2]
-        
-        cv2.putText(frame, f'TEST MODE - Frame: {self.frame_counter}', 
-            (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        cv2.putText(frame, 'ROS 2 Camera Node Active', 
-            (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        
-        #Todo: Dinamik bir nokta ekle(faik)
-        cx = int(320 + 200 * np.sin(self.frame_counter * 0.1))
-        cy = int(240 + 100 * np.cos(self.frame_counter * 0.1))
-        cv2.circle(frame, (cx, cy), 30, (0, 255, 255), -1)
-        
-        return frame
-
 
 def main(args=None):
     rclpy.init(args=args)

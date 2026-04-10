@@ -17,11 +17,9 @@ class ControlNode(Node):
 
         self.declare_parameter('arduino_port', '/dev/ttyACM1')
         self.declare_parameter('arduino_baudrate', 9600)
-        self.declare_parameter('test_mode', True)
 
         arduino_port = self.get_parameter('arduino_port').value
         arduino_baudrate = self.get_parameter('arduino_baudrate').value
-        self.test_mode = self.get_parameter('test_mode').value
 
         self.lane_angle_sub = self.create_subscription(
             Float32, '/lane/angle', self.lane_angle_callback, 10)
@@ -57,16 +55,11 @@ class ControlNode(Node):
         self.state = 'lane_following'
         self.state_counter = 0
 
-        try:
-            if not self.test_mode and SERIAL_AVAILABLE:
-                self.arduino = serial.Serial(arduino_port, arduino_baudrate, timeout=1)
-                self.get_logger().info(f'Arduino bağlandı: {arduino_port} @ {arduino_baudrate}')
-            else:
-                self.arduino = None
-                self.get_logger().info('Test modu - Arduino simüle ediliyor')
-        except Exception as e:
-            self.get_logger().warning(f'Seri port açılamadı: {e}, test modunda devam')
-            self.test_mode = True
+        if SERIAL_AVAILABLE:
+            self.arduino = serial.Serial(arduino_port, arduino_baudrate, timeout=1)
+            self.get_logger().info(f'Arduino bağlandı: {arduino_port} @ {arduino_baudrate}')
+        else:
+            self.get_logger().error('pyserial bulunamadı, arduino bağlantısı kurulamıyor')
             self.arduino = None
 
         self.control_timer = self.create_timer(0.1, self.control_loop)
@@ -142,9 +135,6 @@ class ControlNode(Node):
         vites_msg = Int32()
         vites_msg.data = int(vites)
         self.vites_pub.publish(vites_msg)
-
-        if self.test_mode:
-            self.get_logger().info(f'[CONTROL] sag_sol={sag_sol}, ileri_geri={ileri_geri}, vites={vites}')
 
         if self.arduino:
             try:

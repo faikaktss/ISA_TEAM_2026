@@ -32,8 +32,8 @@ if ROS2_AVAILABLE:
                 time.sleep(2)  
                 self.get_logger().info(f'Teensy bağlandı: {teensy_port} @ {teensy_baudrate}')
             except Exception as e:
-                self.teensy = None
-                self.get_logger().warning(f'Teensy bağlanamadı: {e} - TEST MODUNDA DEVAM')
+                self.get_logger().error(f'Teensy bağlanamadı: {e}')
+                raise
             
             # Todo: Durum değişkenleri - MANUEL MOD
             self.joystick_ileri_geri = 0
@@ -129,13 +129,6 @@ if ROS2_AVAILABLE:
                     self.get_logger().info(f'Teensy → {command.strip()}')
                 except Exception as e:
                     self.get_logger().error(f'Teensy yazma hatası: {e}')
-            else:
-                # Test modu
-                mode_str = "MANUEL" if self.manual_mode else "OTONOM"
-                self.get_logger().debug(
-                    f'[TEST-{mode_str}] Teensy komut: {command.strip()} | '
-                    f'ileri={ileri_geri}, sol={sag_sol}, vites={vites}'
-                )
         
         def destroy_node(self):
             """Node kapanırken Teensy bağlantısını kapat"""
@@ -145,84 +138,16 @@ if ROS2_AVAILABLE:
             super().destroy_node()
 
 
-# Todo: Test modu için Mock sınıfı
-class MockTeensyNode:
-    """ROS2 olmadan test için basit sınıf"""
-    def __init__(self):
-        print(" ROS2 (rclpy) bulunamadı - Test modunda çalışıyor")
-        print("=" * 60)
-
-        # Todo: Sabit test değerleri
-        self.manual_mode = False
-        self.ileri_geri = 50
-        self.sag_sol = 0
-        self.vites = 0
-        self.counter = 0
-
-        try:
-            self.teensy = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-            time.sleep(2)
-            print("Teensy /dev/ttyACM0 portuna BAGLANDI!")
-        except Exception as e:
-            self.teensy = None
-            print(f"Teensy baglanilamadi: {e}")
-    
-    def run(self):
-        """Test verilerini göster"""
-        try:
-            while True:
-                self.counter += 1
-                
-                # Todo:Her 5 saniyede mod değiştir
-                if self.counter % 250 == 0:
-                    self.manual_mode = not self.manual_mode
-                
-                # Todo,: 2 saniyede açı değiştir
-                if self.counter % 100 == 0:
-                    self.sag_sol = (self.sag_sol + 10) % 40 - 20
-                
-                mode_str = "MANUEL" if self.manual_mode else "OTONOM"
-                otonom = 0 if self.manual_mode else 1
-                command = f"{self.sag_sol},{self.ileri_geri},{self.vites},{otonom},0\n"
-
-                if self.teensy:
-                    self.teensy.write(command.encode())
-
-                print(f"[{mode_str}] Teensy komut: {command.strip()} | "
-                      f"ileri={self.ileri_geri}, sol={self.sag_sol}, vites={self.vites}")
-                
-                if self.counter % 50 == 0:
-                    print(f" {self.counter} komut gönderildi")
-                
-                time.sleep(0.02)  # Todo : 50Hz
-                
-        except KeyboardInterrupt:
-            print(f"\n Test durduruldu /  Toplam {self.counter} komut gönderildi")
-
-
 def main(args=None):
-    if not ROS2_AVAILABLE:
-        print("ROS2 başlatılamadı: rclpy modülü bulunamadı")
-        print("Test moduna geçiliyor\n")
-        mock = MockTeensyNode()
-        mock.run()
-        return
-    
+    rclpy.init(args=args)
+    node = TeensyNode()
     try:
-        rclpy.init(args=args)
-        node = TeensyNode()
-        try:
-            rclpy.spin(node)
-        except KeyboardInterrupt:
-            pass
-        finally:
-            node.destroy_node()
-            rclpy.shutdown()
-    except Exception as e:
-        print(f"ROS2 başlatılamadı: {e}")
-        print("Test moduna geçiliyor\n")
-        mock = MockTeensyNode()
-        mock.run()
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ Kullanım:
   python3 lane_detection.py --test /path/to/video.mp4 --output out.mp4
 """
 
-import math, sys, argparse
+import math, sys
 import cv2
 import numpy as np
 
@@ -304,60 +304,6 @@ def main(args=None):
         rclpy.shutdown()
 
 
-# Todo: VIDEO TEST MODU
-
-def main_test(video_path, output_path=None, show=False):
-    cap = cv2.VideoCapture(video_path)
-    W   = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    H   = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    FPS = cap.get(cv2.CAP_PROP_FPS)
-    BW  = 640
-    print(f"Giris: {W}x{H} @{FPS:.1f}fps")
-
-    writer = None
-    if output_path:
-        writer = cv2.VideoWriter(output_path,
-                                 cv2.VideoWriter_fourcc(*'mp4v'),
-                                 FPS, (W+BW, H))
-    det = LaneDetection(W, H)
-    n   = 0
-    while True:
-        ret, frame = cap.read()
-        if not ret: break
-        n += 1
-        result, bev_vis, _ = det.process(frame, W, H)
-
-        panel = cv2.resize(bev_vis, (BW, H))
-        cv2.putText(panel,"KUS BAKISI",(20,40),cv2.FONT_HERSHEY_SIMPLEX,1.2,(255,255,0),2)
-        cv2.putText(panel,f"Kayma:{det.smooth_kayma:+.1f}",(20,H-45),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,255,200),2)
-        cv2.putText(panel,f"Aci:{det.smooth_aci:+.1f}",(20,H-15),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,255,200),2)
-
-        canvas = np.zeros((H, W+BW, 3), dtype=np.uint8)
-        canvas[:,:W]  = result
-        canvas[:,W:]  = panel
-        cv2.line(canvas,(W,0),(W,H),(80,80,80),2)
-
-        if writer: writer.write(canvas)
-        if show:
-            cv2.imshow("Lane", canvas)
-            if cv2.waitKey(1)&0xFF==ord('q'): break
-        if n%100==0:
-            print(f"  Kare {n}: k={det.smooth_kayma:+.1f}  a={det.smooth_aci:+.1f}")
-
-    cap.release()
-    if writer: writer.release()
-    if show: cv2.destroyAllWindows()
-    print(f"Bitti – {n} kare  |  cikti: {output_path}")
-
-
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--test',   type=str, help='Test video yolu')
-    ap.add_argument('--output', type=str, default=None)
-    ap.add_argument('--show',   action='store_true')
-    args = ap.parse_args()
-    if args.test:
-        main_test(args.test, args.output, args.show)
-    else:
-        main()
+    main()
 

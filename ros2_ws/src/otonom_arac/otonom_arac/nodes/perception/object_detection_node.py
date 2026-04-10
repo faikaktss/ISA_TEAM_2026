@@ -31,26 +31,17 @@ class ObjectDetectionNode(Node):
         self.distance_publisher = self.create_publisher(Float32, '/detection/distance', 10)
         
         self.bridge = CvBridge()
-        self.test_mode = False
 
         self.declare_parameter('model_path', '/home/isateam/ISA_TEAM_2025-2026_ROS2_HUMBLE/model/best.pt')
 
         if YOLO_AVAILABLE:
-            try:
-                #Todo: YOLO modelini yükle
-                model_path = self.get_parameter('model_path').value
-                self.model = YOLO(model_path)
-                self.get_logger().info('YOLO modeli yüklendi')
-            except Exception as e:
-                self.get_logger().warn(f'YOLO yüklenemedi: {str(e)}. Test modu.')
-                self.test_mode = True
+            #Todo: YOLO modelini yükle
+            model_path = self.get_parameter('model_path').value
+            self.model = YOLO(model_path)
+            self.get_logger().info('YOLO modeli yüklendi')
         else:
-            self.get_logger().warn('YOLO bulunamadı. Test modu aktif.')
-            self.test_mode = True
-        
-        if self.test_mode:
-            self.frame_count = 0
-            self.get_logger().info('Test object detection hazır')
+            self.get_logger().error('YOLO bulunamadı, nesne tespiti çalışmayacak.')
+            self.model = None
     
     def image_callback(self, msg):
         try:
@@ -58,20 +49,7 @@ class ObjectDetectionNode(Node):
             frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='rgb8')
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             
-            if self.test_mode:
-                # Todo Test: Her 30 frame'de bir "kirmizi" tabelası tespit et
-                self.frame_count += 1
-                if self.frame_count % 30 == 0:
-                    detection_msg = String()
-                    detection_msg.data = "kirmizi"
-                    self.detection_publisher.publish(detection_msg)
-                    
-                    distance_msg = Float32()
-                    distance_msg.data = 150.0  # 150 cm
-                    self.distance_publisher.publish(distance_msg)
-                    
-                    self.get_logger().info('Test: kirmizi tabela tespit edildi (150cm)')
-            else:
+            if self.model is not None:
                 #Todo:Gerçek YOLO tespiti
                 results = self.model.predict(frame_bgr, conf=0.5, device='cpu', imgsz=(736, 736))
                 
