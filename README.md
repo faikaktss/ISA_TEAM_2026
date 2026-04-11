@@ -4,7 +4,7 @@
 
 <div align="center">
 
-# 🚗 ISA_TEAM_2025-2026_ROS2_ANAKOD2
+# 🚗 ISA_TEAM_ANAKOD
 
 **ROS2 tabanlı otonom araç algoritma ve donanım kontrol platformu**  
 Kamera + Lidar + (opsiyonel) IMU/GPS verilerini işleyerek algılama/karar/control akışını yönetir.
