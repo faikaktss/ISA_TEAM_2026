@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from std_msgs.msg import Float32MultiArray
 import numpy as np
 import math
 
@@ -233,10 +234,11 @@ if REALSENSE_AVAILABLE:
 class CameraNode(Node):
     def __init__(self):
         super().__init__('camera_node')
-        # ZED publisher
-        self.zed_publisher = self.create_publisher(Image, '/zed/image_raw', 10)
+        # ZED publisher'lar
+        self.zed_publisher        = self.create_publisher(Image,            '/zed/image_raw',   10)
+        self.point_cloud_publisher = self.create_publisher(Float32MultiArray, '/zed/point_cloud', 10)
         # RealSense publisher
-        self.realsense_publisher = self.create_publisher(Image, '/realsense/image_raw', 10)
+        self.realsense_publisher  = self.create_publisher(Image,            '/realsense/image_raw', 10)
 
         self.timer_period = 1.0/30 #Todo: 30 FPS
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
@@ -278,6 +280,22 @@ class CameraNode(Node):
                 msg.header.frame_id = 'zed_camera_link'
                 self.zed_publisher.publish(msg)
                 cv2.imshow('ZED Kamera', zed_frame)
+
+                # Point cloud yayınla: [height, width, x0,y0,z0, x1,y1,z1, ...]
+                # Object detection node bunu bounding box merkezi için kullanır
+                if point_cloud is not None:
+                    try:
+                        pc_data = point_cloud.get_data()  # (H, W, 4) fl oat32 — X,Y,Z,W cm
+                        # 4x downsample: 1080x1920 → 270x480  (~25MB → ~1.5MB)
+                        STEP = 4
+                        ds = pc_data[::STEP, ::STEP, :3].astype(np.float32)
+                        h_ds, w_ds = ds.shape[:2]
+                        flat = ds.flatten().tolist()
+                        pc_msg = Float32MultiArray()
+                        pc_msg.data = [float(h_ds), float(w_ds), float(STEP)] + flat
+                        self.point_cloud_publisher.publish(pc_msg)
+                    except Exception as pc_err:
+                        self.get_logger().debug(f'Point cloud yayın hatası: {pc_err}')
 
             # --- RealSense ---
             if self.realsense is not None:

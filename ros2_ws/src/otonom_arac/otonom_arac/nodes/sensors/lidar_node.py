@@ -1,72 +1,268 @@
+
+import math
+import numpy as np
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
-from std_msgs.msg import Float32MultiArray
-import numpy as np
+from std_msgs.msg import Float32MultiArray, Int32
+
+try:
+    from rplidar import RPLidar
+    RPLIDAR_AVAILABLE = True
+except ImportError:
+    RPLIDAR_AVAILABLE = False
+
+try:
+    from sklearn.cluster import DBSCAN
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+
+
+class ClusterTracker:
+    """Kümelere A/B/C... gibi kalıcı kimlikler atar (2024-2025 mantığı)."""
+
+    HAREKET_ESIGI = 80   
+    ESLESME_MESAFE = 300 
+
+    def __init__(self):
+        self._sonraki_id = 0
+        self._kümeler = {}   
+
+    def _yeni_harf(self):
+        harf = chr(ord('A') + self._sonraki_id % 26)
+        self._sonraki_id += 1
+        return harf
+
+    def guncelle(self, mevcutlar):
+        """
+        mevcutlar: [(cx, cy), ...] — bu frame'deki küme merkezleri
+        döndürür: {id_harf: {'merkez': (x,y), 'hareketli': bool}}
+        """
+        eslesmemis_ids = set(self._kümeler.keys())
+        yeni_kumeler = {}
+
+        for cx, cy in mevcutlar:
+            en_yakin_id = None
+            en_yakin_d = float('inf')
+            for kid, kdata in self._kümeler.items():
+                px, py = kdata['merkez']
+                d = math.hypot(cx - px, cy - py)
+                if d < en_yakin_d and d < self.ESLESME_MESAFE:
+                    en_yakin_d = d
+                    en_yakin_id = kid
+
+            if en_yakin_id is not None:
+                eslesmemis_ids.discard(en_yakin_id)
+                gecmis = self._kümeler[en_yakin_id]['gecmis']
+                gecmis.append((cx, cy))
+                if len(gecmis) > 10:
+                    gecmis.pop(0)
+                hareketli = self._hareket_var(gecmis)
+                yeni_kumeler[en_yakin_id] = {'merkez': (cx, cy), 'gecmis': gecmis, 'hareketli': hareketli}
+            else:
+                harf = self._yeni_harf()
+                yeni_kumeler[harf] = {'merkez': (cx, cy), 'gecmis': [(cx, cy)], 'hareketli': False}
+
+        self._kümeler = yeni_kumeler
+        return yeni_kumeler
+
+    def _hareket_var(self, gecmis):
+        if len(gecmis) < 3:
+            return False
+        ilk_x, ilk_y = gecmis[0]
+        son_x, son_y = gecmis[-1]
+        return math.hypot(son_x - ilk_x, son_y - ilk_y) > self.HAREKET_ESIGI
+
+
+class EngelTakip:
+    """
+    İleri yay (60-120 derece) analizi ile engel durumu döndürür.
+      0 = engel yok        (>500 mm)
+      1 = durağan engel    (300-500 mm)
+      2 = hareketli/kritik (<300 mm veya hareket eden)
+    """
+
+    KRITIK_MESAFE = 300   # mm
+    UYARI_MESAFE  = 500   # mm
+    YAY_MIN = 60
+    YAY_MAX = 120
+
+    def degerlendir(self, kümeler, tarama_noktalari):
+        """
+        kümeler: ClusterTracker.guncelle() çıktısı
+        tarama_noktalari: [(aci_derece, mesafe_mm), ...]
+        """
+        on_noktalar = [
+            d for a, d in tarama_noktalari
+            if self.YAY_MIN <= a <= self.YAY_MAX and 0 < d < 6000
+        ]
+        if not on_noktalar:
+            return 0
+
+        min_mesafe = min(on_noktalar)
+
+        for kdata in kümeler.values():
+            if kdata['hareketli']:
+                cx, cy = kdata['merkez']
+                aci = math.degrees(math.atan2(cx, cy)) % 360
+                if self.YAY_MIN <= aci <= self.YAY_MAX:
+                    return 2
+
+        if min_mesafe < self.KRITIK_MESAFE:
+            return 2
+        elif min_mesafe < self.UYARI_MESAFE:
+            return 1
+        return 0
 
 
 class LidarNode(Node):
     def __init__(self):
         super().__init__('lidar_node')
-        
-        # Todo: Parametreler - Lidar ayarları
+
         self.declare_parameter('lidar_port', '/dev/ttyUSB1')
         self.declare_parameter('lidar_baudrate', 115200)
 
-        lidar_port = self.get_parameter('lidar_port').value
+        lidar_port     = self.get_parameter('lidar_port').value
         lidar_baudrate = self.get_parameter('lidar_baudrate').value
 
-        #Todo:Lidar verilerini yayınla
-        self.scan_publisher = self.create_publisher(LaserScan, '/lidar/scan', 10)
+        # Publisher'lar
+        self.scan_publisher     = self.create_publisher(LaserScan,         '/lidar/scan',      10)
         self.distance_publisher = self.create_publisher(Float32MultiArray, '/lidar/distances', 10)
+        self.obstacle_publisher = self.create_publisher(Int32,             '/lidar/obstacle',  10)
 
-        self.timer_period = 1.0 / 10.0  #Todo:10 Hz
-        self.timer = self.create_timer(self.timer_period, self.timer_callback)
+        # Algoritma bileşenleri
+        self.tracker     = ClusterTracker()
+        self.engel_takip = EngelTakip()
+        self._tarama     = []   # [(aci, mesafe), ...]
 
-        # Gerçek RPLidar kütüphanesi buraya eklenebilir
-        # from adafruit_rplidar import RPLidar
-        # self.lidar = RPLidar(None, lidar_port, baudrate=lidar_baudrate)
-        self.get_logger().info(f'Lidar bağlandı: {lidar_port} @ {lidar_baudrate}')
-        self.lidar = None  # Placeholder
-    
+        # RPLidar bağlantısı
+        self.lidar = None
+        if RPLIDAR_AVAILABLE:
+            try:
+                self.lidar = RPLidar(lidar_port, baudrate=lidar_baudrate)
+                self.lidar.start_motor()
+                self.get_logger().info(f'RPLidar bağlandı: {lidar_port}')
+            except Exception as e:
+                self.get_logger().warn(f'RPLidar bağlanamadı: {e}')
+                self.lidar = None
+        else:
+            self.get_logger().warn('rplidar kütüphanesi yok. pip install rplidar-roboticia')
+
+        if not SKLEARN_AVAILABLE:
+            self.get_logger().warn('sklearn yok — DBSCAN devre dışı. pip install scikit-learn')
+
+        self.timer = self.create_timer(0.1, self.timer_callback)  # 10 Hz
+
     def timer_callback(self):
         try:
-            #Todo : Gerçek Lidar'dan veri al
-            scan_msg, distance_msg = self._get_lidar_data()
+            if self.lidar is None:
+                return
 
-            if scan_msg:
-                self.scan_publisher.publish(scan_msg)
-            if distance_msg:
-                self.distance_publisher.publish(distance_msg)
+            tarama = []
+            for yeni_scan, kalite, aci, mesafe in self.lidar.iter_measures(max_buf_meas=500):
+                if yeni_scan and tarama:
+                    break
+                if kalite > 0 and mesafe > 0:
+                    tarama.append((float(aci), float(mesafe)))
+
+            if not tarama:
+                return
+
+            self._tarama = tarama
+            self._yayinla(tarama)
 
         except Exception as e:
             self.get_logger().error(f'Lidar okuma hatası: {str(e)}')
 
-    def _get_lidar_data(self):
-        scan = LaserScan()
-        scan.header.stamp = self.get_clock().now().to_msg()
-        scan.header.frame_id = 'lidar_link'
-        
-        #Todo:Mesafe dizisi
-        distance_msg = Float32MultiArray()
-        distance_msg.data = [0.0, 0.0, 0.0, 0.0]  # Placeholder
-        
-        return scan, distance_msg
+    def _yayinla(self, tarama):
+        stamp = self.get_clock().now().to_msg()
+
+        scan_msg = LaserScan()
+        scan_msg.header.stamp    = stamp
+        scan_msg.header.frame_id = 'lidar_link'
+        scan_msg.angle_min       = 0.0
+        scan_msg.angle_max       = 2 * math.pi
+        scan_msg.angle_increment = math.radians(1.0)
+        scan_msg.time_increment  = 0.0
+        scan_msg.range_min       = 0.05
+        scan_msg.range_max       = 6.0
+
+        ranges = [float('inf')] * 360
+        for aci, mesafe in tarama:
+            idx = int(aci) % 360
+            m   = mesafe / 1000.0  # mm → m
+            if m < ranges[idx]:
+                ranges[idx] = m
+        scan_msg.ranges = ranges
+        self.scan_publisher.publish(scan_msg)
+
+        def min_yay(a1, a2):
+            vals = [d for a, d in tarama if a1 <= a % 360 <= a2 and 0 < d < 6000]
+            return min(vals) if vals else 0.0
+
+        on   = min_yay(60,  120)
+        sol  = min_yay(150, 210)
+        arka = min_yay(240, 300)
+        sag_vals = [d for a, d in tarama if ((330 <= a % 360 <= 360) or (0 <= a % 360 <= 30)) and 0 < d < 6000]
+        sag  = min(sag_vals) if sag_vals else 0.0
+
+        dist_msg = Float32MultiArray()
+        dist_msg.data = [float(on), float(sol), float(sag), float(arka)]
+        self.distance_publisher.publish(dist_msg)
+
+        engel_durum = 0
+        if SKLEARN_AVAILABLE and tarama:
+            # Polar → Kartezyen (mm)
+            pts = []
+            for aci, mesafe in tarama:
+                if 0 < mesafe < 6000:
+                    rad = math.radians(aci)
+                    pts.append([mesafe * math.cos(rad), mesafe * math.sin(rad)])
+
+            if len(pts) >= 4:
+                pts_arr = np.array(pts)
+                labels  = DBSCAN(eps=200, min_samples=4).fit_predict(pts_arr)
+                # Küme merkezleri
+                merkezler = []
+                for lbl in set(labels):
+                    if lbl == -1:
+                        continue
+                    mask = labels == lbl
+                    merkezler.append(tuple(pts_arr[mask].mean(axis=0)))
+
+                kümeler = self.tracker.guncelle(merkezler)
+                engel_durum = self.engel_takip.degerlendir(kümeler, tarama)
+
+        obs_msg = Int32()
+        obs_msg.data = engel_durum
+        self.obstacle_publisher.publish(obs_msg)
+
+    def destroy_node(self):
+        if self.lidar is not None:
+            try:
+                self.lidar.stop()
+                self.lidar.stop_motor()
+                self.lidar.disconnect()
+            except Exception:
+                pass
+        super().destroy_node()
+
 
 def main(args=None):
     rclpy.init(args=args)
-    lidar_node = LidarNode()
-    
+    node = LidarNode()
     try:
-        rclpy.spin(lidar_node)
+        rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:
-        lidar_node.destroy_node()
+        node.destroy_node()
         try:
             rclpy.shutdown()
         except Exception:
             pass
+
 
 if __name__ == '__main__':
     main()

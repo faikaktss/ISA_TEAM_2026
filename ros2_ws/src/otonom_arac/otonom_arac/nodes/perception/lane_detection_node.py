@@ -177,6 +177,7 @@ class LaneDetection:
 
         fill = bev.copy()
         ptsl = np.column_stack([lx,py]).astype(np.int32)
+        
         ptsr = np.column_stack([rx,py]).astype(np.int32)
         cv2.fillPoly(fill, [np.vstack([ptsl,ptsr[::-1]])], (0,180,0))
         bev = cv2.addWeighted(bev, 0.45, fill, 0.55, 0)
@@ -270,7 +271,7 @@ def _ros_node_class():
         class LaneDetectionNode(Node):
             def __init__(self):
                 super().__init__('lane_detection_node')
-                self.sub     = self.create_subscription(Image,'/camera/image_raw',self.cb,10)
+                self.sub     = self.create_subscription(Image,'/zed/image_raw',self.cb,10)
                 self.p_angle = self.create_publisher(Float32,'/lane/angle',10)
                 self.p_off   = self.create_publisher(Float32,'/lane/offset',10)
                 self.p_debug = self.create_publisher(Image,'/lane/debug_image',10)

@@ -31,10 +31,15 @@ class ControlNode(Node):
             Float32, '/detection/distance', self.detection_distance_callback, 10)
         self.lidar_scan_sub = self.create_subscription(
             LaserScan, '/lidar/scan', self.lidar_callback, 10)
+        # lidar_node'dan gelen hazır engel durumu (0/1/2)
+        self.lidar_obstacle_sub = self.create_subscription(
+            Int32, '/lidar/obstacle', self.lidar_obstacle_callback, 10)
 
         self.sag_sol_pub = self.create_publisher(Int32, '/control/sag_sol', 10)
         self.ileri_geri_pub = self.create_publisher(Int32, '/control/ileri_geri', 10)
         self.vites_pub = self.create_publisher(Int32, '/control/vites', 10)
+        # GUI için mevcut state adını yayınla
+        self.algorithm_pub = self.create_publisher(String, '/algorithm/current', 10)
 
         self.imu_pub = self.create_publisher(Float32, '/imu/angle', 10)
         self.imu_angle = 0.0
@@ -44,6 +49,7 @@ class ControlNode(Node):
         self.current_tabela = None
         self.tabela_distance = 0.0
         self.engel_durumu = 0
+        self._obstacle_topic_aktif = False  # /lidar/obstacle geldi mi?
 
         self.tabela_gecmisi = []
         self.yeni_tab = None
@@ -113,7 +119,15 @@ class ControlNode(Node):
         if self.current_tabela == "durak":
             self.durakPixel = int(1000.0 / max(self.tabela_distance, 0.5))
 
+    def lidar_obstacle_callback(self, msg):
+        """lidar_node'dan gelen hazir engel durumu: 0=yok, 1=durugan, 2=hareketli/kritik"""
+        self._obstacle_topic_aktif = True
+        self.engel_durumu = msg.data
+
     def lidar_callback(self, msg):
+        """Yedek: lidar_node /lidar/obstacle yayinlamazsa ham scan'den hesapla."""
+        if self._obstacle_topic_aktif:
+            return  # lidar_node zaten DBSCAN sonucunu gönderiyor, ham hesaba gerek yok
         ranges = msg.ranges
         if len(ranges) == 0:
             return
@@ -121,9 +135,9 @@ class ControlNode(Node):
         front_ranges = [ranges[i] for i in front_indices if i < len(ranges)]
         min_distance = min([r for r in front_ranges if r > 0.0], default=10.0)
         if min_distance < 0.3:
-            self.engel_durumu = 1
-        elif min_distance < 0.5:
             self.engel_durumu = 2
+        elif min_distance < 0.5:
+            self.engel_durumu = 1
         else:
             self.engel_durumu = 0
 
@@ -151,10 +165,13 @@ class ControlNode(Node):
                 self.get_logger().warning(f'Arduino yazma hatası: {e}')
 
     def gecis(self, yeni_state):
-        """State geçişi - sayacı sıfırla"""
-        self.get_logger().info(f'State: {self.state} → {yeni_state}')
+        """State gecisi - sayaci sifirla ve GUI'ye yayinla"""
+        self.get_logger().info(f'State: {self.state} -> {yeni_state}')
         self.state = yeni_state
         self.state_counter = 0
+        alg_msg = String()
+        alg_msg.data = yeni_state
+        self.algorithm_pub.publish(alg_msg)
 
     def control_loop(self):
         """Her 0.1 saniyede bir çalışır - sadece 1 adım yapar, ASLA uyumaz"""
@@ -277,9 +294,14 @@ class ControlNode(Node):
                 self.gecis('park_bekle')
             else:
                 if self.current_angle is not None:
-                    self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
+                    angle = self.current_angle
+                    if angle < 0:
+                        angle -= 4
+                    elif angle > 0:
+                        angle += 3
+                    self.send_control_command(angle, ileri_geri=50, vites=0)
                 else:
-                    self.get_logger().debug('Açı verisi yok, bekliyorum')
+                    self.get_logger().debug('Aci verisi yok, bekliyorum')
 
     def destroy_node(self):
         if self.arduino:

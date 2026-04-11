@@ -11,9 +11,18 @@ ros2 run otonom_arac video_player_node --ros-args -p video_path:=/path/to/video.
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
+import numpy as np
 import cv2
 import os
+
+def _numpy_to_imgmsg(cv_image, encoding='rgb8'):
+    msg = Image()
+    msg.height, msg.width = cv_image.shape[:2]
+    msg.encoding = encoding
+    msg.is_bigendian = False
+    msg.step = cv_image.shape[1] * cv_image.shape[2]
+    msg.data = cv_image.tobytes()
+    return msg
 
 
 class VideoPlayerNode(Node):
@@ -30,11 +39,8 @@ class VideoPlayerNode(Node):
         self.target_fps = self.get_parameter('fps').value
         self.loop_video = self.get_parameter('loop').value
         
-        # TODO: Publisher oluştur - gerçek kamera ile aynı topic
-        self.image_publisher = self.create_publisher(Image, '/camera/image_raw', 10)
-        
-        # TODO: OpenCV-ROS dönüşümü için bridge
-        self.bridge = CvBridge()
+        # Publisher - gerçek kamera ile aynı topic
+        self.image_publisher = self.create_publisher(Image, '/zed/image_raw', 10)
         
         # TODO: Video durumu
         self.video_capture = None
@@ -74,7 +80,7 @@ class VideoPlayerNode(Node):
         self.get_logger().info(f' Video FPS: {self.video_fps:.1f}')
         self.get_logger().info(f' Hedef FPS: {self.target_fps:.1f}')
         self.get_logger().info(f' Loop: {"Aktif" if self.loop_video else "Pasif"}')
-        self.get_logger().info(f' Topic: /camera/image_raw')
+        self.get_logger().info(f' Topic: /zed/image_raw')
         self.get_logger().info('═' * 70)
     
     def timer_callback(self):
@@ -106,8 +112,8 @@ class VideoPlayerNode(Node):
             # TODO: BGR'den RGB'ye çevir (ROS standart RGB kullanır)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            # TODO: OpenCV frame'i ROS Image mesajına dönüştür
-            msg = self.bridge.cv2_to_imgmsg(frame_rgb, encoding='rgb8')
+            # OpenCV frame'i ROS Image mesajına dönüştür
+            msg = _numpy_to_imgmsg(frame_rgb, encoding='rgb8')
             msg.header.stamp = self.get_clock().now().to_msg()  # Zaman damgası
             msg.header.frame_id = 'camera_link'  # Çerçeve kimliği
             
