@@ -1,114 +1,301 @@
-  # 🚗 ISA_TEAM_2025-2026_ROS2
+<!-- ========================= -->
+<!--  ISA TEAM ROS2 README     -->
+<!-- ========================= -->
 
-> **Otonom Araç Algoritma ve Donanım Platformu: Kamera, Lidar, IMU, GPS ile gerçek zamanlı çevresel algı, kontrol ve karar mekanizmaları (ROS2)**
+<div align="center">
 
----
+# 🚗 ISA_TEAM_2025-2026_ROS2_ANAKOD2
 
-## 📑 İçerik
-- [🎯 Proje Amacı ve Özeti](#-proje-amacı-ve-özeti)
-- [💻 Sistem Gereksinimleri ve Kurulum](#-sistem-gereksinimleri-ve-kurulum)
-- [📦 Bağımlılıklar](#-bağımlılıklar)
-- [🔌 Donanım Gereksinimleri](#-donanım-gereksinimleri)
-- [📂 Proje Yapısı](#-proje-yapısı)
-- [🚀 Çalıştırma Talimatları](#-çalıştırma-talimatları)
-- [✨ Ana Özellikler](#-ana-özellikler)
-- [👤 Katkı Sağlayanlar ve Lisans](#katkı-sağlayanlar-ve-lisans)
----
+**ROS2 tabanlı otonom araç algoritma ve donanım kontrol platformu**  
+Kamera + Lidar + (opsiyonel) IMU/GPS verilerini işleyerek algılama/karar/control akışını yönetir.
 
-## 🎯 Proje Amacı ve Özeti
-⭐ ROS2 çatısı üzerinde gerçek sensörlerden alınan verilerin işlenmesi, yol-şerit algılama, trafik levhası tanıma, nesne tespiti ve karar ile donanımın yönetilmesi için geliştirilmiştir.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)
+![ROS2](https://img.shields.io/badge/ROS2-Humble%20%7C%20Foxy-blueviolet?logo=ros)
+![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-orange?logo=linux)
+![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)
 
-**Öne çıkanlar**  
-- 🏁 Derin öğrenme tabanlı nesne & trafik levhası (YOLO)
-- 📐 Şerit algılama ve açı hesabı
-- 🛑 Lidar ile çevresel engel tespiti
-- 🖥️ PyQt5 & Qt arayüz
-- 🔄 ROS2 iletişimi
+</div>
 
 ---
 
-## 💻 Sistem Gereksinimleri ve Kurulum
+## 📌 Proje Özeti 
 
-![Python](https://img.shields.io/badge/Python-%3E=3.8-blue?logo=python)
-![ROS2 Foxy](https://img.shields.io/badge/ROS2-Foxy-blueviolet?logo=ros)
-![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-orange?logo=linux)  
+Bu repo; **otonom araç** için geliştirilen bir ROS2 uygulamasının çalışma alanını (`ros2_ws`) ve bileşenlerini içerir. Ana hedef:
 
-> Kütüphaneler:
-`opencv-python`, `numpy`, `PyQt5`, `ultralytics`, `pyzed` (ZED için), `pyrealsense2`, `rplidar`, `setuptools`, `pyzbar` (isteğe bağlı)
+- 🧠 **Algılama (Perception):** Şerit/yol algılama, nesne tespiti (YOLO/Ultralytics)
+- 🛑 **Sensörler:** Kamera, lidar, encoder, joystick gibi kaynaklardan veri toplama
+- 🎛️ **Kontrol:** Kontrol kararlarının Arduino/Teensy gibi gömülü kartlara iletilmesi (seri haberleşme)
+- 🖥️ **GUI:** PyQt tabanlı izleme/arayüz (ROS2 node olarak çalışır)
 
-### 🚦 Kurulum
+---
+
+## 🧭 İçindekiler
+
+- [✨ Öne Çıkan Özellikler](#-öne-çıkan-özellikler)
+- [📦 Repo Yapısı](#-repo-yapısı)
+- [🧱 ROS2 Paketleri ve Node’lar](#-ros2-paketleri-ve-nodelar)
+- [⚙️ Kurulum (Yerel)](#️-kurulum-yerel)
+- [🐳 Docker ile Çalıştırma](#-docker-ile-çalıştırma)
+- [🚀 Çalıştırma (ROS2)](#-çalıştırma-ros2)
+- [🧩 Mimari / Veri Akışı](#-mimari--veri-akışı)
+- [🛠️ Test / Kod Kalitesi](#️-test--kod-kalitesi)
+- [🧯 Sorun Giderme](#-sorun-giderme)
+- [🤝 Katkı & Lisans](#-katkı--lisans)
+
+---
+
+## ✨ Öne Çıkan Özellikler
+
+| Başlık | Açıklama |
+|---|---|
+| 🏁 Perception | Şerit algılama + nesne tespiti (YOLO/Ultralytics) |
+| 🛑 Lidar | Lidar verisini okuyup işleme (paket içinde `lidar_node`) |
+| 🎮 Teleop | Joystick ile kontrol / test (`joystick_node`) |
+| 🧾 Encoder | Encoder verisi okuma (`encoder_node`) |
+| 🔌 Donanım Haberleşmesi | Teensy/Arduino ile seri haberleşme (`teensy_node`) |
+| 🖥️ GUI | ROS2 GUI node’u (`gui_node`) |
+
+---
+
+## 📦 Repo Yapısı
+
+Repo kökünde önemli dosyalar:
+
+- `README.md` → bu doküman  
+- `Dockerfile` → ROS2 Humble desktop tabanlı docker imajı
+- `docker-compose.yml` → cihaz bağlama (`/dev/ttyACM0`) + volume + host network
+- `ros2_ws/` → ROS2 workspace (src/build/install/log içeriyor)
+
+ROS2 workspace içinde:
+
+- `ros2_ws/src/otonom_arac/` → ana ROS2 paketi (ament_python)
+
+> Not: `ros2_ws/build/` ve `ros2_ws/install/` klasörleri repoda görünüyor. Normalde build çıktıları repoya commit edilmez; ama burada mevcut olduğu için hem kaynak hem çıktılar yan yana duruyor.
+
+---
+
+## 🧱 ROS2 Paketleri ve Node’lar
+
+### Paket: `otonom_arac`
+
+Paket bilgisi:
+- Paket adı: `otonom_arac`
+- Build sistemi: `ament_python`
+- Bağımlılıklar: `rclpy`, `std_msgs`, `sensor_msgs`, `cv_bridge`
+
+📍 Paket yolu:
+- `ros2_ws/src/otonom_arac/`
+
+### Console scripts (çalıştırılabilir node komutları)
+
+Aşağıdaki node’lar paketin `setup.py` içindeki `console_scripts` kısmından geliyor:
+
+#### Sensör Node’ları
+- `camera_node` → `otonom_arac.nodes.sensors.camera_node:main`
+- `encoder_node` → `otonom_arac.nodes.sensors.encoder_node:main`
+- `lidar_node` → `otonom_arac.nodes.sensors.lidar_node:main`
+- `joystick_node` → `otonom_arac.nodes.sensors.joystick_node:main`
+
+#### Kontrol Node’ları
+- `control_node` → `otonom_arac.nodes.control.control_node:main`
+- `teensy_node` → `otonom_arac.nodes.control.teensy_node:main`
+
+#### Algılama (Perception) Node’ları
+- `lane_detection_node` → `otonom_arac.nodes.perception.lane_detection_node:main`
+- `object_detection_node` → `otonom_arac.nodes.perception.object_detection_node:main`
+
+#### GUI
+- `gui_node` → `otonom_arac.nodes.gui.gui_node:main`
+
+---
+
+## ⚙️ Kurulum (Yerel)
+
+### 1) Sistem gereksinimleri
+
+- ROS2: **Humble** önerilir (Docker imajı Humble kullanıyor)
+- Python: 3.8+
+- OpenCV, Numpy
+- YOLO/Ultralytics (nesne tespiti için)
+- Seri haberleşme için: `pyserial`
+
+> Repo içindeki Dockerfile ayrıca şu paketleri kuruyor: `ultralytics`, `pyserial`, `torch/torchvision (CPU)` ve `numpy<2`.
+
+### 2) ROS2 workspace build
 
 ```bash
-pip install opencv-python numpy PyQt5 ultralytics pyzbar pyrealsense2 rplidar
-source /opt/ros/foxy/setup.bash      # ROS2 aktif etme
-cd ros2_ws && colcon build
+cd ros2_ws
+# (opsiyonel) rosdep ile bağımlılık çözmek istersen:
+# rosdep install --from-paths src -i -y
+
+colcon build
 source install/setup.bash
 ```
 
-> 💡 Donanımınıza ve platformunuza göre sürücü/SDK kurulumları için üretici dökümanına bakın.
-
 ---
 
-## 🔌 Donanım Gereksinimleri
+## 🐳 Docker ile Çalıştırma
 
-- 📷 Logitech, Realsense veya ZED kamera  
-- 🛑 RP-Lidar  
-- 🪫 Arduino & Teensy  
-- 🤖 Robot platformu, batarya/power supply  
+Bu repo Docker ile kolay başlatma için hazırlanmış:
 
----
+### Dockerfile (özet)
+- Base image: `osrf/ros:humble-desktop`
+- Kurulanlar: `python3-pip`, `python3-opencv`, `numpy<2`
+- Kurulan Python paketleri: `torch/torchvision (CPU)`, `ultralytics`, `pyserial`
 
-## 📂 Proje Yapısı
+### docker-compose (özet)
+- `./ros2_ws` → container içinde `/workspace/ros2_ws` olarak mount edilir
+- Seri port map: `/dev/ttyACM0:/dev/ttyACM0` (Teensy/Arduino için)
+- `network_mode: host` (ROS2 keşfi ve network için pratik)
 
-```
-ISA_TEAM_2025-2026_ROS2/
-│
-├── main.py                # 🚀 Ana başlangıç noktası
-├── LaneDetect.py          # 🛣️ Şerit algılama
-├── lidar.py               # 🛑 Lidar işleme
-├── camera.py              # 📷 Kamera wrapper
-├── info.py                # ℹ️ Durum/bilgi yönetimi
-├── arduino.py             # 🔌 Donanım arayüzü
-├── qt_Arayüz/             # 🖼️ PyQt GUI arayüz dosyaları
-├── modeller/              # 🧠 YOLO ağırlık modelleri
-├── yardımcıDosyalar/      # 🛠️ Yardımcı/test scriptleri
-├── ros2_ws/               # 🟪 ROS2 workspace
-└── README.md              
-```
-
----
-
-## ✨ Ana Özellikler
-
-| 🚦 Özellik                | Açıklama                                                                |
-|--------------------------|------------------------------------------------------------------------ |
-| Şerit & Yol Algılama     | Kamera görüntüsünden yol & şerit konumunu ve açı hesabını otomatik bulur|
-| Trafik Tabelası Tanıma   | YOLO ile tabela tanıma ve sınıflandırma                                 |
-| Lidar ile Engel          | Lidar ile çevresel engel & mesafe analizi                               |
-| Donanım Karar Mekanizması| Arduino/Teensy kartlar ile hız, servo ve aktüatör komutları yönetimi    |
-| PyQt5 GUI                | Tüm verileri/kararları görsel olarak izlemenize imkan sağlar            |
-
----
-
-## 🚀 Çalıştırma Talimatları
+Çalıştırma:
 
 ```bash
-python main.py
+docker compose build
+docker compose run --rm ros2
 ```
 
-> 🧪 Alternatif olarak:  
-`yardımcıDosyalar/main_logitech.py` veya kendi çalışma ortamına uygun scriptleri kullanabilirsin.
+Container içinde:
+
+```bash
+source /opt/ros/humble/setup.bash
+cd /workspace/ros2_ws
+colcon build
+source install/setup.bash
+```
+
+> Donanım portu farklıysa `docker-compose.yml` içindeki `/dev/ttyACM0` satırını kendi cihazına göre güncelle.
 
 ---
-## 🧭 Örnek Kullanım Senaryosu
 
-1. 🪫 Arduino, Teensy ve sensörleri bilgisayara bağla
-2. 📷 Kamerayı/Lidar’ı uygun porta tak ve sistemce tanındığını doğrula
-3. 🟪 ROS2 ortamını başlat (`source /opt/ros/foxy/setup.bash`)
-4. Ana uygulamayı çalıştır
-5. 📺 GUI üzerinden tüm verileri/kararları gözlemle
+## 🚀 Çalıştırma (ROS2)
 
-> :bulb: **Notlar:**  
-> - Port, kamera/model yolu gibi donanım parametrelerini kendi setuplarına göre güncellemelisin.
-> - Ek model ve bilgi için `modeller/` klasörüne göz at.
-> - ROS2 node/paketlerini kendi sistemine göre düzenleyebilirsin.
+> Aşağıdaki komutlar için önce workspace’i source etmeyi unutma:
+```bash
+cd ros2_ws
+source install/setup.bash
+```
+
+### Tek tek node çalıştırma
+
+Örnekler:
+
+```bash
+ros2 run otonom_arac camera_node
+ros2 run otonom_arac lidar_node
+ros2 run otonom_arac lane_detection_node
+ros2 run otonom_arac object_detection_node
+ros2 run otonom_arac teensy_node
+ros2 run otonom_arac gui_node
+```
+
+### Launch ile çalıştırma
+
+Repo içinde launch dosyası yolu:
+- `ros2_ws/src/otonom_arac/launch/otonom_arac_launch.py`
+
+Çalıştırma:
+
+```bash
+ros2 launch otonom_arac otonom_arac_launch.py
+```
+
+> Not: Launch dosyasında “tüm gerekli düğümleri başlatacak” yapı TODO olarak işaretli. Kendi node’larını bu launch içine ekleyerek tek komutla bütün sistemi kaldırabilirsin.
+
+---
+
+## 🧩 Mimari / Veri Akışı
+
+Aşağıdaki şema, sistemin genel akışını “yüksek seviyede” anlatır:
+
+```mermaid
+flowchart LR
+  CAM[📷 camera_node] --> PER1[🛣️ lane_detection_node]
+  CAM --> PER2[🎯 object_detection_node]
+
+  LIDAR[🛑 lidar_node] --> CTRL[🧠 control_node]
+  PER1 --> CTRL
+  PER2 --> CTRL
+  ENC[🧾 encoder_node] --> CTRL
+  JOY[🎮 joystick_node] --> CTRL
+
+  CTRL --> TEENSY[🔌 teensy_node (serial)]
+  CTRL --> GUI[🖥️ gui_node]
+  CAM --> GUI
+  LIDAR --> GUI
+```
+
+---
+
+## 🛠️ Test / Kod Kalitesi
+
+Paket `package.xml` içinde test bağımlılıkları tanımlı:
+- `ament_flake8`
+- `ament_pep257`
+- `python3-pytest`
+
+(Projede test klasörü: `ros2_ws/src/otonom_arac/test/`)
+
+Örnek:
+
+```bash
+cd ros2_ws
+colcon test
+colcon test-result --verbose
+```
+
+---
+
+## 🧯 Sorun Giderme
+
+### 1) ROS2 “paketi bulamıyor”
+- `source install/setup.bash` yaptığından emin ol.
+- `colcon build` hatasız tamamlandı mı kontrol et.
+
+### 2) Seri port hatası (`/dev/ttyACM0` bulunamadı)
+- Host’ta cihaz adını kontrol et:
+  ```bash
+  ls /dev/ttyACM* /dev/ttyUSB* 2>/dev/null
+  ```
+- Docker kullanıyorsan `docker-compose.yml` içindeki device mapping’i güncelle.
+
+### 3) YOLO / Ultralytics / Torch problemleri
+- Docker yolu daha stabil: CPU torch + ultralytics kurulumu hazır geliyor.
+- Yerelde sürüm uyumsuzluğunda `numpy<2` şartını dene.
+
+---
+
+## 🤝 Katkı & Lisans
+
+- Katkı için: Issue/PR açabilir, node’ları modülerleştirip launch dosyasını tamamlayabilirsin.
+- Lisans: `package.xml` içinde şu an **TODO** görünüyor. Net bir lisans seçip repo köküne `LICENSE` eklemeni öneririm.
+
+---
+
+## 📬 İletişim / Sorumlular
+
+Maintainer: `faikaktss` (package metadata içinde tanımlı)
+
+---
+
+### ✅ Hızlı Başlangıç (Cheat Sheet)
+
+```bash
+# Yerel
+cd ros2_ws
+colcon build
+source install/setup.bash
+ros2 run otonom_arac gui_node
+```
+
+```bash
+# Docker
+docker compose build
+docker compose run --rm ros2
+# container içinde:
+source /opt/ros/humble/setup.bash
+cd /workspace/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch otonom_arac otonom_arac_launch.py
+```
