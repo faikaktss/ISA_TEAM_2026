@@ -139,27 +139,25 @@ class ObjectDetectionNode(Node):
                 for box in r.boxes:
                     cls  = int(box.cls[0])
                     conf = box.conf[0].item()
+                    class_name = self.model.names[cls] if self.model.names else str(cls)
 
-                    if conf > 0.5:
-                        class_name = self.model.names[cls] if self.model.names else str(cls)
+                    detection_msg = String()
+                    detection_msg.data = class_name
+                    self.detection_publisher.publish(detection_msg)
 
-                        detection_msg = String()
-                        detection_msg.data = class_name
-                        self.detection_publisher.publish(detection_msg)
+                    # Gerçek mesafe — ZED point cloud'dan
+                    x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+                    mesafe = self._get_distance_from_bbox(x1, y1, x2, y2)
 
-                        # Gerçek mesafe — ZED point cloud'dan
-                        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                        mesafe = self._get_distance_from_bbox(x1, y1, x2, y2)
+                    distance_msg = Float32()
+                    if mesafe is not None:
+                        distance_msg.data = mesafe
+                    else:
+                        distance_msg.data = 200.0  # point cloud henüz gelmemişse varsayılan
+                    self.distance_publisher.publish(distance_msg)
 
-                        distance_msg = Float32()
-                        if mesafe is not None:
-                            distance_msg.data = mesafe
-                        else:
-                            distance_msg.data = 200.0  # point cloud henüz gelmemişse varsayılan
-                        self.distance_publisher.publish(distance_msg)
-
-                        self.get_logger().info(
-                            f'Tespit: {class_name} (conf: {conf:.2f}, mesafe: {distance_msg.data:.1f} cm)')
+                    self.get_logger().info(
+                        f'Tespit: {class_name} (conf: {conf:.2f}, mesafe: {distance_msg.data:.1f} cm)')
 
         except Exception as e:
             self.get_logger().error(f'Object detection hatasi: {str(e)}')

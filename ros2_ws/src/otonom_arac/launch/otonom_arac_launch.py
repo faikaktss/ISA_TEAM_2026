@@ -83,9 +83,8 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             additional_env={
-                'DISPLAY': ':1',
+                'DISPLAY': ':0',
                 'QT_X11_NO_MITSHM': '1',
-                'QT_QPA_PLATFORM_PLUGIN_PATH': '/usr/lib/x86_64-linux-gnu/qt5/plugins/platforms',
             },
         ),
     ])

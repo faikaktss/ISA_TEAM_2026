@@ -2,11 +2,17 @@
 
 import os
 # OpenCV kendi Qt plugin'lerini yüklüyor ve PyQt5 ile çakışıyor.
-# Sistem Qt plugin yolunu önce ayarla.
+# cv2 import'undan önce ve sonra sistem Qt plugin yolunu sabitle.
+_QT_CANDIDATES = [
+    '/usr/lib/x86_64-linux-gnu/qt5/plugins/platforms',
+    '/usr/lib/aarch64-linux-gnu/qt5/plugins/platforms',
+    '/usr/lib/arm-linux-gnueabihf/qt5/plugins/platforms',
+]
 if 'QT_QPA_PLATFORM_PLUGIN_PATH' not in os.environ:
-    _sys_qt = '/usr/lib/x86_64-linux-gnu/qt5/plugins/platforms'
-    if os.path.isdir(_sys_qt):
-        os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = _sys_qt
+    for _candidate in _QT_CANDIDATES:
+        if os.path.isdir(_candidate):
+            os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = _candidate
+            break
 
 import rclpy
 from rclpy.node import Node
@@ -14,9 +20,12 @@ from std_msgs.msg import Int32, Bool, String
 from sensor_msgs.msg import Image, LaserScan
 
 import cv2
-# cv2 import sırasında QT_QPA_PLATFORM_PLUGIN_PATH'i kendi dizinine çekiyor.
-# PyQt5'ten önce sistem yoluna geri döndür.
-os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = '/usr/lib/x86_64-linux-gnu/qt5/plugins/platforms'
+# cv2 import sonrası plugin yolunu tekrar doğrula (cv2 override edebilir).
+if os.environ.get('QT_QPA_PLATFORM_PLUGIN_PATH', '') not in _QT_CANDIDATES:
+    for _candidate in _QT_CANDIDATES:
+        if os.path.isdir(_candidate):
+            os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = _candidate
+            break
 import numpy as np
 import threading
 
@@ -127,9 +136,14 @@ class GuiNode(Node):
 
         # Araç bilgileri
         self.manual_mode = True
-        self.ileri_geri = 0
-        self.sag_sol = 127
-        self.vites = 0
+        # Joystick (manuel mod) değerleri
+        self.joystick_ileri_geri = 0
+        self.joystick_sag_sol = 0
+        self.joystick_vites = 0
+        # Control node (otonom mod) değerleri
+        self.control_ileri_geri = 0
+        self.control_sag_sol = 0
+        self.control_vites = 0
 
         # Algoritma
         self.algorithm = "Bekleniyor"
@@ -149,9 +163,14 @@ class GuiNode(Node):
         self.create_subscription(Image, '/zed/image_raw', self.zed_callback, 10)
         self.create_subscription(Image, '/realsense/image_raw', self.realsense_callback, 10)
         self.create_subscription(Bool, '/joystick/manual_mode', self.mode_callback, 10)
-        self.create_subscription(Int32, '/joystick/ileri_geri', self.ileri_geri_callback, 10)
-        self.create_subscription(Int32, '/joystick/sag_sol', self.sag_sol_callback, 10)
-        self.create_subscription(Int32, '/joystick/vites', self.vites_callback, 10)
+        # Manuel mod topic'leri
+        self.create_subscription(Int32, '/joystick/ileri_geri', self.joystick_ileri_geri_callback, 10)
+        self.create_subscription(Int32, '/joystick/sag_sol', self.joystick_sag_sol_callback, 10)
+        self.create_subscription(Int32, '/joystick/vites', self.joystick_vites_callback, 10)
+        # Otonom mod topic'leri
+        self.create_subscription(Int32, '/control/ileri_geri', self.control_ileri_geri_callback, 10)
+        self.create_subscription(Int32, '/control/sag_sol', self.control_sag_sol_callback, 10)
+        self.create_subscription(Int32, '/control/vites', self.control_vites_callback, 10)
         self.create_subscription(String, '/algorithm/current', self.algorithm_callback, 10)
         self.create_subscription(Image, '/lane/bev_image', self.bev_callback, 10)
         self.create_subscription(String, '/detection/objects', self.detection_callback, 10)
@@ -167,14 +186,35 @@ class GuiNode(Node):
     def mode_callback(self, msg):
         self.manual_mode = msg.data
 
-    def ileri_geri_callback(self, msg):
-        self.ileri_geri = msg.data
+    def joystick_ileri_geri_callback(self, msg):
+        self.joystick_ileri_geri = msg.data
 
-    def sag_sol_callback(self, msg):
-        self.sag_sol = msg.data
+    def joystick_sag_sol_callback(self, msg):
+        self.joystick_sag_sol = msg.data
 
-    def vites_callback(self, msg):
-        self.vites = msg.data
+    def joystick_vites_callback(self, msg):
+        self.joystick_vites = msg.data
+
+    def control_ileri_geri_callback(self, msg):
+        self.control_ileri_geri = msg.data
+
+    def control_sag_sol_callback(self, msg):
+        self.control_sag_sol = msg.data
+
+    def control_vites_callback(self, msg):
+        self.control_vites = msg.data
+
+    @property
+    def ileri_geri(self):
+        return self.joystick_ileri_geri if self.manual_mode else self.control_ileri_geri
+
+    @property
+    def sag_sol(self):
+        return self.joystick_sag_sol if self.manual_mode else self.control_sag_sol
+
+    @property
+    def vites(self):
+        return self.joystick_vites if self.manual_mode else self.control_vites
 
     def algorithm_callback(self, msg):
         self.algorithm = msg.data

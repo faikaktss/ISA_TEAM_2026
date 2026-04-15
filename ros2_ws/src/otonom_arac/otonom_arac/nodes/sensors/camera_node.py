@@ -279,7 +279,6 @@ class CameraNode(Node):
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.header.frame_id = 'zed_camera_link'
                 self.zed_publisher.publish(msg)
-                cv2.imshow('ZED Kamera', zed_frame)
 
                 # Point cloud yayınla: [height, width, x0,y0,z0, x1,y1,z1, ...]
                 # Object detection node bunu bounding box merkezi için kullanır
@@ -305,9 +304,6 @@ class CameraNode(Node):
                     rs_msg.header.stamp = self.get_clock().now().to_msg()
                     rs_msg.header.frame_id = 'realsense_camera_link'
                     self.realsense_publisher.publish(rs_msg)
-                    cv2.imshow('RealSense Kamera', rs_frame)
-
-            cv2.waitKey(1)
 
         except Exception as e:
             self.get_logger().error(f'Görüntü işleme hatası: {str(e)}')

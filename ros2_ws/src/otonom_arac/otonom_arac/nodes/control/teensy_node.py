@@ -12,8 +12,6 @@ try:
     SERIAL_AVAILABLE = True
 except ImportError:
     SERIAL_AVAILABLE = False
-    
-import time
 
 if ROS2_AVAILABLE:
     class TeensyNode(Node):
@@ -29,7 +27,6 @@ if ROS2_AVAILABLE:
             #Todo: Teensy bağlantısı
             try:
                 self.teensy = serial.Serial(teensy_port, teensy_baudrate, timeout=1)
-                time.sleep(2)  
                 self.get_logger().info(f'Teensy bağlandı: {teensy_port} @ {teensy_baudrate}')
             except Exception as e:
                 self.get_logger().error(f'Teensy bağlanamadı: {e}')
@@ -139,6 +136,9 @@ if ROS2_AVAILABLE:
 
 
 def main(args=None):
+    if not ROS2_AVAILABLE:
+        print('[ERROR] rclpy bulunamadı, teensy_node başlatılamıyor.')
+        return
     rclpy.init(args=args)
     node = TeensyNode()
     try:

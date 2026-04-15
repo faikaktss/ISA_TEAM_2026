@@ -289,7 +289,7 @@ class ControlNode(Node):
             elif self.yeni_tab == "sag":
                 self.get_logger().info('SAĞ tabelası - Sağa dönüyorum')
                 self.gecis('sag_don')
-            elif self.current_tabela == "park_yasakiki":
+            elif self.yeni_tab == "park_yasakiki":
                 self.get_logger().info('PARK YASAK - Bekliyorum')
                 self.gecis('park_bekle')
             else:
