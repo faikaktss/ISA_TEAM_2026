@@ -13,7 +13,7 @@ if ROS2_AVAILABLE:
         def __init__(self):
             super().__init__('joystick_node')
             
-            self.declare_parameter('port', '/dev/ttyUSB1')
+            self.declare_parameter('port', '/dev/ttyUSB7')
             self.declare_parameter('baudrate', 9600)
             
             port = self.get_parameter('port').value
@@ -51,21 +51,30 @@ if ROS2_AVAILABLE:
                 if self.arduino.in_waiting == 0:
                     return
 
-                data = self.arduino.readline().decode(errors="ignore").strip()
+                # Buffer'da biriken eski satırları at, sadece en son tam satırı oku
+                last_valid = None
+                while self.arduino.in_waiting:
+                    line = self.arduino.readline().decode(errors="ignore").strip()
+                    if line:
+                        last_valid = line
 
-                if not data:
+                if last_valid is None:
                     return
 
+                data = last_valid
                 parts = data.split(',')
 
                 if len(parts) != 4:
-                    self.get_logger().warning(f'Yanlış format (4 değer bekleniyor): {data}')
-                    return
+                    return  # sessizce atla, seri gürültü normal
 
                 dumen   = int(parts[0])  # CH1 - sag-sol
                 ileri   = int(parts[1])  # CH3 - ileri-geri
                 vites   = int(parts[2])  # CH7 - vites switch
                 otonom  = int(parts[3])  # CH10 - mod switch
+
+                # Aralık doğrulaması (bozuk veri koruması)
+                if not (0 <= dumen <= 255 and 0 <= ileri <= 255):
+                    return
 
                 sag_sol_msg = Int32()
                 sag_sol_msg.data = dumen
@@ -84,13 +93,8 @@ if ROS2_AVAILABLE:
                 mode_msg.data = (otonom == 0)
                 self.mode_pub.publish(mode_msg)
 
-                self.get_logger().info(
-                    f'Kumanda → sag_sol={dumen} ileri_geri={ileri} '
-                    f'vites={vites} otonom={otonom}'
-                )
-
-            except ValueError as e:
-                self.get_logger().warning(f'Veri parse hatası: {e} | ham: {data}')
+            except ValueError:
+                pass  # bozuk satır, sessizce atla
             except Exception as e:
                 self.get_logger().warning(f'Joystick okuma hatası: {e}')
 

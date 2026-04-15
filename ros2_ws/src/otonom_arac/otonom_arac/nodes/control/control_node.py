@@ -15,7 +15,7 @@ class ControlNode(Node):
     def __init__(self):
         super().__init__('control_node')
 
-        self.declare_parameter('arduino_port', '/dev/ttyACM1')
+        self.declare_parameter('arduino_port', '/dev/ttyUSB11')
         self.declare_parameter('arduino_baudrate', 9600)
 
         arduino_port = self.get_parameter('arduino_port').value

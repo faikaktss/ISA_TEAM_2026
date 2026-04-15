@@ -19,7 +19,7 @@ if ROS2_AVAILABLE:
             super().__init__('teensy_node')
             
             #Todo:  Parametreler - serial port ayarları
-            self.declare_parameter('teensy_port', '/dev/ttyACM0')
+            self.declare_parameter('teensy_port', '/dev/ttyACM2')
             self.declare_parameter('teensy_baudrate', 9600)
             teensy_port = self.get_parameter('teensy_port').value
             teensy_baudrate = self.get_parameter('teensy_baudrate').value

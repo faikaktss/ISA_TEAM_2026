@@ -16,7 +16,7 @@ except ImportError:
 # ============================================================================
 class Arduino:
     """Arduino ile seri port üzerinden iletişim kurar ve encoder verisini okur"""
-    def __init__(self, COM='/dev/ttyUSB0', baudrate=115200, timeout=1):
+    def __init__(self, COM='/dev/ttyUSB', baudrate=115200, timeout=1):
         self.ser = serial.Serial(COM, baudrate, timeout=timeout)
         self.ilk_mesafe = None
 
