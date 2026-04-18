@@ -3,43 +3,39 @@ from launch_ros.actions import Node
 #Todo: Tüm gerekli düğümleri başlatan bir başlatma dosyası oluştur
 def generate_launch_description():
     return LaunchDescription([
-        #Todo:Kamera Node
+        #Todo:Kamera Node — yüksek frekanslı, log dosyasına
         Node(
             package='otonom_arac',
             executable='camera_node',
             name='camera_node',
-            output='screen',
-            emulate_tty=True,
+            output='log',
         ),
         
-        #Todo:Şerit Algılama Node
+        #Todo:Şerit Algılama Node — yüksek frekanslı, log dosyasına
         Node(
             package='otonom_arac',
             executable='lane_detection_node',
             name='lane_detection_node',
-            output='screen',
-            emulate_tty=True,
+            output='log',
         ),
         
-        #Todo:Lidar Node
+        #Todo:Lidar Node — yüksek frekanslı, log dosyasına
         Node(
             package='otonom_arac',
             executable='lidar_node',
             name='lidar_node',
-            output='screen',
-            emulate_tty=True,
+            output='log',
         ),
         
-        #Todo:Object Detection Node
+        #Todo:Object Detection Node — yüksek frekanslı, log dosyasına
         Node(
             package='otonom_arac',
             executable='object_detection_node',
             name='object_detection_node',
-            output='screen',
-            emulate_tty=True,
+            output='log',
         ),
         
-        #Todo:Control Node (Karar Mekanizması)
+        #Todo:Control Node (Karar Mekanizması) — önemli state logları, ekranda
         Node(
             package='otonom_arac',
             executable='control_node',
@@ -48,34 +44,31 @@ def generate_launch_description():
             emulate_tty=True,
         ),
         
-        #Todo:Encoder Node (Hız Hesaplama)
+        #Todo:Encoder Node — yüksek frekanslı, log dosyasına
         Node(
             package='otonom_arac',
             executable='encoder_node',
             name='encoder_node',
-            output='screen',
-            emulate_tty=True,
+            output='log',
         ),
         
-        #Todo:Joystick Node (Manuel Kontrol)
+        #Todo:Joystick Node — yüksek frekanslı, log dosyasına
         Node(
             package='otonom_arac',
             executable='joystick_node',
             name='joystick_node',
-            output='screen',
-            emulate_tty=True,
+            output='log',
         ),
         
-        #Todo:Teensy Node (ROS2-Hardware Köprüsü)
+        #Todo:Teensy Node — yüksek frekanslı, log dosyasına
         Node(
             package='otonom_arac',
             executable='teensy_node',
             name='teensy_node',
-            output='screen',
-            emulate_tty=True,
+            output='log',
         ),
 
-        #Todo:GUI Node (Arayüz)
+        #Todo:GUI Node (Arayüz) — hata logları önemli, ekranda
         Node(
             package='otonom_arac',
             executable='gui_node',

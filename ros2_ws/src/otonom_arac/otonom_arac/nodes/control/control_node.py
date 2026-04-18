@@ -180,10 +180,25 @@ class ControlNode(Node):
 
         if self.state == 'lane_following':
             if self.engel_durumu == 2:
-                self.get_logger().info('Hareketli engel - DUR!')
+                # Log azaltma: İlk kez logla, bitince kaç kez tekrar ettiğini göster
+                if not hasattr(self, '_hareketli_engel_count'):
+                    self._hareketli_engel_count = 0
+                    self._logged_hareketli_engel = False
+                
+                if not self._logged_hareketli_engel:
+                    self.get_logger().info('Hareketli engel - DUR!')
+                    self._logged_hareketli_engel = True
+                self._hareketli_engel_count += 1
                 self.send_control_command(0, ileri_geri=0, vites=0)
                 return
-            elif self.engel_durumu == 1:
+            else:
+                # Engel kalktı, kaç kez tekrar ettiğini logla
+                if hasattr(self, '_logged_hareketli_engel') and self._logged_hareketli_engel:
+                    if self._hareketli_engel_count > 1:
+                        self.get_logger().info(f'Hareketli engel bitti ({self._hareketli_engel_count}x döngü)')
+                    self._logged_hareketli_engel = False
+                    self._hareketli_engel_count = 0
+            if self.engel_durumu == 1:
                 self.get_logger().info('Sabit engel - kaçınma başlıyor')
                 self.gecis('engel_kacin_sol')
                 return
@@ -207,11 +222,22 @@ class ControlNode(Node):
 
         elif self.state == 'durak_yaklas':
             if self.durakPixel >= 1200:
+                # Durak bekleme bitti, özet log
+                if hasattr(self, '_durak_log_count') and self._durak_log_count > 0:
+                    self.get_logger().info(f'Durak yaklaşma tamamlandı ({self._durak_log_count} güncelleme)')
+                    self._durak_log_count = 0
                 self.gecis('durak_sag')
             else:
                 if self.current_angle is not None:
                     self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
-                self.get_logger().info(f'Durak bekleniyor: {self.durakPixel}')
+                # Log azaltma: Sadece önemli değişimlerde log, sonunda özet
+                if not hasattr(self, '_last_logged_durak_pixel'):
+                    self._last_logged_durak_pixel = -1
+                    self._durak_log_count = 0
+                if abs(self.durakPixel - self._last_logged_durak_pixel) > 100:  # 100 piksel fark varsa log
+                    self.get_logger().info(f'Durak bekleniyor: {self.durakPixel}')
+                    self._last_logged_durak_pixel = self.durakPixel
+                    self._durak_log_count += 1
 
         elif self.state == 'durak_sag':
             self.send_control_command(20, ileri_geri=50, vites=0)

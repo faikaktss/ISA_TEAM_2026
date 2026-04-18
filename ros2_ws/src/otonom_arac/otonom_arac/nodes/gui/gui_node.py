@@ -16,8 +16,16 @@ if 'QT_QPA_PLATFORM_PLUGIN_PATH' not in os.environ:
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from std_msgs.msg import Int32, Bool, String
 from sensor_msgs.msg import Image, LaserScan
+
+# Düşük latency QoS profili — sadece en son frame, eski frame'ler drop edilir
+_IMAGE_QOS = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
 
 import cv2
 # cv2 import sonrası plugin yolunu tekrar doğrula (cv2 override edebilir).
@@ -159,9 +167,9 @@ class GuiNode(Node):
         self.bev_frame = None
         self.detection_text = "Nesne yok"
 
-        # Subscriber'lar
-        self.create_subscription(Image, '/zed/image_raw', self.zed_callback, 10)
-        self.create_subscription(Image, '/realsense/image_raw', self.realsense_callback, 10)
+        # Subscriber'lar — Image topic'leri düşük latency QoS ile
+        self.create_subscription(Image, '/zed/image_raw', self.zed_callback, _IMAGE_QOS)
+        self.create_subscription(Image, '/realsense/image_raw', self.realsense_callback, _IMAGE_QOS)
         self.create_subscription(Bool, '/joystick/manual_mode', self.mode_callback, 10)
         # Manuel mod topic'leri
         self.create_subscription(Int32, '/joystick/ileri_geri', self.joystick_ileri_geri_callback, 10)
@@ -172,7 +180,7 @@ class GuiNode(Node):
         self.create_subscription(Int32, '/control/sag_sol', self.control_sag_sol_callback, 10)
         self.create_subscription(Int32, '/control/vites', self.control_vites_callback, 10)
         self.create_subscription(String, '/algorithm/current', self.algorithm_callback, 10)
-        self.create_subscription(Image, '/lane/bev_image', self.bev_callback, 10)
+        self.create_subscription(Image, '/lane/bev_image', self.bev_callback, _IMAGE_QOS)
         self.create_subscription(String, '/detection/objects', self.detection_callback, 10)
         self.create_subscription(LaserScan, '/lidar/scan', self.lidar_callback, 10)
 
@@ -256,11 +264,10 @@ class GuiNode(Node):
         return "MANUEL" if self.manual_mode else "OTONOM"
 
     def imgmsg_to_cv2(self, msg):
-        frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
-        if msg.encoding == 'rgb8':
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        elif msg.encoding == 'mono8':
-            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        # RGB olarak tut — Qt zaten RGB istiyor, çift dönüşüm gereksiz
+        frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1).copy()
+        if msg.encoding == 'mono8':
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         return frame
 
 
@@ -454,9 +461,9 @@ class MainWindow(QWidget):
                 self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
 
     def _show_frame(self, label, frame):
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        h, w, ch = rgb.shape
-        qt_img = QImage(rgb.data, w, h, ch * w, QImage.Format_RGB888)
+        # frame zaten RGB, dönüşüm gereksiz
+        h, w, ch = frame.shape
+        qt_img = QImage(frame.data, w, h, ch * w, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(qt_img)
         label.setPixmap(pixmap.scaled(label.width(), label.height(), Qt.KeepAspectRatio))
 
@@ -465,16 +472,21 @@ def main(args=None):
     rclpy.init(args=args)
     ros_node = GuiNode()
 
+    # ROS2 spin ayrı thread'de — UI'yı bloke etmez
+    spin_thread = threading.Thread(
+        target=lambda: rclpy.spin(ros_node),
+        daemon=True
+    )
+    spin_thread.start()
+
     app = QApplication(sys.argv)
     window = MainWindow(ros_node)
     window.show()
 
+    # Qt timer sadece UI günceller — ROS callback'leri arka planda zaten çalışıyor
     timer = QTimer()
-    timer.timeout.connect(lambda: (
-        rclpy.spin_once(ros_node, timeout_sec=0),
-        window.update_ui()
-    ))
-    timer.start(30)
+    timer.timeout.connect(window.update_ui)
+    timer.start(33)  # ~30 FPS UI refresh
 
     exit_code = app.exec_()
 

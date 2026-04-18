@@ -7,6 +7,13 @@ import numpy as np
 
 import cv2
 
+# GPU kullanılabilirliğini kontrol et
+try:
+    import torch
+    _YOLO_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+except ImportError:
+    _YOLO_DEVICE = 'cpu'
+
 def _imgmsg_to_numpy(msg):
     """cv_bridge gerektirmeden ROS Image mesajı -> numpy array."""
     return np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1).copy()
@@ -57,7 +64,7 @@ class ObjectDetectionNode(Node):
             model_path = self.get_parameter('model_path').value
             try:
                 self.model = YOLO(model_path)
-                self.get_logger().info('YOLO modeli yüklendi')
+                self.get_logger().info(f'YOLO modeli yüklendi (device: {_YOLO_DEVICE})')
             except Exception as e:
                 self.get_logger().error(
                     f'YOLO modeli yüklenemedi: {e}\n'
@@ -133,7 +140,7 @@ class ObjectDetectionNode(Node):
             frame = _imgmsg_to_numpy(msg)
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            results = self.model.predict(frame_bgr, conf=0.5, device='cpu', imgsz=(736, 736))
+            results = self.model.predict(frame_bgr, conf=0.5, device=_YOLO_DEVICE, imgsz=(736, 736), verbose=False)
 
             for r in results:
                 for box in r.boxes:
@@ -156,8 +163,22 @@ class ObjectDetectionNode(Node):
                         distance_msg.data = 200.0  # point cloud henüz gelmemişse varsayılan
                     self.distance_publisher.publish(distance_msg)
 
-                    self.get_logger().info(
-                        f'Tespit: {class_name} (conf: {conf:.2f}, mesafe: {distance_msg.data:.1f} cm)')
+                    # Log azaltma: Aynı class tekrar ediyorsa sayaç tut, değişince özet yaz
+                    if not hasattr(self, '_last_logged_class'):
+                        self._last_logged_class = ''
+                        self._same_class_count = 0
+                    
+                    if class_name != self._last_logged_class:
+                        # Önceki class bittiyse kaç kez tespit edildiğini logla
+                        if self._same_class_count > 1:
+                            self.get_logger().info(f'Tespit özet: {self._last_logged_class} ({self._same_class_count}x tekrar)')
+                        # Yeni class'ı logla
+                        self.get_logger().info(
+                            f'Tespit: {class_name} (conf: {conf:.2f}, mesafe: {distance_msg.data:.1f} cm)')
+                        self._last_logged_class = class_name
+                        self._same_class_count = 1
+                    else:
+                        self._same_class_count += 1
 
         except Exception as e:
             self.get_logger().error(f'Object detection hatasi: {str(e)}')

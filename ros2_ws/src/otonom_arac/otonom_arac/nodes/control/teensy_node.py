@@ -123,7 +123,22 @@ if ROS2_AVAILABLE:
             if self.teensy:
                 try:
                     self.teensy.write(command.encode())
-                    self.get_logger().info(f'Teensy → {command.strip()}')
+                    # Log azaltma: Aynı komut tekrar ediyorsa ilk ve son kez log yaz
+                    # 50 tekrar → sadece 2 log (başlangıç + bitiş)
+                    if not hasattr(self, '_last_command'):
+                        self._last_command = ''
+                        self._same_command_count = 0
+                    
+                    if command.strip() != self._last_command:
+                        # Önceki komut bittiyse kaç kez tekrar ettiğini logla
+                        if self._same_command_count > 1:
+                            self.get_logger().info(f'Teensy → (önceki komut {self._same_command_count}x tekrar etti)')
+                        # Yeni komutu logla
+                        self.get_logger().info(f'Teensy → {command.strip()}')
+                        self._last_command = command.strip()
+                        self._same_command_count = 1
+                    else:
+                        self._same_command_count += 1
                 except Exception as e:
                     self.get_logger().error(f'Teensy yazma hatası: {e}')
         

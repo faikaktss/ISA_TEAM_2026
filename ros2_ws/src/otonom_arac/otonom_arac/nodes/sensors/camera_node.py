@@ -231,6 +231,31 @@ if REALSENSE_AVAILABLE:
             self.pipeline.stop()
 
 
+import threading
+
+
+class LatestFrameHolder:
+    """Thread-safe: Sadece en son frame'i tutar, eski frame'ler drop edilir."""
+    def __init__(self):
+        self._frame = None
+        self._point_cloud = None
+        self._lock = threading.Lock()
+    
+    def put(self, frame, point_cloud=None):
+        with self._lock:
+            self._frame = frame
+            self._point_cloud = point_cloud
+    
+    def get(self):
+        """Frame'i al ve None'a sıfırla (consume)."""
+        with self._lock:
+            frame = self._frame
+            pc = self._point_cloud
+            self._frame = None
+            self._point_cloud = None
+            return frame, pc
+
+
 class CameraNode(Node):
     def __init__(self):
         super().__init__('camera_node')
@@ -240,73 +265,106 @@ class CameraNode(Node):
         # RealSense publisher
         self.realsense_publisher  = self.create_publisher(Image,            '/realsense/image_raw', 10)
 
-        self.timer_period = 1.0/30 #Todo: 30 FPS
-        self.timer = self.create_timer(self.timer_period, self.timer_callback)
-        
-
         self.info = Info()
+        
+        # Thread-safe frame holder'lar
+        self._zed_holder = LatestFrameHolder()
+        self._rs_holder = LatestFrameHolder()
+        self._running = True
 
-        # ZED başlat
+        # ZED başlat + capture thread
+        self.camera = None
+        self._zed_thread = None
         if CAMERA_AVAILABLE:
             try:
                 self.camera = cam(self.info)
-                self.get_logger().info('ZED kamera başlatıldı.')
+                self.get_logger().info('ZED kamera başlatıldı (ayrı thread).')
+                self._zed_thread = threading.Thread(target=self._zed_capture_loop, daemon=True)
+                self._zed_thread.start()
             except Exception as e:
                 self.get_logger().error(f'ZED başlatılamadı: {str(e)}')
-                self.camera = None
         else:
             self.get_logger().error('ZED SDK bulunamadı.')
-            self.camera = None
 
-        # RealSense başlat
+        # RealSense başlat + capture thread
         self.realsense = None
+        self._rs_thread = None
         if REALSENSE_AVAILABLE:
             try:
                 self.realsense = RealsenseCam()
-                self.get_logger().info('RealSense kamera başlatıldı.')
+                self.get_logger().info('RealSense kamera başlatıldı (ayrı thread).')
+                self._rs_thread = threading.Thread(target=self._rs_capture_loop, daemon=True)
+                self._rs_thread.start()
             except Exception as e:
                 self.get_logger().warn(f'RealSense başlatılamadı: {str(e)}')
-        
-    def timer_callback(self):
+
+        # Publish timer — sadece frame'leri yayınlar, capture yapmaz
+        self.timer_period = 1.0/30  # 30 FPS publish
+        self.timer = self.create_timer(self.timer_period, self._publish_callback)
+
+    def _zed_capture_loop(self):
+        """ZED capture loop — kendi thread'inde sürekli çalışır."""
+        while self._running and self.camera is not None:
+            try:
+                frame, pc = self.camera.img_and_point_cloud()
+                if frame is not None:
+                    self._zed_holder.put(frame, pc)
+            except Exception as e:
+                pass  # Sessizce devam et
+
+    def _rs_capture_loop(self):
+        """RealSense capture loop — kendi thread'inde sürekli çalışır."""
+        while self._running and self.realsense is not None:
+            try:
+                frame = self.realsense.get_frame()
+                if frame is not None:
+                    self._rs_holder.put(frame)
+            except Exception as e:
+                pass  # Sessizce devam et
+
+    def _publish_callback(self):
+        """30 Hz'de çalışır — holder'lardan frame al ve yayınla."""
         try:
             # --- ZED ---
-            zed_frame = None
-            if self.camera is not None:
-                zed_frame, point_cloud = self.camera.img_and_point_cloud()
-
+            zed_frame, point_cloud = self._zed_holder.get()
             if zed_frame is not None:
                 msg = _numpy_to_imgmsg(zed_frame, encoding='rgb8')
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.header.frame_id = 'zed_camera_link'
                 self.zed_publisher.publish(msg)
 
-                # Point cloud yayınla: [height, width, x0,y0,z0, x1,y1,z1, ...]
-                # Object detection node bunu bounding box merkezi için kullanır
+                # Point cloud yayınla
                 if point_cloud is not None:
                     try:
-                        pc_data = point_cloud.get_data()  # (H, W, 4) fl oat32 — X,Y,Z,W cm
-                        # 4x downsample: 1080x1920 → 270x480  (~25MB → ~1.5MB)
-                        STEP = 4
+                        pc_data = point_cloud.get_data()  # (H, W, 4) float32 — X,Y,Z,W cm
+                        # 8x downsample: 1080x1920 → 135x240 (daha hızlı, object detection için yeterli)
+                        STEP = 8
                         ds = pc_data[::STEP, ::STEP, :3].astype(np.float32)
                         h_ds, w_ds = ds.shape[:2]
-                        flat = ds.flatten().tolist()
+                        # Optimize: header'ı numpy ile oluştur, tek seferde list'e çevir
+                        header = np.array([h_ds, w_ds, STEP], dtype=np.float32)
+                        combined = np.concatenate([header, ds.ravel()])
                         pc_msg = Float32MultiArray()
-                        pc_msg.data = [float(h_ds), float(w_ds), float(STEP)] + flat
+                        pc_msg.data = combined.tolist()
                         self.point_cloud_publisher.publish(pc_msg)
                     except Exception as pc_err:
                         self.get_logger().debug(f'Point cloud yayın hatası: {pc_err}')
 
             # --- RealSense ---
-            if self.realsense is not None:
-                rs_frame = self.realsense.get_frame()
-                if rs_frame is not None:
-                    rs_msg = _numpy_to_imgmsg(rs_frame, encoding='rgb8')
-                    rs_msg.header.stamp = self.get_clock().now().to_msg()
-                    rs_msg.header.frame_id = 'realsense_camera_link'
-                    self.realsense_publisher.publish(rs_msg)
+            rs_frame, _ = self._rs_holder.get()
+            if rs_frame is not None:
+                rs_msg = _numpy_to_imgmsg(rs_frame, encoding='rgb8')
+                rs_msg.header.stamp = self.get_clock().now().to_msg()
+                rs_msg.header.frame_id = 'realsense_camera_link'
+                self.realsense_publisher.publish(rs_msg)
 
         except Exception as e:
             self.get_logger().error(f'Görüntü işleme hatası: {str(e)}')
+    
+    def destroy_node(self):
+        """Node kapanırken thread'leri durdur."""
+        self._running = False
+        super().destroy_node()
     
 
 def main(args=None):
