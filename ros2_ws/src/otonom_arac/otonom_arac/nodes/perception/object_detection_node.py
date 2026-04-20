@@ -1,11 +1,19 @@
 import os
+import threading
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Image
 from std_msgs.msg import String, Float32, Float32MultiArray
 import numpy as np
 
 import cv2
+
+_IMAGE_QOS = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
 
 # GPU kullanılabilirliğini kontrol et
 try:
@@ -34,12 +42,16 @@ class ObjectDetectionNode(Node):
     def __init__(self):
         super().__init__('object_detection_node')
 
-        # Kamera görüntüsüne abone ol
+        # Frame skip guard: YOLO inference süresi (~100-200ms) boyunca gelen yeni frame'ler atlanır
+        self._busy = False
+        self._busy_lock = threading.Lock()
+
+        # Kamera görüntüsüne abone ol — BEST_EFFORT/depth=1: sadece en son frame
         self.subscription = self.create_subscription(
             Image,
             '/zed/image_raw',
             self.image_callback,
-            10
+            _IMAGE_QOS
         )
 
         # ZED point cloud'a abone ol (gerçek mesafe için)
@@ -136,11 +148,21 @@ class ObjectDetectionNode(Node):
     def image_callback(self, msg):
         if self.model is None:
             return
+        with self._busy_lock:
+            if self._busy:
+                return
+            self._busy = True
         try:
             frame = _imgmsg_to_numpy(msg)
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             results = self.model.predict(frame_bgr, conf=0.5, device=_YOLO_DEVICE, imgsz=(736, 736), verbose=False)
+
+            # Aynı karede birden fazla tespit varsa sadece en yüksek conf'lu olanı yayınla
+            best_class = None
+            best_conf = 0.0
+            best_distance = 200.0
+            best_box = None
 
             for r in results:
                 for box in r.boxes:
@@ -148,40 +170,44 @@ class ObjectDetectionNode(Node):
                     conf = box.conf[0].item()
                     class_name = self.model.names[cls] if self.model.names else str(cls)
 
-                    detection_msg = String()
-                    detection_msg.data = class_name
-                    self.detection_publisher.publish(detection_msg)
-
-                    # Gerçek mesafe — ZED point cloud'dan
                     x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
                     mesafe = self._get_distance_from_bbox(x1, y1, x2, y2)
 
-                    distance_msg = Float32()
-                    if mesafe is not None:
-                        distance_msg.data = mesafe
-                    else:
-                        distance_msg.data = 200.0  # point cloud henüz gelmemişse varsayılan
-                    self.distance_publisher.publish(distance_msg)
+                    if conf > best_conf:
+                        best_conf = conf
+                        best_class = class_name
+                        best_distance = mesafe if mesafe is not None else 200.0
 
-                    # Log azaltma: Aynı class tekrar ediyorsa sayaç tut, değişince özet yaz
-                    if not hasattr(self, '_last_logged_class'):
-                        self._last_logged_class = ''
-                        self._same_class_count = 0
-                    
-                    if class_name != self._last_logged_class:
-                        # Önceki class bittiyse kaç kez tespit edildiğini logla
-                        if self._same_class_count > 1:
-                            self.get_logger().info(f'Tespit özet: {self._last_logged_class} ({self._same_class_count}x tekrar)')
-                        # Yeni class'ı logla
-                        self.get_logger().info(
-                            f'Tespit: {class_name} (conf: {conf:.2f}, mesafe: {distance_msg.data:.1f} cm)')
-                        self._last_logged_class = class_name
-                        self._same_class_count = 1
-                    else:
-                        self._same_class_count += 1
+            # Tek mesaj yayınla (frame başına 1 detection + 1 distance)
+            if best_class is not None:
+                detection_msg = String()
+                detection_msg.data = best_class
+                self.detection_publisher.publish(detection_msg)
+
+                distance_msg = Float32()
+                distance_msg.data = best_distance
+                self.distance_publisher.publish(distance_msg)
+
+                # Log azaltma
+                if not hasattr(self, '_last_logged_class'):
+                    self._last_logged_class = ''
+                    self._same_class_count = 0
+                
+                if best_class != self._last_logged_class:
+                    if self._same_class_count > 1:
+                        self.get_logger().info(f'Tespit özet: {self._last_logged_class} ({self._same_class_count}x tekrar)')
+                    self.get_logger().info(
+                        f'Tespit: {best_class} (conf: {best_conf:.2f}, mesafe: {best_distance:.1f} cm)')
+                    self._last_logged_class = best_class
+                    self._same_class_count = 1
+                else:
+                    self._same_class_count += 1
 
         except Exception as e:
             self.get_logger().error(f'Object detection hatasi: {str(e)}')
+        finally:
+            with self._busy_lock:
+                self._busy = False
 
 
 def main(args=None):

@@ -162,13 +162,20 @@ class GuiNode(Node):
         if ADVANCED_LIDAR:
             self._cluster_tracker = ClusterTracker()
             self._dbscan = DBSCAN(eps=200, min_samples=4)
+        self._lidar_raw = None          # SORUN 7: ham lidar frame'i background worker'a taşımak için
+        self._lidar_raw_lock = threading.Lock()
+        self._dbscan_busy = False
 
         # Bird Eye ve nesne tespiti
         self.bev_frame = None
         self.detection_text = "Nesne yok"
 
+        # SORUN 4: Frame değişkenleri (zed/realsense/bev) iki thread'den erişiliyor;
+        # ROS spin thread yazar, Qt main thread okur — lock zorunlu.
+        self._frame_lock = threading.Lock()
+
         # Subscriber'lar — Image topic'leri düşük latency QoS ile
-        self.create_subscription(Image, '/zed/image_raw', self.zed_callback, _IMAGE_QOS)
+        self.create_subscription(Image, '/zed/preview', self.zed_callback, _IMAGE_QOS)
         self.create_subscription(Image, '/realsense/image_raw', self.realsense_callback, _IMAGE_QOS)
         self.create_subscription(Bool, '/joystick/manual_mode', self.mode_callback, 10)
         # Manuel mod topic'leri
@@ -186,10 +193,15 @@ class GuiNode(Node):
 
     # ─── Callback'ler ───────────────────────────────────
     def zed_callback(self, msg):
-        self.zed_frame = self.imgmsg_to_cv2(msg)
+        frame = self.imgmsg_to_cv2(msg)
+        frame = cv2.resize(frame, (640, 360))  # SORUN 6: Qt scale yerine callback'te kucult
+        with self._frame_lock:                  # SORUN 4: race condition fix
+            self.zed_frame = frame
 
     def realsense_callback(self, msg):
-        self.realsense_frame = self.imgmsg_to_cv2(msg)
+        frame = self.imgmsg_to_cv2(msg)
+        with self._frame_lock:
+            self.realsense_frame = frame
 
     def mode_callback(self, msg):
         self.manual_mode = msg.data
@@ -228,36 +240,50 @@ class GuiNode(Node):
         self.algorithm = msg.data
 
     def bev_callback(self, msg):
-        self.bev_frame = self.imgmsg_to_cv2(msg)
+        frame = self.imgmsg_to_cv2(msg)
+        with self._frame_lock:
+            self.bev_frame = frame
 
     def detection_callback(self, msg):
         self.detection_text = msg.data
 
     def lidar_callback(self, msg):
         if not ADVANCED_LIDAR:
-            # Basit mod: ham mesafe listesini sakla
             with self._lidar_lock:
                 self.lidar_data = msg.ranges
             return
 
-        # Gelişmiş mod: Kutupsal → Kartezyen + DBSCAN kümeleme
-        points = []
-        for i, dist in enumerate(msg.ranges):
-            if not (msg.range_min <= dist <= msg.range_max):
-                continue
-            angle = msg.angle_min + i * msg.angle_increment
-            x = dist * 1000 * np.sin(angle)
-            y = dist * 1000 * np.cos(angle)
-            points.append((x, y))
+        # SORUN 7: Ham veriyi sakla, DBSCAN'i background thread'de calistir.
+        # Boylece ROS spin thread aninda doner ve image callback'leri beklemez.
+        with self._lidar_raw_lock:
+            self._lidar_raw = msg
+        if not self._dbscan_busy:
+            threading.Thread(target=self._dbscan_worker, daemon=True).start()
 
-        if len(points) < 4:
-            return
-
-        points_np = np.array(points)
-        labels = self._dbscan.fit(points_np).labels_
-        label_to_name = self._cluster_tracker.update_clusters(points_np, labels)
-        with self._lidar_lock:
-            self.lidar_data = (points_np, labels, label_to_name)
+    def _dbscan_worker(self):
+        self._dbscan_busy = True
+        try:
+            with self._lidar_raw_lock:
+                msg = self._lidar_raw
+            if msg is None:
+                return
+            points = []
+            for i, dist in enumerate(msg.ranges):
+                if not (msg.range_min <= dist <= msg.range_max):
+                    continue
+                angle = msg.angle_min + i * msg.angle_increment
+                x = dist * 1000 * np.sin(angle)
+                y = dist * 1000 * np.cos(angle)
+                points.append((x, y))
+            if len(points) < 4:
+                return
+            points_np = np.array(points)
+            labels = self._dbscan.fit(points_np).labels_
+            label_to_name = self._cluster_tracker.update_clusters(points_np, labels)
+            with self._lidar_lock:
+                self.lidar_data = (points_np, labels, label_to_name)
+        finally:
+            self._dbscan_busy = False
 
     @property
     def mode_str(self):
@@ -441,14 +467,17 @@ class MainWindow(QWidget):
         self.lbl_vites.setText(f"Vites: {node.vites}")
         self.lbl_algoritma.setText(f"Algoritma: {node.algorithm}")
 
-        if node.zed_frame is not None:
-            self._show_frame(self.label_zed, node.zed_frame)
+        with node._frame_lock:
+            zed_snap = node.zed_frame
+            rs_snap  = node.realsense_frame
+            bev_snap = node.bev_frame
 
-        if node.realsense_frame is not None:
-            self._show_frame(self.label_realsense, node.realsense_frame)
-
-        if node.bev_frame is not None:
-            self._show_frame(self.label_birdeye, node.bev_frame)
+        if zed_snap is not None:
+            self._show_frame(self.label_zed, zed_snap)
+        if rs_snap is not None:
+            self._show_frame(self.label_realsense, rs_snap)
+        if bev_snap is not None:
+            self._show_frame(self.label_birdeye, bev_snap)
 
         self.label_traffic.setText(f"Traffic Signage\n{node.detection_text}")
 

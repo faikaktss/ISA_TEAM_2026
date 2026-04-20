@@ -1,9 +1,16 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32MultiArray
 import numpy as np
 import math
+
+_IMAGE_QOS = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
 
 import cv2
 
@@ -259,11 +266,13 @@ class LatestFrameHolder:
 class CameraNode(Node):
     def __init__(self):
         super().__init__('camera_node')
-        # ZED publisher'lar
-        self.zed_publisher        = self.create_publisher(Image,            '/zed/image_raw',   10)
-        self.point_cloud_publisher = self.create_publisher(Float32MultiArray, '/zed/point_cloud', 10)
-        # RealSense publisher
-        self.realsense_publisher  = self.create_publisher(Image,            '/realsense/image_raw', 10)
+        # ZED publisher'lar — BEST_EFFORT/depth=1: GUI her zaman en son frame'i alır
+        self.zed_publisher        = self.create_publisher(Image,            '/zed/image_raw',       _IMAGE_QOS)
+        self.zed_preview_publisher = self.create_publisher(Image,            '/zed/preview',         10)
+        self.point_cloud_publisher = self.create_publisher(Float32MultiArray, '/zed/point_cloud',   10)
+        # RealSense publisher — BEST_EFFORT/depth=1
+        self.realsense_publisher  = self.create_publisher(Image,            '/realsense/image_raw', _IMAGE_QOS)
+        self._pc_counter = 0  # point cloud throttle: her 3. frame'de yayınla (~10 Hz)
 
         self.info = Info()
         
@@ -324,6 +333,7 @@ class CameraNode(Node):
 
     def _publish_callback(self):
         """30 Hz'de çalışır — holder'lardan frame al ve yayınla."""
+        self._pc_counter += 1
         try:
             # --- ZED ---
             zed_frame, point_cloud = self._zed_holder.get()
@@ -333,8 +343,16 @@ class CameraNode(Node):
                 msg.header.frame_id = 'zed_camera_link'
                 self.zed_publisher.publish(msg)
 
-                # Point cloud yayınla
-                if point_cloud is not None:
+                # GUI için küçültülmüş preview yayınla (640x360)
+                preview = cv2.resize(zed_frame, (640, 360))
+                preview_msg = _numpy_to_imgmsg(preview, encoding='rgb8')
+                preview_msg.header.stamp = msg.header.stamp
+                preview_msg.header.frame_id = 'zed_camera_link'
+                self.zed_preview_publisher.publish(preview_msg)
+
+                # Point cloud: her 3. frame'de yayınla (~10 Hz).
+                # tolist() 97K+ elem dönüşümü ~10-40ms sürdüğünden her frame'de çağrılmaz.
+                if point_cloud is not None and self._pc_counter % 3 == 0:
                     try:
                         pc_data = point_cloud.get_data()  # (H, W, 4) float32 — X,Y,Z,W cm
                         # 8x downsample: 1080x1920 → 135x240 (daha hızlı, object detection için yeterli)

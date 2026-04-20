@@ -27,9 +27,15 @@ class Arduino:
             self.ser.write(value.encode())
         
     def getValue(self):
-        self.ser.reset_input_buffer()
-        data = self.ser.readline().decode(errors="ignore").strip()
-        return data
+        # Son tam satırı oku (reset_input_buffer veri kaybına yol açıyordu)
+        last_valid = None
+        while self.ser.in_waiting:
+            line = self.ser.readline().decode(errors="ignore").strip()
+            if line:
+                last_valid = line
+        if last_valid is None:
+            last_valid = self.ser.readline().decode(errors="ignore").strip()
+        return last_valid
     
     def encoder_distance(self):
         """Encoder'dan mesafe verisi alır"""
@@ -57,7 +63,8 @@ if ROS2_AVAILABLE:
             #Todo: Ardunio bağlantısı
             try:
                 self.arduino =Arduino(COM=port, baudrate=baudrate,timeout=1)
-                time.sleep(2)
+                # NOT: time.sleep(2) kaldırıldı — Arduino reset süresi için
+                # ilk birkaç okuma None dönebilir, read_encoder bunu handle ediyor
                 self.get_logger().info(f'Arduino Encoder bağlandı: {port} @ {baudrate}')
             except Exception as e:
                 self.get_logger().error(f'Arduino Encoder bağlantı hatası: {e}')

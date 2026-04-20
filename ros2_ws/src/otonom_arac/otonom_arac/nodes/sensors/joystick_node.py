@@ -22,8 +22,9 @@ if ROS2_AVAILABLE:
             try:
                 import serial
                 self.arduino = serial.Serial(port, baudrate, timeout=1)
-                time.sleep(2)
-                self.arduino.reset_input_buffer()  # startup garbage'ı temizle
+                # NOT: time.sleep(2) kaldırıldı — ilk birkaç okuma boş/bozuk olabilir,
+                # read_joystick zaten bozuk veriyi sessizce atlıyor
+                self.arduino.reset_input_buffer()
                 self.get_logger().info(f'Kumanda Arduino bağlandı: {port} @ {baudrate}')
             except Exception as e:
                 self.get_logger().error(f'Kumanda Arduino bağlantı hatası: {e}')

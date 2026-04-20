@@ -1,5 +1,6 @@
 
 import math
+import threading
 import numpy as np
 import rclpy
 from rclpy.node import Node
@@ -135,6 +136,11 @@ class LidarNode(Node):
         self.tracker     = ClusterTracker()
         self.engel_takip = EngelTakip()
         self._tarama     = []   # [(aci, mesafe), ...]
+        self._tarama_lock = threading.Lock()
+        self._running = True
+
+        # DBSCAN instance (her frame'de yeniden oluşturmak yerine)
+        self._dbscan = DBSCAN(eps=200, min_samples=4) if SKLEARN_AVAILABLE else None
 
         # RPLidar bağlantısı
         self.lidar = None
@@ -152,28 +158,43 @@ class LidarNode(Node):
         if not SKLEARN_AVAILABLE:
             self.get_logger().warn('sklearn yok — DBSCAN devre dışı. pip install scikit-learn')
 
-        self.timer = self.create_timer(0.1, self.timer_callback)  # 10 Hz
+        # Lidar okuma ayrı thread'de — iter_measures() bloklayıcı!
+        if self.lidar is not None:
+            self._read_thread = threading.Thread(target=self._lidar_read_loop, daemon=True)
+            self._read_thread.start()
 
-    def timer_callback(self):
+        # 10 Hz publish timer — sadece son taramayı yayınlar
+        self.timer = self.create_timer(0.1, self.timer_callback)
+
+    def _lidar_read_loop(self):
+        """Arka plan thread'i: iter_measures() burada bloklar, ana executor etkilenmez."""
         try:
-            if self.lidar is None:
-                return
-
-            tarama = []
             for yeni_scan, kalite, aci, mesafe in self.lidar.iter_measures(max_buf_meas=500):
-                if yeni_scan and tarama:
+                if not self._running:
                     break
                 if kalite > 0 and mesafe > 0:
-                    tarama.append((float(aci), float(mesafe)))
+                    with self._tarama_lock:
+                        if yeni_scan and self._tarama:
+                            # Yeni tarama başladı — mevcut taramayı kaydet
+                            pass  # timer_callback'te publish edilecek
+                        if yeni_scan:
+                            self._tarama = []
+                        self._tarama.append((float(aci), float(mesafe)))
+        except Exception:
+            pass  # Lidar bağlantı koptu
 
-            if not tarama:
-                return
+    def timer_callback(self):
+        """10 Hz: Son taramayı al ve yayınla — ASLA bloklamaz."""
+        with self._tarama_lock:
+            tarama = list(self._tarama) if self._tarama else None
 
-            self._tarama = tarama
+        if not tarama:
+            return
+
+        try:
             self._yayinla(tarama)
-
         except Exception as e:
-            self.get_logger().error(f'Lidar okuma hatası: {str(e)}')
+            self.get_logger().error(f'Lidar yayın hatası: {str(e)}')
 
     def _yayinla(self, tarama):
         stamp = self.get_clock().now().to_msg()
@@ -212,7 +233,7 @@ class LidarNode(Node):
         self.distance_publisher.publish(dist_msg)
 
         engel_durum = 0
-        if SKLEARN_AVAILABLE and tarama:
+        if self._dbscan is not None and tarama:
             # Polar → Kartezyen (mm)
             pts = []
             for aci, mesafe in tarama:
@@ -222,7 +243,7 @@ class LidarNode(Node):
 
             if len(pts) >= 4:
                 pts_arr = np.array(pts)
-                labels  = DBSCAN(eps=200, min_samples=4).fit_predict(pts_arr)
+                labels  = self._dbscan.fit_predict(pts_arr)
                 # Küme merkezleri
                 merkezler = []
                 for lbl in set(labels):
@@ -239,6 +260,7 @@ class LidarNode(Node):
         self.obstacle_publisher.publish(obs_msg)
 
     def destroy_node(self):
+        self._running = False
         if self.lidar is not None:
             try:
                 self.lidar.stop()

@@ -83,7 +83,10 @@ class ControlNode(Node):
         if self.arduino is None:
             return
         try:
-            while self.arduino.in_waiting > 0:
+            # Maksimum 5 satır oku — sonsuz döngü riski önlenir
+            for _ in range(5):
+                if self.arduino.in_waiting == 0:
+                    break
                 line = self.arduino.readline().decode(errors='ignore').strip()
                 if line:
                     try:

@@ -14,6 +14,13 @@ Kullanım:
 import math, sys
 import cv2
 import numpy as np
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
+
+_IMAGE_QOS = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
 
 
 
@@ -271,7 +278,7 @@ def _ros_node_class():
         class LaneDetectionNode(Node):
             def __init__(self):
                 super().__init__('lane_detection_node')
-                self.sub     = self.create_subscription(Image,'/zed/image_raw',self.cb,10)
+                self.sub     = self.create_subscription(Image,'/zed/image_raw',self.cb,_IMAGE_QOS)
                 self.p_angle = self.create_publisher(Float32,'/lane/angle',10)
                 self.p_off   = self.create_publisher(Float32,'/lane/offset',10)
                 self.p_debug = self.create_publisher(Image,'/lane/debug_image',10)
@@ -292,7 +299,7 @@ def _ros_node_class():
                             cv2.cvtColor(img,cv2.COLOR_BGR2RGB),'rgb8'))
 
                     pub(self.p_debug, res)
-                    pub(self.p_bev,   cv2.resize(bev,(w,h)))
+                    pub(self.p_bev,   bev)  # BEV'i olduğu gibi yayınla (640x480), büyütme gereksiz
 
                     a=Float32(); a.data=float(self.det.smooth_aci);   self.p_angle.publish(a)
                     o=Float32(); o.data=float(self.det.smooth_kayma); self.p_off.publish(o)
