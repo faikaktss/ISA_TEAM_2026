@@ -156,7 +156,7 @@ class ObjectDetectionNode(Node):
             frame = _imgmsg_to_numpy(msg)
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            results = self.model.predict(frame_bgr, conf=0.5, device=_YOLO_DEVICE, imgsz=(736, 736), verbose=False)
+            results = self.model.predict(frame_bgr, conf=0.5, device=_YOLO_DEVICE, imgsz=640, verbose=False)
 
             # Aynı karede birden fazla tespit varsa sadece en yüksek conf'lu olanı yayınla
             best_class = None

@@ -5,6 +5,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Float32MultiArray
 import numpy as np
 import math
+from otonom_arac.perf.metrics import FPSMeter, CallbackTimer, PerfPublisher
 
 _IMAGE_QOS = QoSProfile(
     reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -170,7 +171,7 @@ try:
             self.info = info
 
             init_params = sl.InitParameters()
-            init_params.camera_resolution = sl.RESOLUTION.HD1080
+            init_params.camera_resolution = sl.RESOLUTION.HD720
             init_params.camera_fps = 30
             init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE
             init_params.coordinate_units = sl.UNIT.CENTIMETER
@@ -272,10 +273,21 @@ class CameraNode(Node):
         self.point_cloud_publisher = self.create_publisher(Float32MultiArray, '/zed/point_cloud',   10)
         # RealSense publisher — BEST_EFFORT/depth=1
         self.realsense_publisher  = self.create_publisher(Image,            '/realsense/image_raw', _IMAGE_QOS)
-        self._pc_counter = 0  # point cloud throttle: her 3. frame'de yayınla (~10 Hz)
-
         self.info = Info()
-        
+
+        # Perf ölçüm — /perf/summary topic'ini dinle: ros2 topic echo /perf/summary
+        self._zed_cap_fps = FPSMeter('zed_cap')
+        self._rs_cap_fps  = FPSMeter('rs_cap')
+        self._zed_cb_timer = CallbackTimer('zed_cb', budget_ms=33.0)
+        self._rs_cb_timer  = CallbackTimer('rs_cb',  budget_ms=33.0)
+        self._pc_cb_timer  = CallbackTimer('pc_cb',  budget_ms=200.0)
+        self._perf         = PerfPublisher(self, interval=2.0)
+        self._perf.add_fps('zed_cap',  self._zed_cap_fps)
+        self._perf.add_fps('rs_cap',   self._rs_cap_fps)
+        self._perf.add_timer('zed_cb', self._zed_cb_timer)
+        self._perf.add_timer('rs_cb',  self._rs_cb_timer)
+        self._perf.add_timer('pc_cb',  self._pc_cb_timer)
+
         # Thread-safe frame holder'lar
         self._zed_holder = LatestFrameHolder()
         self._rs_holder = LatestFrameHolder()
@@ -307,9 +319,11 @@ class CameraNode(Node):
             except Exception as e:
                 self.get_logger().warn(f'RealSense başlatılamadı: {str(e)}')
 
-        # Publish timer — sadece frame'leri yayınlar, capture yapmaz
-        self.timer_period = 1.0/30  # 30 FPS publish
-        self.timer = self.create_timer(self.timer_period, self._publish_callback)
+        # Ayrı timer'lar — ZED/RS/PC birbirini bloklamaz
+        self._zed_timer = self.create_timer(1.0/30, self._publish_zed_callback)
+        self._rs_timer  = self.create_timer(1.0/30, self._publish_rs_callback)
+        self._pc_timer  = self.create_timer(1.0/5,  self._publish_pc_callback)
+        self._last_point_cloud = None  # PC timer için son point cloud'u sakla
 
     def _zed_capture_loop(self):
         """ZED capture loop — kendi thread'inde sürekli çalışır."""
@@ -317,9 +331,11 @@ class CameraNode(Node):
             try:
                 frame, pc = self.camera.img_and_point_cloud()
                 if frame is not None:
+                    self._zed_cap_fps.tick()
                     self._zed_holder.put(frame, pc)
-            except Exception as e:
-                pass  # Sessizce devam et
+            except Exception:
+                import time
+                time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
     def _rs_capture_loop(self):
         """RealSense capture loop — kendi thread'inde sürekli çalışır."""
@@ -327,58 +343,77 @@ class CameraNode(Node):
             try:
                 frame = self.realsense.get_frame()
                 if frame is not None:
+                    self._rs_cap_fps.tick()
                     self._rs_holder.put(frame)
-            except Exception as e:
-                pass  # Sessizce devam et
+            except Exception:
+                import time
+                time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
-    def _publish_callback(self):
-        """30 Hz'de çalışır — holder'lardan frame al ve yayınla."""
-        self._pc_counter += 1
+    def _publish_zed_callback(self):
+        """30 Hz — ZED raw + preview yayınlar. PC'ye dokunmaz."""
+        self._zed_cb_timer.start()
         try:
-            # --- ZED ---
             zed_frame, point_cloud = self._zed_holder.get()
             if zed_frame is not None:
+                stamp = self.get_clock().now().to_msg()
+
                 msg = _numpy_to_imgmsg(zed_frame, encoding='rgb8')
-                msg.header.stamp = self.get_clock().now().to_msg()
+                msg.header.stamp = stamp
                 msg.header.frame_id = 'zed_camera_link'
                 self.zed_publisher.publish(msg)
 
-                # GUI için küçültülmüş preview yayınla (640x360)
                 preview = cv2.resize(zed_frame, (640, 360))
                 preview_msg = _numpy_to_imgmsg(preview, encoding='rgb8')
-                preview_msg.header.stamp = msg.header.stamp
+                preview_msg.header.stamp = stamp
                 preview_msg.header.frame_id = 'zed_camera_link'
                 self.zed_preview_publisher.publish(preview_msg)
 
-                # Point cloud: her 3. frame'de yayınla (~10 Hz).
-                # tolist() 97K+ elem dönüşümü ~10-40ms sürdüğünden her frame'de çağrılmaz.
-                if point_cloud is not None and self._pc_counter % 3 == 0:
-                    try:
-                        pc_data = point_cloud.get_data()  # (H, W, 4) float32 — X,Y,Z,W cm
-                        # 8x downsample: 1080x1920 → 135x240 (daha hızlı, object detection için yeterli)
-                        STEP = 8
-                        ds = pc_data[::STEP, ::STEP, :3].astype(np.float32)
-                        h_ds, w_ds = ds.shape[:2]
-                        # Optimize: header'ı numpy ile oluştur, tek seferde list'e çevir
-                        header = np.array([h_ds, w_ds, STEP], dtype=np.float32)
-                        combined = np.concatenate([header, ds.ravel()])
-                        pc_msg = Float32MultiArray()
-                        pc_msg.data = combined.tolist()
-                        self.point_cloud_publisher.publish(pc_msg)
-                    except Exception as pc_err:
-                        self.get_logger().debug(f'Point cloud yayın hatası: {pc_err}')
+                # En güncel point cloud'u PC timer için sakla
+                if point_cloud is not None:
+                    self._last_point_cloud = point_cloud
+        except Exception as e:
+            self.get_logger().error(f'ZED publish hatası: {str(e)}')
+        finally:
+            self._zed_cb_timer.stop()
+            self._perf.tick()
 
-            # --- RealSense ---
+    def _publish_rs_callback(self):
+        """30 Hz — RealSense yayınlar. ZED'e dokunmaz."""
+        self._rs_cb_timer.start()
+        try:
             rs_frame, _ = self._rs_holder.get()
             if rs_frame is not None:
                 rs_msg = _numpy_to_imgmsg(rs_frame, encoding='rgb8')
                 rs_msg.header.stamp = self.get_clock().now().to_msg()
                 rs_msg.header.frame_id = 'realsense_camera_link'
                 self.realsense_publisher.publish(rs_msg)
-
         except Exception as e:
-            self.get_logger().error(f'Görüntü işleme hatası: {str(e)}')
-    
+            self.get_logger().error(f'RealSense publish hatası: {str(e)}')
+        finally:
+            self._rs_cb_timer.stop()
+
+    def _publish_pc_callback(self):
+        """5 Hz — Point cloud yayınlar. tolist() GIL spike ZED/RS'den izole."""
+        self._pc_cb_timer.start()
+        try:
+            pc = self._last_point_cloud
+            if pc is None:
+                return
+            self._last_point_cloud = None
+            pc_data = pc.get_data()  # (H, W, 4) float32 — X,Y,Z,W cm
+            STEP = 8
+            ds = pc_data[::STEP, ::STEP, :3].astype(np.float32)
+            h_ds, w_ds = ds.shape[:2]
+            header = np.array([h_ds, w_ds, STEP], dtype=np.float32)
+            combined = np.concatenate([header, ds.ravel()])
+            pc_msg = Float32MultiArray()
+            pc_msg.data = combined.tolist()
+            self.point_cloud_publisher.publish(pc_msg)
+        except Exception as e:
+            self.get_logger().debug(f'Point cloud yayın hatası: {e}')
+        finally:
+            self._pc_cb_timer.stop()
+
     def destroy_node(self):
         """Node kapanırken thread'leri durdur."""
         self._running = False

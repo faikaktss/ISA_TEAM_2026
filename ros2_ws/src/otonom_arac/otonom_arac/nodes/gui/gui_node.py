@@ -165,6 +165,7 @@ class GuiNode(Node):
         self._lidar_raw = None          # SORUN 7: ham lidar frame'i background worker'a taşımak için
         self._lidar_raw_lock = threading.Lock()
         self._dbscan_busy = False
+        self._dbscan_spawn_lock = threading.Lock()  # double-check guard: tek thread spawn garantisi
 
         # Bird Eye ve nesne tespiti
         self.bev_frame = None
@@ -194,8 +195,7 @@ class GuiNode(Node):
     # ─── Callback'ler ───────────────────────────────────
     def zed_callback(self, msg):
         frame = self.imgmsg_to_cv2(msg)
-        frame = cv2.resize(frame, (640, 360))  # SORUN 6: Qt scale yerine callback'te kucult
-        with self._frame_lock:                  # SORUN 4: race condition fix
+        with self._frame_lock:
             self.zed_frame = frame
 
     def realsense_callback(self, msg):
@@ -258,7 +258,9 @@ class GuiNode(Node):
         with self._lidar_raw_lock:
             self._lidar_raw = msg
         if not self._dbscan_busy:
-            threading.Thread(target=self._dbscan_worker, daemon=True).start()
+            with self._dbscan_spawn_lock:
+                if not self._dbscan_busy:  # double-check: iki hızlı callback tek thread başlatır
+                    threading.Thread(target=self._dbscan_worker, daemon=True).start()
 
     def _dbscan_worker(self):
         self._dbscan_busy = True
@@ -291,6 +293,7 @@ class GuiNode(Node):
 
     def imgmsg_to_cv2(self, msg):
         # RGB olarak tut — Qt zaten RGB istiyor, çift dönüşüm gereksiz
+        # .copy(): ROS middleware buffer'ını sahipleniriz; QImage bu pointer'ı tutar
         frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1).copy()
         if msg.encoding == 'mono8':
             frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)

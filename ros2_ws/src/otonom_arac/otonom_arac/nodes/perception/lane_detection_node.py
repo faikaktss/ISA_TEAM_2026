@@ -298,7 +298,7 @@ def _ros_node_class():
                         p.publish(_numpy_to_imgmsg(
                             cv2.cvtColor(img,cv2.COLOR_BGR2RGB),'rgb8'))
 
-                    pub(self.p_debug, res)
+                    # p_debug publish kaldırıldı — production'da gereksiz IPC yükü
                     pub(self.p_bev,   bev)  # BEV'i olduğu gibi yayınla (640x480), büyütme gereksiz
 
                     a=Float32(); a.data=float(self.det.smooth_aci);   self.p_angle.publish(a)
