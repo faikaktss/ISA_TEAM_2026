@@ -45,6 +45,8 @@ if ROS2_AVAILABLE:
             # Güvenli başlangıç: manuel mod (joystick aktif)
             self.manual_mode = True
             self.pc_aci = 0
+            self._last_command = ''
+            self._same_command_count = 0
 
             # Todo: Subscriber'lar - MANUEL MOD 
             self.joystick_ileri_geri_sub = self.create_subscription(
@@ -125,10 +127,6 @@ if ROS2_AVAILABLE:
                     self.teensy.write(command.encode())
                     # Log azaltma: Aynı komut tekrar ediyorsa ilk ve son kez log yaz
                     # 50 tekrar → sadece 2 log (başlangıç + bitiş)
-                    if not hasattr(self, '_last_command'):
-                        self._last_command = ''
-                        self._same_command_count = 0
-                    
                     if command.strip() != self._last_command:
                         # Önceki komut bittiyse kaç kez tekrar ettiğini logla
                         if self._same_command_count > 1:

@@ -180,8 +180,13 @@ class LidarNode(Node):
                         if yeni_scan:
                             self._tarama = []
                         self._tarama.append((float(aci), float(mesafe)))
-        except Exception:
-            pass  # Lidar bağlantı koptu
+        except Exception as e:
+            self.get_logger().error(f'Lidar okuma hatası: {e}')
+            try:
+                self.lidar.stop()
+                self.lidar.stop_motor()
+            except Exception:
+                pass
 
     def timer_callback(self):
         """10 Hz: Son taramayı al ve yayınla — ASLA bloklamaz."""

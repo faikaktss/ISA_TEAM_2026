@@ -1,3 +1,4 @@
+import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
 #Todo: Tüm gerekli düğümleri başlatan bir başlatma dosyası oluştur
@@ -76,7 +77,7 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             additional_env={
-                'DISPLAY': ':1',
+                'DISPLAY': os.environ.get('DISPLAY', ':0'),
                 'QT_X11_NO_MITSHM': '1',
             },
         ),

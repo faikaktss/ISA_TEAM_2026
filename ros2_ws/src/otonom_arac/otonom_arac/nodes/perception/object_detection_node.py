@@ -15,7 +15,6 @@ _IMAGE_QOS = QoSProfile(
     depth=1
 )
 
-# GPU kullanılabilirliğini kontrol et
 try:
     import torch
     _YOLO_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -71,6 +70,7 @@ class ObjectDetectionNode(Node):
         # En son point cloud verisi: (H, W, 3) float32 array veya None
         self._point_cloud = None
         self._pc_step = 1  # downsample adımı (camera_node'dan gelir)
+        self._pc_lock = threading.Lock()
 
         if YOLO_AVAILABLE:
             model_path = self.get_parameter('model_path').value
@@ -99,8 +99,9 @@ class ObjectDetectionNode(Node):
             step = int(data[2])  # downsample adımı
             xyz_flat = np.array(data[3:], dtype=np.float32)
             if xyz_flat.size == h * w * 3:
-                self._point_cloud = xyz_flat.reshape(h, w, 3)
-                self._pc_step = step
+                with self._pc_lock:
+                    self._point_cloud = xyz_flat.reshape(h, w, 3)
+                    self._pc_step = step
         except Exception as e:
             self.get_logger().debug(f'Point cloud parse hatasi: {e}')
 
@@ -110,11 +111,13 @@ class ObjectDetectionNode(Node):
         2024-2025 realsense.py mantığı: bbox içindeki min derinlik.
         Döndürür: mesafe cm cinsinden (float), ya da None.
         """
-        if self._point_cloud is None:
+        with self._pc_lock:
+            pc = self._point_cloud
+            step = self._pc_step
+        if pc is None:
             return None
 
-        h, w = self._point_cloud.shape[:2]
-        step = self._pc_step
+        h, w = pc.shape[:2]
         # Orijinal piksel koordinatlarını downsample'a çevir
         cx = int((x1 + x2) / 2) // step
         cy = int((y1 + y2) / 2) // step
@@ -126,7 +129,7 @@ class ObjectDetectionNode(Node):
         ry1 = max(0, cy - win)
         ry2 = min(h, cy + win)
 
-        bölge = self._point_cloud[ry1:ry2, rx1:rx2]  # (ry, rx, 3)
+        bölge = pc[ry1:ry2, rx1:rx2]  # (ry, rx, 3)
         if bölge.size == 0:
             return None
 

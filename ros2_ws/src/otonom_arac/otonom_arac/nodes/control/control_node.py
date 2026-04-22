@@ -61,6 +61,11 @@ class ControlNode(Node):
         self.state = 'lane_following'
         self.state_counter = 0
 
+        self._hareketli_engel_count = 0
+        self._logged_hareketli_engel = False
+        self._last_logged_durak_pixel = -1
+        self._durak_log_count = 0
+
         self.arduino = None
         if SERIAL_AVAILABLE:
             try:
@@ -184,10 +189,6 @@ class ControlNode(Node):
         if self.state == 'lane_following':
             if self.engel_durumu == 2:
                 # Log azaltma: İlk kez logla, bitince kaç kez tekrar ettiğini göster
-                if not hasattr(self, '_hareketli_engel_count'):
-                    self._hareketli_engel_count = 0
-                    self._logged_hareketli_engel = False
-                
                 if not self._logged_hareketli_engel:
                     self.get_logger().info('Hareketli engel - DUR!')
                     self._logged_hareketli_engel = True
@@ -234,9 +235,6 @@ class ControlNode(Node):
                 if self.current_angle is not None:
                     self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
                 # Log azaltma: Sadece önemli değişimlerde log, sonunda özet
-                if not hasattr(self, '_last_logged_durak_pixel'):
-                    self._last_logged_durak_pixel = -1
-                    self._durak_log_count = 0
                 if abs(self.durakPixel - self._last_logged_durak_pixel) > 100:  # 100 piksel fark varsa log
                     self.get_logger().info(f'Durak bekleniyor: {self.durakPixel}')
                     self._last_logged_durak_pixel = self.durakPixel

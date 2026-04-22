@@ -417,6 +417,9 @@ class CameraNode(Node):
     def destroy_node(self):
         """Node kapanırken thread'leri durdur."""
         self._running = False
+        self._zed_timer.cancel()
+        self._rs_timer.cancel()
+        self._pc_timer.cancel()
         super().destroy_node()
     
 

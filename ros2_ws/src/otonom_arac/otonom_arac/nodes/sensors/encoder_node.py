@@ -17,7 +17,7 @@ except ImportError:
 class Arduino:
     """Arduino ile seri port üzerinden iletişim kurar ve encoder verisini okur"""
     def __init__(self, COM='/dev/ttyUSB', baudrate=115200, timeout=1):
-        self.ser = serial.Serial(COM, baudrate, timeout=timeout)
+        self.ser = serial.Serial(COM, baudrate, timeout=0.015)  # 50Hz timer bütçesi 20ms; 1s timeout timer'ı blokluyordu
         self.ilk_mesafe = None
 
     def setValue(self, value):
