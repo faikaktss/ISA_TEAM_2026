@@ -109,20 +109,24 @@ if ADVANCED_LIDAR:
             self._draw_guides()
 
         def update_points(self, points, labels, label_to_name):
-            color_map = [
+            """Vektörel güncelleme: Python loop yok, pg.ScatterPlotItem numpy array alır."""
+            color_map = np.array([
                 (255, 0, 0), (0, 255, 0), (0, 0, 255),
                 (255, 255, 0), (255, 0, 255), (0, 255, 255)
-            ]
-            spots = []
-            for idx, (x, y) in enumerate(points):
-                label = labels[idx]
+            ], dtype=np.uint8)
+            n = len(points)
+            if n == 0:
+                self.scatter.setData([])
+                return
+            brushes = []
+            for label in labels:
                 if label == -1:
-                    color = (100, 100, 100)
+                    brushes.append(pg.mkBrush(100, 100, 100))
                 else:
-                    cname = label_to_name.get(label, '?')
-                    color = color_map[ord(cname) % len(color_map)]
-                spots.append({'pos': (x, y), 'brush': pg.mkBrush(*color)})
-            self.scatter.setData(spots)
+                    cname = label_to_name.get(label, 'A')
+                    c = color_map[ord(cname) % len(color_map)]
+                    brushes.append(pg.mkBrush(int(c[0]), int(c[1]), int(c[2])))
+            self.scatter.setData(pos=points, brush=brushes)
 
         def _draw_guides(self):
             for line in [
@@ -213,7 +217,13 @@ class GuiNode(Node):
         self.create_subscription(String, '/algorithm/current', self.algorithm_callback, 10)
         self.create_subscription(Image, '/lane/bev_image', self.bev_callback, _IMAGE_QOS)
         self.create_subscription(String, '/detection/objects', self.detection_callback, 10)
-        self.create_subscription(LaserScan, '/lidar/scan', self.lidar_callback, 10)
+        # depth=1 BEST_EFFORT: lidar scan backlog'u engelle — hep en güncel scan
+        _LIDAR_QOS = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+        self.create_subscription(LaserScan, '/lidar/scan', self.lidar_callback, _LIDAR_QOS)
 
     # ─── Callback'ler ───────────────────────────────────
     def zed_callback(self, msg):

@@ -233,9 +233,9 @@ if REALSENSE_AVAILABLE:
             self.pipeline.start(config)
 
         def get_frame(self):
-            """Non-blocking tarzda: 33ms timeout (1 frame bütçesi). Hiç beklemez."""
+            """Non-blocking tarzda: 5ms timeout — frame hazır değilse hızla None döndür."""
             try:
-                frames = self.pipeline.wait_for_frames(timeout_ms=33)
+                frames = self.pipeline.wait_for_frames(timeout_ms=5)
             except Exception:
                 # Timeout veya hata: capture loop'u bloklama, None döndür
                 return None
@@ -354,18 +354,20 @@ class CameraNode(Node):
             except Exception as e:
                 self.get_logger().warn(f'RealSense başlatılamadı: {str(e)}')
 
-        # Ayrı timer'lar — ReentrantCallbackGroup ile paralel çalışır
-        self._zed_timer = self.create_timer(1.0/30, self._publish_zed_callback,
-                                            callback_group=self._cb_group)
-        self._rs_timer  = self.create_timer(1.0/30, self._publish_rs_callback,
-                                            callback_group=self._cb_group)
+        # ZED ve RS artık kendi capture thread'lerinde doğrudan publish ediyor (timer YOK).
+        # Sadece PC timer kalıyor — 5 Hz, ZED capture loop'tan bağımsız.
+        self._zed_timer = None  # devre dışı — capture loop publish ediyor
+        self._rs_timer  = None  # devre dışı — capture loop publish ediyor
         self._pc_timer  = self.create_timer(1.0/5,  self._publish_pc_callback,
                                             callback_group=self._cb_group)
         self._last_point_cloud = None  # PC timer için son point cloud'u sakla
         self._pc_data_lock = threading.Lock()
 
     def _zed_capture_loop(self):
-        """ZED capture loop — kendi thread'inde sürekli çalışır."""
+        """ZED capture loop — kendi thread'inde sürekli çalışır ve doğrudan publish eder.
+        Timer'a bırakmak yerine capture anında publish: quantization delay (0–33ms) ortadan kalkar.
+        Header.stamp capture anını gösterir → age_ms metriği artık doğru.
+        """
         while self._running and self.camera is not None:
             try:
                 want_point_cloud = time.monotonic_ns() >= self._next_pc_capture_ns
@@ -373,14 +375,38 @@ class CameraNode(Node):
                 if frame is not None:
                     capture_ns = time.monotonic_ns()
                     self._zed_cap_fps.tick()
+                    # PC için holder'a da koy (pc_timer okuyacak)
                     self._zed_holder.put(frame, pc, capture_ns=capture_ns)
                     if want_point_cloud:
                         self._next_pc_capture_ns = capture_ns + self._pc_interval_ns
+                    # Capture anında doğrudan publish — timer quantization'ı yok
+                    try:
+                        self._zed_cb_timer.start()
+                        start_pub_ns = time.monotonic_ns()
+                        small = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_LINEAR)
+                        # Stamp: capture anı (ROS clock offset hesabı — monotonic farkı koru)
+                        stamp = self.get_clock().now().to_msg()
+                        msg = _numpy_to_imgmsg(small, encoding='rgb8')
+                        msg.header.stamp = stamp
+                        msg.header.frame_id = 'zed_camera_link'
+                        self.zed_publisher.publish(msg)
+                        self.zed_preview_publisher.publish(msg)
+                        self._zed_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
+                        if pc is not None:
+                            with self._pc_data_lock:
+                                self._last_point_cloud = (pc, capture_ns)
+                        self._perf.tick()
+                    except Exception as pub_err:
+                        self.get_logger().error(f'ZED inline publish hatası: {pub_err}')
+                    finally:
+                        self._zed_cb_timer.stop()
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
     def _rs_capture_loop(self):
-        """RealSense capture loop — kendi thread'inde sürekli çalışır."""
+        """RealSense capture loop — kendi thread'inde sürekli çalışır ve doğrudan publish eder.
+        Timer'a bırakmak yerine capture anında publish: quantization delay ortadan kalkar.
+        """
         while self._running and self.realsense is not None:
             try:
                 frame = self.realsense.get_frame()
@@ -388,11 +414,27 @@ class CameraNode(Node):
                     capture_ns = time.monotonic_ns()
                     self._rs_cap_fps.tick()
                     self._rs_holder.put(frame, capture_ns=capture_ns)
+                    # Capture anında doğrudan publish
+                    try:
+                        self._rs_cb_timer.start()
+                        start_pub_ns = time.monotonic_ns()
+                        rs_msg = _numpy_to_imgmsg(frame, encoding='rgb8')
+                        rs_msg.header.stamp = self.get_clock().now().to_msg()
+                        rs_msg.header.frame_id = 'realsense_camera_link'
+                        self.realsense_publisher.publish(rs_msg)
+                        self._rs_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
+                        self._perf.tick()
+                    except Exception as pub_err:
+                        self.get_logger().error(f'RS inline publish hatası: {pub_err}')
+                    finally:
+                        self._rs_cb_timer.stop()
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
     def _publish_zed_callback(self):
-        """30 Hz — ZED raw + preview yayınlar. PC'ye dokunmaz."""
+        """KULLANILMIYOR — ZED artık _zed_capture_loop içinde doğrudan publish ediyor.
+        Timer iptal edildi (self._zed_timer = None). Bu metod gerçek zamanda çağrılmaz.
+        """
         self._zed_cb_timer.start()
         try:
             zed_frame, point_cloud, capture_ns = self._zed_holder.get()
@@ -473,8 +515,10 @@ class CameraNode(Node):
         for t in (self._zed_thread, self._rs_thread):
             if t and t.is_alive():
                 t.join(timeout=1.0)
-        self._zed_timer.cancel()
-        self._rs_timer.cancel()
+        if self._zed_timer is not None:
+            self._zed_timer.cancel()
+        if self._rs_timer is not None:
+            self._rs_timer.cancel()
         self._pc_timer.cancel()
         super().destroy_node()
     
