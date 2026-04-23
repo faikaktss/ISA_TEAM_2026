@@ -27,30 +27,32 @@ _IMAGE_QOS = QoSProfile(
     depth=1
 )
 
-import cv2
+import cv2  # noqa: E402
 # cv2 import sonrası plugin yolunu tekrar doğrula (cv2 override edebilir).
 if os.environ.get('QT_QPA_PLATFORM_PLUGIN_PATH', '') not in _QT_CANDIDATES:
     for _candidate in _QT_CANDIDATES:
         if os.path.isdir(_candidate):
             os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = _candidate
             break
-import numpy as np
-import threading
+import numpy as np  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+from otonom_arac.perf.metrics import FPSMeter, CallbackTimer, PerfPublisher  # noqa: E402
 
-import sys
+import sys  # noqa: E402
 try:
     import pyqtgraph as pg
     from sklearn.cluster import DBSCAN
     ADVANCED_LIDAR = True
 except ImportError:
     ADVANCED_LIDAR = False
-from PyQt5.QtWidgets import (
+from PyQt5.QtWidgets import (  # noqa: E402
     QApplication, QWidget, QLabel,
     QGridLayout, QVBoxLayout, QHBoxLayout,
     QPushButton, QTextEdit
 )
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import Qt, QTimer  # noqa: E402
+from PyQt5.QtGui import QImage, QPixmap  # noqa: E402
 
 
 if ADVANCED_LIDAR:
@@ -141,6 +143,16 @@ class GuiNode(Node):
         # Kamera görüntüleri
         self.zed_frame = None
         self.realsense_frame = None
+        self.bev_frame = None
+        self.zed_frame_version = 0
+        self.realsense_frame_version = 0
+        self.bev_frame_version = 0
+        self.zed_capture_ns = 0
+        self.realsense_capture_ns = 0
+        self.bev_capture_ns = 0
+        self.zed_render_age_ms = 0.0
+        self.realsense_render_age_ms = 0.0
+        self.bev_render_age_ms = 0.0
 
         # Araç bilgileri
         self.manual_mode = True
@@ -167,12 +179,24 @@ class GuiNode(Node):
         self._dbscan_spawn_lock = threading.Lock()  # double-check guard: tek thread spawn garantisi
 
         # Bird Eye ve nesne tespiti
-        self.bev_frame = None
         self.detection_text = "Nesne yok"
 
         # SORUN 4: Frame değişkenleri (zed/realsense/bev) iki thread'den erişiliyor;
         # ROS spin thread yazar, Qt main thread okur — lock zorunlu.
         self._frame_lock = threading.Lock()
+
+        self._gui_render_timer = CallbackTimer('gui_render', budget_ms=33.0)
+        self._gui_zed_fps = FPSMeter('gui_zed')
+        self._gui_rs_fps = FPSMeter('gui_rs')
+        self._gui_bev_fps = FPSMeter('gui_bev')
+        self._perf = PerfPublisher(self, interval=2.0)
+        self._perf.add_timer('gui_render', self._gui_render_timer)
+        self._perf.add_fps('gui_zed', self._gui_zed_fps)
+        self._perf.add_fps('gui_rs', self._gui_rs_fps)
+        self._perf.add_fps('gui_bev', self._gui_bev_fps)
+        self._perf.add_value('gui_zed_age', lambda: f'{self.zed_render_age_ms:.1f}ms')
+        self._perf.add_value('gui_rs_age', lambda: f'{self.realsense_render_age_ms:.1f}ms')
+        self._perf.add_value('gui_bev_age', lambda: f'{self.bev_render_age_ms:.1f}ms')
 
         # Subscriber'lar — Image topic'leri düşük latency QoS ile
         self.create_subscription(Image, '/zed/preview', self.zed_callback, _IMAGE_QOS)
@@ -196,11 +220,15 @@ class GuiNode(Node):
         frame = self.imgmsg_to_cv2(msg)
         with self._frame_lock:
             self.zed_frame = frame
+            self.zed_frame_version += 1
+            self.zed_capture_ns = self._msg_stamp_to_ns(msg)
 
     def realsense_callback(self, msg):
         frame = self.imgmsg_to_cv2(msg)
         with self._frame_lock:
             self.realsense_frame = frame
+            self.realsense_frame_version += 1
+            self.realsense_capture_ns = self._msg_stamp_to_ns(msg)
 
     def mode_callback(self, msg):
         self.manual_mode = msg.data
@@ -242,6 +270,8 @@ class GuiNode(Node):
         frame = self.imgmsg_to_cv2(msg)
         with self._frame_lock:
             self.bev_frame = frame
+            self.bev_frame_version += 1
+            self.bev_capture_ns = self._msg_stamp_to_ns(msg)
 
     def detection_callback(self, msg):
         self.detection_text = msg.data
@@ -297,6 +327,12 @@ class GuiNode(Node):
         if msg.encoding == 'mono8':
             frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         return frame
+
+    def _msg_stamp_to_ns(self, msg):
+        stamp = msg.header.stamp
+        if stamp.sec == 0 and stamp.nanosec == 0:
+            return 0
+        return stamp.sec * 1_000_000_000 + stamp.nanosec
 
 
 class InfoWindow(QWidget):
@@ -370,6 +406,11 @@ class MainWindow(QWidget):
     def __init__(self, ros_node):
         super().__init__()
         self.ros_node = ros_node
+        self._last_versions = {
+            'zed': -1,
+            'rs': -1,
+            'bev': -1,
+        }
 
         self.setWindowTitle("ISA REVO ROBOTEAM")
         self.setStyleSheet("background-color: rgb(50, 50, 50);")
@@ -462,34 +503,61 @@ class MainWindow(QWidget):
 
     def update_ui(self):
         node = self.ros_node
+        node._gui_render_timer.start()
 
-        self.lbl_mod.setText(f"Mod: {node.mode_str}")
-        self.lbl_hiz.setText(f"Hız: {node.ileri_geri}")
-        self.lbl_direksiyon.setText(f"Direksiyon: {node.sag_sol}")
-        self.lbl_vites.setText(f"Vites: {node.vites}")
-        self.lbl_algoritma.setText(f"Algoritma: {node.algorithm}")
+        try:
+            self.lbl_mod.setText(f"Mod: {node.mode_str}")
+            self.lbl_hiz.setText(f"Hız: {node.ileri_geri}")
+            self.lbl_direksiyon.setText(f"Direksiyon: {node.sag_sol}")
+            self.lbl_vites.setText(f"Vites: {node.vites}")
+            self.lbl_algoritma.setText(f"Algoritma: {node.algorithm}")
 
-        with node._frame_lock:
-            zed_snap = node.zed_frame
-            rs_snap  = node.realsense_frame
-            bev_snap = node.bev_frame
+            with node._frame_lock:
+                zed_snap = node.zed_frame
+                zed_ver = node.zed_frame_version
+                zed_ns = node.zed_capture_ns
+                rs_snap = node.realsense_frame
+                rs_ver = node.realsense_frame_version
+                rs_ns = node.realsense_capture_ns
+                bev_snap = node.bev_frame
+                bev_ver = node.bev_frame_version
+                bev_ns = node.bev_capture_ns
 
-        if zed_snap is not None:
-            self._show_frame(self.label_zed, zed_snap)
-        if rs_snap is not None:
-            self._show_frame(self.label_realsense, rs_snap)
-        if bev_snap is not None:
-            self._show_frame(self.label_birdeye, bev_snap)
+            now_ns = time.time_ns()
 
-        self.label_traffic.setText(f"Traffic Signage\n{node.detection_text}")
+            if zed_snap is not None and zed_ver != self._last_versions['zed']:
+                self._show_frame(self.label_zed, zed_snap)
+                self._last_versions['zed'] = zed_ver
+                node._gui_zed_fps.tick()
+                if zed_ns:
+                    node.zed_render_age_ms = (now_ns - zed_ns) / 1e6
 
-        with node._lidar_lock:
-            lidar_snapshot = node.lidar_data
-        if lidar_snapshot is not None:
-            if ADVANCED_LIDAR:
-                self.label_lidar.update_points(*lidar_snapshot)
-            else:
-                self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
+            if rs_snap is not None and rs_ver != self._last_versions['rs']:
+                self._show_frame(self.label_realsense, rs_snap)
+                self._last_versions['rs'] = rs_ver
+                node._gui_rs_fps.tick()
+                if rs_ns:
+                    node.realsense_render_age_ms = (now_ns - rs_ns) / 1e6
+
+            if bev_snap is not None and bev_ver != self._last_versions['bev']:
+                self._show_frame(self.label_birdeye, bev_snap)
+                self._last_versions['bev'] = bev_ver
+                node._gui_bev_fps.tick()
+                if bev_ns:
+                    node.bev_render_age_ms = (now_ns - bev_ns) / 1e6
+
+            self.label_traffic.setText(f"Traffic Signage\n{node.detection_text}")
+
+            with node._lidar_lock:
+                lidar_snapshot = node.lidar_data
+            if lidar_snapshot is not None:
+                if ADVANCED_LIDAR:
+                    self.label_lidar.update_points(*lidar_snapshot)
+                else:
+                    self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
+        finally:
+            node._gui_render_timer.stop()
+            node._perf.tick()
 
     def _show_frame(self, label, frame):
         lw, lh = label.width(), label.height()
