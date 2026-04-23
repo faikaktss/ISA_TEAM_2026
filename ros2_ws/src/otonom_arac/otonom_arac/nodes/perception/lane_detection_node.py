@@ -14,6 +14,7 @@ Kullanım:
 import math, sys
 import cv2
 import numpy as np
+import threading
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 _IMAGE_QOS = QoSProfile(
@@ -265,13 +266,16 @@ def _ros_node_class():
         def _imgmsg_to_numpy(msg):
             return np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1).copy()
 
-        def _numpy_to_imgmsg(cv_image, encoding='rgb8'):
+        def _numpy_to_imgmsg(cv_image, encoding='rgb8', stamp=None, frame_id=''):
             msg = Image()
             msg.height, msg.width = cv_image.shape[:2]
             msg.encoding = encoding
             msg.is_bigendian = False
             msg.step = cv_image.shape[1] * cv_image.shape[2]
             msg.data = cv_image.tobytes()
+            if stamp is not None:
+                msg.header.stamp = stamp
+            msg.header.frame_id = frame_id
             return msg
 
         class LaneDetectionNode(Node):
@@ -281,12 +285,24 @@ def _ros_node_class():
                 self.p_angle = self.create_publisher(Float32,'/lane/angle',10)
                 self.p_off   = self.create_publisher(Float32,'/lane/offset',10)
                 self.p_debug = self.create_publisher(Image,'/lane/debug_image',10)
-                self.p_bev   = self.create_publisher(Image,'/lane/bev_image',10)
+                self.p_bev   = self.create_publisher(Image,'/lane/bev_image',_IMAGE_QOS)
                 self.det     = LaneDetection()
+                # Busy guard: işlem devam ederken gelen yeni frame'ler drop edilir (birikme olmaz)
+                self._busy = False
+                self._busy_lock = threading.Lock()
                 self.get_logger().info('Serit algilama (BEV) basladi')
                 self.get_logger().info(f'SRC: {self.det.tf.src.tolist()}')
 
             def cb(self, msg):
+                # ROS spin thread'ini bloklamadan çalış:
+                # işlem sürüyorsa yeni frame'i hemen drop et (latency birikimi engellenir)
+                with self._busy_lock:
+                    if self._busy:
+                        return
+                    self._busy = True
+                threading.Thread(target=self._process, args=(msg,), daemon=True).start()
+
+            def _process(self, msg):
                 try:
                     fr  = _imgmsg_to_numpy(msg)
                     bgr = cv2.cvtColor(fr, cv2.COLOR_RGB2BGR)
@@ -295,15 +311,24 @@ def _ros_node_class():
 
                     def pub(p,img):
                         p.publish(_numpy_to_imgmsg(
-                            cv2.cvtColor(img,cv2.COLOR_BGR2RGB),'rgb8'))
+                            cv2.cvtColor(img,cv2.COLOR_BGR2RGB),
+                            'rgb8',
+                            stamp=msg.header.stamp,
+                            frame_id=msg.header.frame_id))
 
-                    # p_debug publish kaldırıldı — production'da gereksiz IPC yükü
-                    pub(self.p_bev,   bev)  # BEV'i olduğu gibi yayınla (640x480), büyütme gereksiz
+                    pub(self.p_bev, bev)
 
-                    a=Float32(); a.data=float(self.det.smooth_aci);   self.p_angle.publish(a)
-                    o=Float32(); o.data=float(self.det.smooth_kayma); self.p_off.publish(o)
+                    a = Float32()
+                    a.data = float(self.det.smooth_aci)
+                    self.p_angle.publish(a)
+                    o = Float32()
+                    o.data = float(self.det.smooth_kayma)
+                    self.p_off.publish(o)
                 except Exception as e:
                     self.get_logger().error(str(e))
+                finally:
+                    with self._busy_lock:
+                        self._busy = False
 
         return LaneDetectionNode
     except ImportError:
