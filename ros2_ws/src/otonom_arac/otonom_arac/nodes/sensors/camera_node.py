@@ -200,15 +200,22 @@ try:
         def grab_frame(self, want_point_cloud=False):
             err = self.zed.grab(self.runtime_params)
             if err == sl.ERROR_CODE.SUCCESS:
+                # ZED SDK gerçek capture timestamp'ini al (UNIX nanoseconds)
+                ts = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE)
+                frame_ns = ts.get_nanoseconds()
+                # Stale frame tespiti: grab() blocking olduğu için GC pause / Qt jitter
+                # sırasında ZED SDK iç buffer'ına yeni frame birikmiş olabilir.
+                # Yaşlı frame (>40ms) gelirse bir kez daha grab() yap — buffer'ı drain et.
+                if (time.time_ns() - frame_ns) / 1e6 > 40.0:
+                    err2 = self.zed.grab(self.runtime_params)
+                    if err2 == sl.ERROR_CODE.SUCCESS:
+                        ts = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE)
+                        frame_ns = ts.get_nanoseconds()
                 self.zed.retrieve_image(self.image, sl.VIEW.LEFT, sl.MEM.CPU)
                 image_numpy = self.image.get_data()
-                # cv2.cvtColor çıktısı zaten C-contiguous — np.ascontiguousarray kopyası gereksiz
                 image_rgb = cv2.cvtColor(image_numpy, cv2.COLOR_RGBA2RGB)
-                # DEPTH_MODE.NONE: retrieve_measure çalışmaz, point_cloud her zaman None.
-                # Point cloud gerekmesi durumunda DEPTH_MODE'u PERFORMANCE olarak
-                # değiştirip ayrı bir capture loop eklenebilir.
-                return image_rgb, None
-            return None, None
+                return image_rgb, None, frame_ns
+            return None, None, None
 
         def get_distance(self, point_cloud, x, y):
             err, point_cloud_value = point_cloud.get_value(x, y)
@@ -411,9 +418,10 @@ class CameraNode(Node):
         while self._running and self.camera is not None:
             try:
                 # DEPTH_MODE.NONE — pc her zaman None, want_point_cloud argümanı gereksiz
-                frame, _pc = self.camera.grab_frame()
+                frame, _pc, frame_ns = self.camera.grab_frame()
                 if frame is not None:
-                    capture_ns = time.monotonic_ns()
+                    # ZED SDK'dan gelen gerçek capture timestamp (UNIX ns) — stale drain sonrası
+                    capture_ns = frame_ns if frame_ns is not None else time.time_ns()
                     self._zed_cap_fps.tick()
                     self._zed_holder.put(frame, capture_ns=capture_ns)
                     # Capture anında doğrudan publish — timer quantization'ı yok
@@ -434,8 +442,10 @@ class CameraNode(Node):
                         # Pre-allocated numpy view ile yaz — sıfır ara nesne, sıfır allocation
                         np.copyto(self._zed_np_view, small.ravel())
                         self._zed_msg.data = self._zed_buf
-                        stamp = self.get_clock().now().to_msg()
-                        self._zed_msg.header.stamp = stamp
+                        # ZED SDK gerçek capture zamanını stamp olarak kullan
+                        # GUI age_ms = şimdiki_zaman - capture_ns → gerçek end-to-end latency
+                        self._zed_msg.header.stamp.sec = capture_ns // 1_000_000_000
+                        self._zed_msg.header.stamp.nanosec = capture_ns % 1_000_000_000
                         self._zed_msg.header.frame_id = 'zed_camera_link'
                         # Tek topic: /zed/image_raw — lane detection ve GUI aynı topic'i kullanır
                         self.zed_publisher.publish(self._zed_msg)

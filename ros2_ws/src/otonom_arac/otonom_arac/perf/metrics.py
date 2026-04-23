@@ -71,23 +71,28 @@ class PerfPublisher:
     Her `interval` saniyede bir /perf/summary topic'ine String publish eder.
     Terminal'e hiçbir şey yazmaz.
 
+    ROS timer ile publish eder — kamera loop dursa bile düzenli yayın devam eder.
+    Bu sayede 'ros2 topic echo /perf/summary' terminalde asla takılmaz:
+    kamera kapalıyken de "zed_cap=0.0fps" gibi sıfır değerler gelmeye devam eder.
+
     Kullanım:
         self._perf = PerfPublisher(self, interval=2.0)
         self._perf.add_fps('zed_cap', self._zed_cap_fps)
         self._perf.add_timer('publish_cb', self._publish_timer)
-        # hot path'de:
-        self._perf.tick()
+        # tick() artık ÇAĞRILMAK ZORUNDA DEĞİL — timer otomatik publish eder.
+        # İstersen hâlâ çağırabilirsin, hiçbir şey yapmaz (no-op).
     """
 
     def __init__(self, node, interval: float = 2.0):
         from std_msgs.msg import String
         self._pub = node.create_publisher(String, '/perf/summary', 10)
-        self._interval = interval
-        self._last = time.perf_counter()
         self._fps_meters: dict = {}
         self._cb_timers: dict = {}
         self._value_suppliers: dict = {}
         self._String = String
+        # ROS timer: executor thread'inden çağrılır — kamera loop bağımsız
+        # QoS depth=10, timer=interval: her zaman düzenli publish
+        self._timer = node.create_timer(interval, self._publish)
 
     def add_fps(self, key: str, meter: FPSMeter):
         self._fps_meters[key] = meter
@@ -99,11 +104,11 @@ class PerfPublisher:
         self._value_suppliers[key] = supplier
 
     def tick(self):
-        now = time.perf_counter()
-        if now - self._last < self._interval:
-            return
-        self._last = now
+        """No-op: geriye dönük uyumluluk için korundu. Timer otomatik publish eder."""
+        pass
 
+    def _publish(self):
+        """ROS timer callback — executor thread'inden çağrılır."""
         parts = []
         for key, m in self._fps_meters.items():
             parts.append(f"{key}={m.fps():.1f}fps")
@@ -117,7 +122,6 @@ class PerfPublisher:
             if value is not None:
                 parts.append(f"{key}={value}")
 
-        if parts:
-            msg = self._String()
-            msg.data = " | ".join(parts)
-            self._pub.publish(msg)
+        msg = self._String()
+        msg.data = " | ".join(parts) if parts else "no metrics"
+        self._pub.publish(msg)

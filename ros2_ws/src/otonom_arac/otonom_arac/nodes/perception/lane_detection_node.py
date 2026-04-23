@@ -77,10 +77,12 @@ class PerspectiveTransformer:
         self.Minv = cv2.getPerspectiveTransform(self.dst, self.src)
 
     def warp(self, frame):
-        return cv2.warpPerspective(frame, self.M, (self.bev_w, self.bev_h))
+        return cv2.warpPerspective(frame, self.M, (self.bev_w, self.bev_h),
+                                   flags=cv2.INTER_NEAREST)
 
     def unwarp(self, bev, out_w, out_h):
-        return cv2.warpPerspective(bev, self.Minv, (out_w, out_h))
+        return cv2.warpPerspective(bev, self.Minv, (out_w, out_h),
+                                   flags=cv2.INTER_NEAREST)
 
     def bev_to_orig(self, pts):
         return cv2.perspectiveTransform(
@@ -308,6 +310,16 @@ def _ros_node_class():
                 # Busy guard: işlem devam ederken gelen yeni frame'ler drop edilir (birikme olmaz)
                 self._busy = False
                 self._busy_lock = threading.Lock()
+                # BEV publish pre-alloc buffer — tobytes() allocation ortadan kalkar
+                _bh, _bw = self.det.tf.bev_h, self.det.tf.bev_w
+                self._bev_buf = bytearray(_bh * _bw * 3)
+                self._bev_np_view = np.frombuffer(self._bev_buf, dtype=np.uint8)
+                self._bev_msg = Image()
+                self._bev_msg.encoding = 'rgb8'
+                self._bev_msg.height = _bh
+                self._bev_msg.width = _bw
+                self._bev_msg.step = _bw * 3
+                self._bev_msg.is_bigendian = False
                 self.get_logger().info('Serit algilama (BEV) basladi')
                 self.get_logger().info(f'SRC (640x360): {self.det.tf.src.tolist()}')
                 # Güvenlik kontrolü: src noktaları frame sınırları içinde mi?
@@ -334,14 +346,20 @@ def _ros_node_class():
                     h,w = bgr.shape[:2]
                     res,bev,_ = self.det.process(bgr,w,h)
 
-                    def pub(p,img):
-                        p.publish(_numpy_to_imgmsg(
-                            cv2.cvtColor(img,cv2.COLOR_BGR2RGB),
-                            'rgb8',
-                            stamp=msg.header.stamp,
-                            frame_id=msg.header.frame_id))
-
-                    pub(self.p_bev, bev)
+                    # BEV publish: pre-alloc buffer ile tobytes() yok
+                    bev_rgb = cv2.cvtColor(bev, cv2.COLOR_BGR2RGB)
+                    needed = bev_rgb.nbytes
+                    if len(self._bev_buf) != needed:
+                        self._bev_buf = bytearray(needed)
+                        self._bev_np_view = np.frombuffer(self._bev_buf, dtype=np.uint8)
+                        self._bev_msg.height = bev_rgb.shape[0]
+                        self._bev_msg.width = bev_rgb.shape[1]
+                        self._bev_msg.step = bev_rgb.shape[1] * bev_rgb.shape[2]
+                    np.copyto(self._bev_np_view, bev_rgb.ravel())
+                    self._bev_msg.data = self._bev_buf
+                    self._bev_msg.header.stamp = msg.header.stamp
+                    self._bev_msg.header.frame_id = msg.header.frame_id
+                    self.p_bev.publish(self._bev_msg)
 
                     a = Float32()
                     a.data = float(self.det.smooth_aci)
