@@ -86,6 +86,7 @@ class PerfPublisher:
         self._last = time.perf_counter()
         self._fps_meters: dict = {}
         self._cb_timers: dict = {}
+        self._value_suppliers: dict = {}
         self._String = String
 
     def add_fps(self, key: str, meter: FPSMeter):
@@ -93,6 +94,9 @@ class PerfPublisher:
 
     def add_timer(self, key: str, timer: CallbackTimer):
         self._cb_timers[key] = timer
+
+    def add_value(self, key: str, supplier):
+        self._value_suppliers[key] = supplier
 
     def tick(self):
         now = time.perf_counter()
@@ -105,6 +109,13 @@ class PerfPublisher:
             parts.append(f"{key}={m.fps():.1f}fps")
         for key, t in self._cb_timers.items():
             parts.append(t.summary())
+        for key, supplier in self._value_suppliers.items():
+            try:
+                value = supplier()
+            except Exception:
+                continue
+            if value is not None:
+                parts.append(f"{key}={value}")
 
         if parts:
             msg = self._String()
