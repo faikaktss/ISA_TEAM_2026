@@ -2,9 +2,9 @@
 camera_node = otonom_arac.nodes.sensors.camera_node:main
 control_node = otonom_arac.nodes.control.control_node:main
 encoder_node = otonom_arac.nodes.sensors.encoder_node:main
+gui_node = otonom_arac.nodes.gui.gui_node:main
 joystick_node = otonom_arac.nodes.sensors.joystick_node:main
 lane_detection_node = otonom_arac.nodes.perception.lane_detection_node:main
 lidar_node = otonom_arac.nodes.sensors.lidar_node:main
 object_detection_node = otonom_arac.nodes.perception.object_detection_node:main
 teensy_node = otonom_arac.nodes.control.teensy_node:main
-video_player_node = otonom_arac.nodes.testing.video_player_node:main

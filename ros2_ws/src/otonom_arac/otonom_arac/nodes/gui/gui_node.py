@@ -242,7 +242,7 @@ class GuiNode(Node):
         self._perf.add_value('lidar_render_max', lambda: f'{self._lidar_render_max_ms:.1f}ms')
 
         # Subscriber'lar — Image topic'leri düşük latency QoS ile
-        self.create_subscription(Image, '/zed/preview', self.zed_callback, _IMAGE_QOS)
+        self.create_subscription(Image, '/zed/image_raw', self.zed_callback, _IMAGE_QOS)
         self.create_subscription(Image, '/realsense/image_raw', self.realsense_callback, _IMAGE_QOS)
         self.create_subscription(Bool, '/joystick/manual_mode', self.mode_callback, 10)
         # Manuel mod topic'leri

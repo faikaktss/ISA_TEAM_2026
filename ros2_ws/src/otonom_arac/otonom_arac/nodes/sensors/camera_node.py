@@ -179,8 +179,14 @@ try:
             # Grab süresi azalır, latency düşer. Pipeline çıkışı 640x360 olarak sabit kalır.
             init_params.camera_resolution = sl.RESOLUTION.VGA
             init_params.camera_fps = 30
-            init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE
+            # DEPTH_MODE.NONE: her grab'da stereo derinlik hesabı YAPILMAZ.
+            # 30Hz'de ~8-15ms/frame tasarruf. point cloud ihtiyacı olunca
+            # runtime_params.enable_depth = True ile anında etkinleştirilebilir.
+            init_params.depth_mode = sl.DEPTH_MODE.NONE
             init_params.coordinate_units = sl.UNIT.CENTIMETER
+
+            # Point cloud çıktısı için ayrı ZED instance (opsiyonel, şimdilik devre dışı)
+            self._depth_enabled = False
 
             err = self.zed.open(init_params)
             if err != sl.ERROR_CODE.SUCCESS:
@@ -198,11 +204,10 @@ try:
                 image_numpy = self.image.get_data()
                 # cv2.cvtColor çıktısı zaten C-contiguous — np.ascontiguousarray kopyası gereksiz
                 image_rgb = cv2.cvtColor(image_numpy, cv2.COLOR_RGBA2RGB)
-                point_cloud = None
-                if want_point_cloud:
-                    self.zed.retrieve_measure(self.point_cloud, sl.MEASURE.XYZ)
-                    point_cloud = self.point_cloud
-                return image_rgb, point_cloud
+                # DEPTH_MODE.NONE: retrieve_measure çalışmaz, point_cloud her zaman None.
+                # Point cloud gerekmesi durumunda DEPTH_MODE'u PERFORMANCE olarak
+                # değiştirip ayrı bir capture loop eklenebilir.
+                return image_rgb, None
             return None, None
 
         def get_distance(self, point_cloud, x, y):
@@ -374,6 +379,8 @@ class CameraNode(Node):
         self._zed_msg.step   = 640 * 3
         self._zed_buf = bytearray(640 * 360 * 3)
         self._zed_msg.data = self._zed_buf
+        # Pre-allocated numpy view: np.frombuffer her frame'de oluşturulmuyor
+        self._zed_np_view = np.frombuffer(self._zed_buf, dtype=np.uint8)
         # RealSense: 640×480×3 = 921,600 bytes
         self._rs_msg = Image()
         self._rs_msg.encoding = 'rgb8'
@@ -383,9 +390,10 @@ class CameraNode(Node):
         self._rs_msg.step   = 640 * 3
         self._rs_buf = bytearray(640 * 480 * 3)
         self._rs_msg.data = self._rs_buf
-        self._pc_timer  = self.create_timer(1.0/5,  self._publish_pc_callback,
-                                            callback_group=self._cb_group)
-        self._last_point_cloud = None  # PC timer için son point cloud'u sakla
+        self._rs_np_view = np.frombuffer(self._rs_buf, dtype=np.uint8)
+        # DEPTH_MODE.NONE: PC devre dışı — timer oluşturulmuyor
+        self._pc_timer = None
+        self._last_point_cloud = None
         self._pc_data_lock = threading.Lock()
         # ZED publish interval jitter ölçümü
         self._zed_last_pub_ns: int = 0
@@ -398,18 +406,16 @@ class CameraNode(Node):
         """ZED capture loop — kendi thread'inde sürekli çalışır ve doğrudan publish eder.
         Timer'a bırakmak yerine capture anında publish: quantization delay (0–33ms) ortadan kalkar.
         Header.stamp capture anını gösterir → age_ms metriği artık doğru.
+        DEPTH_MODE.NONE: grab başlarından derinlik hesabı kaldırıldı.
         """
         while self._running and self.camera is not None:
             try:
-                want_point_cloud = time.monotonic_ns() >= self._next_pc_capture_ns
-                frame, pc = self.camera.grab_frame(want_point_cloud=want_point_cloud)
+                # DEPTH_MODE.NONE — pc her zaman None, want_point_cloud argümanı gereksiz
+                frame, _pc = self.camera.grab_frame()
                 if frame is not None:
                     capture_ns = time.monotonic_ns()
                     self._zed_cap_fps.tick()
-                    # PC için holder'a da koy (pc_timer okuyacak)
-                    self._zed_holder.put(frame, pc, capture_ns=capture_ns)
-                    if want_point_cloud:
-                        self._next_pc_capture_ns = capture_ns + self._pc_interval_ns
+                    self._zed_holder.put(frame, capture_ns=capture_ns)
                     # Capture anında doğrudan publish — timer quantization'ı yok
                     try:
                         self._zed_cb_timer.start()
@@ -421,19 +427,18 @@ class CameraNode(Node):
                         needed = small.nbytes
                         if len(self._zed_buf) != needed:
                             self._zed_buf = bytearray(needed)
+                            self._zed_np_view = np.frombuffer(self._zed_buf, dtype=np.uint8)
                             self._zed_msg.height = small.shape[0]
                             self._zed_msg.width  = small.shape[1]
                             self._zed_msg.step   = small.shape[1] * small.shape[2]
-                        # np.copyto + memoryview: sıfır ara nesne, sıfır allocation
-                        np.copyto(np.frombuffer(self._zed_buf, dtype=np.uint8),
-                                  small.ravel())
+                        # Pre-allocated numpy view ile yaz — sıfır ara nesne, sıfır allocation
+                        np.copyto(self._zed_np_view, small.ravel())
                         self._zed_msg.data = self._zed_buf
                         stamp = self.get_clock().now().to_msg()
                         self._zed_msg.header.stamp = stamp
                         self._zed_msg.header.frame_id = 'zed_camera_link'
-                        msg = self._zed_msg
-                        self.zed_publisher.publish(msg)
-                        self.zed_preview_publisher.publish(msg)
+                        # Tek topic: /zed/image_raw — lane detection ve GUI aynı topic'i kullanır
+                        self.zed_publisher.publish(self._zed_msg)
                         self._zed_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
                         # Publish interval jitter ölçümü
                         if self._zed_last_pub_ns > 0:
@@ -446,9 +451,6 @@ class CameraNode(Node):
                                     f'[STUTTER] ZED publish interval {interval_ms:.1f}ms '
                                     f'(toplam: {self._zed_stutter_count})')
                         self._zed_last_pub_ns = capture_ns
-                        if pc is not None:
-                            with self._pc_data_lock:
-                                self._last_point_cloud = (pc, capture_ns)
                         self._perf.tick()
                     except Exception as pub_err:
                         self.get_logger().error(f'ZED inline publish hatası: {pub_err}')
@@ -476,12 +478,12 @@ class CameraNode(Node):
                         needed = frame.nbytes
                         if len(self._rs_buf) != needed:
                             self._rs_buf = bytearray(needed)
+                            self._rs_np_view = np.frombuffer(self._rs_buf, dtype=np.uint8)
                             self._rs_msg.height = frame.shape[0]
                             self._rs_msg.width  = frame.shape[1]
                             self._rs_msg.step   = frame.shape[1] * frame.shape[2]
-                        # np.copyto + memoryview: sıfır ara nesne, sıfır allocation
-                        np.copyto(np.frombuffer(self._rs_buf, dtype=np.uint8),
-                                  frame.ravel())
+                        # Pre-allocated numpy view ile yaz — sıfır ara nesne, sıfır allocation
+                        np.copyto(self._rs_np_view, frame.ravel())
                         self._rs_msg.data = self._rs_buf
                         self._rs_msg.header.stamp = self.get_clock().now().to_msg()
                         self._rs_msg.header.frame_id = 'realsense_camera_link'
@@ -583,7 +585,9 @@ class CameraNode(Node):
             self._zed_timer.cancel()
         if self._rs_timer is not None:
             self._rs_timer.cancel()
-        self._pc_timer.cancel()
+        # pc_timer: DEPTH_MODE.NONE iken None — kontrol et
+        if self._pc_timer is not None:
+            self._pc_timer.cancel()
         super().destroy_node()
     
 

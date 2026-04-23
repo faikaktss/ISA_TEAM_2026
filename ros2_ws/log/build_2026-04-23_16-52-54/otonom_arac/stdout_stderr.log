@@ -1,0 +1,28 @@
+/Users/faikaktss/Library/Python/3.11/lib/python/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+running develop
+running egg_info
+writing otonom_arac.egg-info/PKG-INFO
+writing dependency_links to otonom_arac.egg-info/dependency_links.txt
+writing entry points to otonom_arac.egg-info/entry_points.txt
+writing requirements to otonom_arac.egg-info/requires.txt
+writing top-level names to otonom_arac.egg-info/top_level.txt
+reading manifest file 'otonom_arac.egg-info/SOURCES.txt'
+writing manifest file 'otonom_arac.egg-info/SOURCES.txt'
+running build_ext
+Creating /opt/homebrew/lib/python3.11/site-packages/otonom-arac.egg-link (link to .)
+Installing camera_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing control_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing encoder_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing gui_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing joystick_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing lane_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing lidar_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing object_detection_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+Installing teensy_node script to /opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/otonom_arac
+
+Installed /Users/faikaktss/ISA_TEAM_ANAKOD1/ros2_ws/build/otonom_arac
+running symlink_data
+symbolically linking /Users/faikaktss/ISA_TEAM_ANAKOD1/ros2_ws/build/otonom_arac/resource/otonom_arac -> /opt/homebrew/share/ament_index/resource_index/packages
+symbolically linking /Users/faikaktss/ISA_TEAM_ANAKOD1/ros2_ws/build/otonom_arac/package.xml -> /opt/homebrew/share/otonom_arac
+symbolically linking /Users/faikaktss/ISA_TEAM_ANAKOD1/ros2_ws/build/otonom_arac/launch/otonom_arac_launch.py -> /opt/homebrew/share/otonom_arac/launch

@@ -35,17 +35,33 @@ class PerspectiveTransformer:
       alt-sag  = sağ şerit alt ucu   (yakın)
     """
     #Todo: Kamera görüntüsü üzerinde bir yamuk çizer
+    # Kalibrasyon değerleri 1280×720 için yapılmıştı.
+    # Yayınlanan frame 640×360 olduğundan tüm noktalar 0.5× ölçeklendi.
+    # Orijinal (1280×720): [250,510], [490,295], [790,295], [1050,510]
+    DEFAULT_SRC_1280x720 = np.float32([
+        [250,  510],
+        [490,  295],
+        [790,  295],
+        [1050, 510],
+    ])
+    # 640×360 için varsayılan (camera_node 640×360 publish ediyor)
     DEFAULT_SRC = np.float32([
-        [250,  510],   # alt-sol
-        [490,  295],   # ust-sol
-        [790,  295],   # ust-sag
-        [1050, 510],   # alt-sag
+        [125,  255],   # alt-sol  (250×0.5,  510×0.5)
+        [245,  148],   # ust-sol  (490×0.5,  295×0.5)
+        [395,  148],   # ust-sag  (790×0.5,  295×0.5)
+        [525,  255],   # alt-sag  (1050×0.5, 510×0.5)
     ])
 
-    def __init__(self, src=None, bev_w=640, bev_h=480, margin=100):
+    def __init__(self, src=None, bev_w=640, bev_h=480, margin=100, frame_w=640, frame_h=360):
         self.bev_w  = bev_w #Todo: Kuş bakışı görüntüsünün genişliği
         self.bev_h  = bev_h #Todo: Kuş bakışı görüntünün yüksekliği
-        self.src    = np.float32(src) if src is not None else self.DEFAULT_SRC.copy()
+        if src is not None:
+            self.src = np.float32(src)
+        else:
+            # frame boyutu 1280×720'den farklıysa src noktalarını otomatik ölçekle
+            sx = frame_w / 1280.0
+            sy = frame_h / 720.0
+            self.src = (self.DEFAULT_SRC_1280x720 * np.float32([sx, sy])).astype(np.float32)
         #Todo: Kuş bakışı görüntünün dikdörtgen köşeleri
         self.dst    = np.float32([
             [margin,       bev_h],
@@ -148,9 +164,10 @@ class SlidingWindowFitter:
 # Todo: ANA ALGILAMA SINIFI
 
 class LaneDetection:
-    def __init__(self, fw=1280, fh=720):
+    def __init__(self, fw=640, fh=360):
         self.fw, self.fh = fw, fh
-        self.tf  = PerspectiveTransformer()
+        # frame_w/frame_h ile src noktaları otomatik ölçeklenir
+        self.tf  = PerspectiveTransformer(frame_w=fw, frame_h=fh)
         self.wd  = WhiteLaneDetector()
         self.swf = SlidingWindowFitter()
         self._sk = self._sa = 0.0
@@ -286,12 +303,20 @@ def _ros_node_class():
                 self.p_off   = self.create_publisher(Float32,'/lane/offset',10)
                 self.p_debug = self.create_publisher(Image,'/lane/debug_image',10)
                 self.p_bev   = self.create_publisher(Image,'/lane/bev_image',_IMAGE_QOS)
-                self.det     = LaneDetection()
+                # camera_node 640×360 publish ediyor — LaneDetection bunu bilmeli
+                self.det     = LaneDetection(fw=640, fh=360)
                 # Busy guard: işlem devam ederken gelen yeni frame'ler drop edilir (birikme olmaz)
                 self._busy = False
                 self._busy_lock = threading.Lock()
                 self.get_logger().info('Serit algilama (BEV) basladi')
-                self.get_logger().info(f'SRC: {self.det.tf.src.tolist()}')
+                self.get_logger().info(f'SRC (640x360): {self.det.tf.src.tolist()}')
+                # Güvenlik kontrolü: src noktaları frame sınırları içinde mi?
+                src = self.det.tf.src
+                if src[:, 0].max() > 640 or src[:, 1].max() > 360:
+                    self.get_logger().error(
+                        f'[BEV HATA] src noktaları frame dışında! '
+                        f'max_x={src[:,0].max():.0f} (limit 640), '
+                        f'max_y={src[:,1].max():.0f} (limit 360)')
 
             def cb(self, msg):
                 # ROS spin thread'ini bloklamadan çalış:
