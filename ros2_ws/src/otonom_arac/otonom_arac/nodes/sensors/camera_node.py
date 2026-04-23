@@ -424,7 +424,9 @@ class CameraNode(Node):
                             self._zed_msg.height = small.shape[0]
                             self._zed_msg.width  = small.shape[1]
                             self._zed_msg.step   = small.shape[1] * small.shape[2]
-                        self._zed_buf[:] = small.ravel().tobytes()  # bytearray bytes'tan atar
+                        # np.copyto + memoryview: sıfır ara nesne, sıfır allocation
+                        np.copyto(np.frombuffer(self._zed_buf, dtype=np.uint8),
+                                  small.ravel())
                         self._zed_msg.data = self._zed_buf
                         stamp = self.get_clock().now().to_msg()
                         self._zed_msg.header.stamp = stamp
@@ -477,7 +479,9 @@ class CameraNode(Node):
                             self._rs_msg.height = frame.shape[0]
                             self._rs_msg.width  = frame.shape[1]
                             self._rs_msg.step   = frame.shape[1] * frame.shape[2]
-                        self._rs_buf[:] = frame.ravel().tobytes()  # bytearray bytes'tan atar
+                        # np.copyto + memoryview: sıfır ara nesne, sıfır allocation
+                        np.copyto(np.frombuffer(self._rs_buf, dtype=np.uint8),
+                                  frame.ravel())
                         self._rs_msg.data = self._rs_buf
                         self._rs_msg.header.stamp = self.get_clock().now().to_msg()
                         self._rs_msg.header.frame_id = 'realsense_camera_link'

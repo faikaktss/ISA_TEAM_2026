@@ -644,14 +644,16 @@ class MainWindow(QWidget):
         lw, lh = label.width(), label.height()
 
         if lw > 0 and lh > 0:
-            # Cache: label boyutu değişmediyse scale hesabını tekrar yapma
+            # Cache: frame boyutu VE label boyutu değişmediyse scale hesabını tekrar yapma
             cached = getattr(label, '_cached_target_size', None)
             cached_src = getattr(label, '_cached_src_size', None)
-            if cached is None or cached_src != (fw, fh) or label.size().width() != lw or label.size().height() != lh:
+            cached_label = getattr(label, '_cached_label_size', None)
+            if cached is None or cached_src != (fw, fh) or cached_label != (lw, lh):
                 scale = min(lw / fw, lh / fh)
                 nw, nh = max(1, int(fw * scale)), max(1, int(fh * scale))
                 label._cached_target_size = (nw, nh)
                 label._cached_src_size = (fw, fh)
+                label._cached_label_size = (lw, lh)
             else:
                 nw, nh = cached
 
@@ -703,7 +705,6 @@ def main(args=None):
     rclpy.shutdown()
     spin_thread.join(timeout=2.0)
     sys.exit(exit_code)
-
 
 if __name__ == '__main__':
     main()
