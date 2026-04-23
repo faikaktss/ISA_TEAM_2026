@@ -161,7 +161,6 @@ class GuiNode(Node):
         self._lidar_lock = threading.Lock()
         if ADVANCED_LIDAR:
             self._cluster_tracker = ClusterTracker()
-            self._dbscan = DBSCAN(eps=200, min_samples=4)
         self._lidar_raw = None          # SORUN 7: ham lidar frame'i background worker'a taşımak için
         self._lidar_raw_lock = threading.Lock()
         self._dbscan_busy = False
@@ -257,13 +256,12 @@ class GuiNode(Node):
         # Boylece ROS spin thread aninda doner ve image callback'leri beklemez.
         with self._lidar_raw_lock:
             self._lidar_raw = msg
-        if not self._dbscan_busy:
-            with self._dbscan_spawn_lock:
-                if not self._dbscan_busy:  # double-check: iki hızlı callback tek thread başlatır
-                    threading.Thread(target=self._dbscan_worker, daemon=True).start()
+        with self._dbscan_spawn_lock:
+            if not self._dbscan_busy:
+                self._dbscan_busy = True
+                threading.Thread(target=self._dbscan_worker, daemon=True).start()
 
     def _dbscan_worker(self):
-        self._dbscan_busy = True
         try:
             with self._lidar_raw_lock:
                 msg = self._lidar_raw
@@ -280,7 +278,8 @@ class GuiNode(Node):
             if len(points) < 4:
                 return
             points_np = np.array(points)
-            labels = self._dbscan.fit(points_np).labels_
+            dbscan = DBSCAN(eps=200, min_samples=4)
+            labels = dbscan.fit(points_np).labels_
             label_to_name = self._cluster_tracker.update_clusters(points_np, labels)
             with self._lidar_lock:
                 self.lidar_data = (points_np, labels, label_to_name)
@@ -493,11 +492,16 @@ class MainWindow(QWidget):
                 self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
 
     def _show_frame(self, label, frame):
-        # frame zaten RGB, dönüşüm gereksiz
+        lw, lh = label.width(), label.height()
+        if lw > 0 and lh > 0:
+            fh, fw = frame.shape[:2]
+            scale = min(lw / fw, lh / fh)
+            nw, nh = int(fw * scale), int(fh * scale)
+            if (nw, nh) != (fw, fh):
+                frame = cv2.resize(frame, (nw, nh), interpolation=cv2.INTER_LINEAR)
         h, w, ch = frame.shape
         qt_img = QImage(frame.data, w, h, ch * w, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(qt_img)
-        label.setPixmap(pixmap.scaled(label.width(), label.height(), Qt.KeepAspectRatio))
+        label.setPixmap(QPixmap.fromImage(qt_img))
 
 
 def main(args=None):
@@ -507,7 +511,7 @@ def main(args=None):
     # ROS2 spin ayrı thread'de — UI'yı bloke etmez
     spin_thread = threading.Thread(
         target=lambda: rclpy.spin(ros_node),
-        daemon=True
+        daemon=False
     )
     spin_thread.start()
 
@@ -524,6 +528,7 @@ def main(args=None):
 
     ros_node.destroy_node()
     rclpy.shutdown()
+    spin_thread.join(timeout=2.0)
     sys.exit(exit_code)
 
 

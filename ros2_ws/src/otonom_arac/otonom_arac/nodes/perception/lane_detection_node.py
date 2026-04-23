@@ -85,11 +85,10 @@ class WhiteLaneDetector:
         self.bt, self.cl, self.ch = brightness, cl, ch
 
     def detect(self, bev):
-        #Todo: Görüntünün sadece parlaklık bilgisini alır
-        l   = cv2.cvtColor(bev, cv2.COLOR_BGR2HLS)[:,:,1]#Todo: Görüntünün sadece parlaklık kısmını alır
-        _,white = cv2.threshold(l, self.bt, 255, cv2.THRESH_BINARY)
-        gray  = cv2.cvtColor(bev, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(cv2.GaussianBlur(gray,(5,5),0), self.cl, self.ch)
+        hls = cv2.cvtColor(bev, cv2.COLOR_BGR2HLS)
+        l = hls[:, :, 1]
+        _, white = cv2.threshold(l, self.bt, 255, cv2.THRESH_BINARY)
+        edges = cv2.Canny(cv2.GaussianBlur(l, (5, 5), 0), self.cl, self.ch)
         return cv2.bitwise_or(white, edges)
 
 

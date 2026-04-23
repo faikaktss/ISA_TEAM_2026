@@ -69,7 +69,7 @@ class ControlNode(Node):
         self.arduino = None
         if SERIAL_AVAILABLE:
             try:
-                self.arduino = serial.Serial(arduino_port, arduino_baudrate, timeout=1)
+                self.arduino = serial.Serial(arduino_port, arduino_baudrate, timeout=0.01)
                 self.get_logger().info(f'Arduino bağlandı: {arduino_port} @ {arduino_baudrate}')
             except Exception as e:
                 self.get_logger().warn(f'Arduino bağlantı hatası ({arduino_port}): {e}')

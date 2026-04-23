@@ -324,6 +324,7 @@ class CameraNode(Node):
         self._rs_timer  = self.create_timer(1.0/30, self._publish_rs_callback)
         self._pc_timer  = self.create_timer(1.0/5,  self._publish_pc_callback)
         self._last_point_cloud = None  # PC timer için son point cloud'u sakla
+        self._pc_data_lock = threading.Lock()
 
     def _zed_capture_loop(self):
         """ZED capture loop — kendi thread'inde sürekli çalışır."""
@@ -370,7 +371,8 @@ class CameraNode(Node):
 
                 # En güncel point cloud'u PC timer için sakla
                 if point_cloud is not None:
-                    self._last_point_cloud = point_cloud
+                    with self._pc_data_lock:
+                        self._last_point_cloud = point_cloud
         except Exception as e:
             self.get_logger().error(f'ZED publish hatası: {str(e)}')
         finally:
@@ -396,10 +398,11 @@ class CameraNode(Node):
         """5 Hz — Point cloud yayınlar. tolist() GIL spike ZED/RS'den izole."""
         self._pc_cb_timer.start()
         try:
-            pc = self._last_point_cloud
+            with self._pc_data_lock:
+                pc = self._last_point_cloud
+                self._last_point_cloud = None
             if pc is None:
                 return
-            self._last_point_cloud = None
             pc_data = pc.get_data()  # (H, W, 4) float32 — X,Y,Z,W cm
             STEP = 8
             ds = pc_data[::STEP, ::STEP, :3].astype(np.float32)
@@ -417,6 +420,9 @@ class CameraNode(Node):
     def destroy_node(self):
         """Node kapanırken thread'leri durdur."""
         self._running = False
+        for t in (self._zed_thread, self._rs_thread):
+            if t and t.is_alive():
+                t.join(timeout=1.0)
         self._zed_timer.cancel()
         self._rs_timer.cancel()
         self._pc_timer.cancel()
