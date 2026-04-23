@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32MultiArray
 import numpy as np
@@ -188,8 +190,8 @@ try:
         def img_and_point_cloud(self):
             err = self.zed.grab()
             if err == sl.ERROR_CODE.SUCCESS:
-                self.zed.retrieve_image(self.image, sl.VIEW.LEFT)
-                image_numpy = self.image.get_data()
+                self.zed.retrieve_image(self.image, sl.VIEW.LEFT, sl.MEM.CPU)
+                image_numpy = np.copy(self.image.get_data())
                 self.img = cv2.cvtColor(image_numpy, cv2.COLOR_RGBA2RGB)
 
                 self.zed.retrieve_measure(self.point_cloud, sl.MEASURE.XYZ)
@@ -228,7 +230,10 @@ if REALSENSE_AVAILABLE:
             self.pipeline.start(config)
 
         def get_frame(self):
-            frames = self.pipeline.wait_for_frames()
+            try:
+                frames = self.pipeline.wait_for_frames(timeout_ms=500)
+            except Exception:
+                return None
             color_frame = frames.get_color_frame()
             if not color_frame:
                 return None
@@ -267,6 +272,7 @@ class LatestFrameHolder:
 class CameraNode(Node):
     def __init__(self):
         super().__init__('camera_node')
+        self._cb_group = ReentrantCallbackGroup()
         # ZED publisher'lar — BEST_EFFORT/depth=1: GUI her zaman en son frame'i alır
         self.zed_publisher        = self.create_publisher(Image,            '/zed/image_raw',       _IMAGE_QOS)
         self.zed_preview_publisher = self.create_publisher(Image,            '/zed/preview',         10)
@@ -319,10 +325,13 @@ class CameraNode(Node):
             except Exception as e:
                 self.get_logger().warn(f'RealSense başlatılamadı: {str(e)}')
 
-        # Ayrı timer'lar — ZED/RS/PC birbirini bloklamaz
-        self._zed_timer = self.create_timer(1.0/30, self._publish_zed_callback)
-        self._rs_timer  = self.create_timer(1.0/30, self._publish_rs_callback)
-        self._pc_timer  = self.create_timer(1.0/5,  self._publish_pc_callback)
+        # Ayrı timer'lar — ReentrantCallbackGroup ile paralel çalışır
+        self._zed_timer = self.create_timer(1.0/30, self._publish_zed_callback,
+                                            callback_group=self._cb_group)
+        self._rs_timer  = self.create_timer(1.0/30, self._publish_rs_callback,
+                                            callback_group=self._cb_group)
+        self._pc_timer  = self.create_timer(1.0/5,  self._publish_pc_callback,
+                                            callback_group=self._cb_group)
         self._last_point_cloud = None  # PC timer için son point cloud'u sakla
         self._pc_data_lock = threading.Lock()
 
@@ -432,9 +441,11 @@ class CameraNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     camera_node = CameraNode()
+    executor = MultiThreadedExecutor(num_threads=4)
+    executor.add_node(camera_node)
 
     try:
-        rclpy.spin(camera_node)
+        executor.spin()
     except KeyboardInterrupt:
         pass
     finally:
