@@ -15,6 +15,13 @@ _IMAGE_QOS = QoSProfile(
     depth=1
 )
 
+# Point cloud da BEST_EFFORT depth=1: eski PC mesajları birikmez
+_PC_QOS = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
+
 try:
     import torch
     _YOLO_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -53,12 +60,12 @@ class ObjectDetectionNode(Node):
             _IMAGE_QOS
         )
 
-        # ZED point cloud'a abone ol (gerçek mesafe için)
+        # ZED point cloud'a abone ol — BEST_EFFORT depth=1: hep son PC, eski mesajlar drop
         self.pc_subscription = self.create_subscription(
             Float32MultiArray,
             '/zed/point_cloud',
             self.point_cloud_callback,
-            10
+            _PC_QOS
         )
 
         self.detection_publisher = self.create_publisher(String,  '/detection/objects',  10)
@@ -97,10 +104,11 @@ class ObjectDetectionNode(Node):
             h = int(data[0])
             w = int(data[1])
             step = int(data[2])  # downsample adımı
-            xyz_flat = np.array(data[3:], dtype=np.float32)
-            if xyz_flat.size == h * w * 3:
+            # Tek np.array çağrısı: list → float32 array, sonra reshape (copy yok)
+            raw = np.array(data[3:], dtype=np.float32)
+            if raw.size == h * w * 3:
                 with self._pc_lock:
-                    self._point_cloud = xyz_flat.reshape(h, w, 3)
+                    self._point_cloud = raw.reshape(h, w, 3)
                     self._pc_step = step
         except Exception as e:
             self.get_logger().debug(f'Point cloud parse hatasi: {e}')
@@ -149,39 +157,40 @@ class ObjectDetectionNode(Node):
         return float(dists.min())  # cm
 
     def image_callback(self, msg):
+        """ROS spin thread: sadece guard kontrolü + thread spawn. Hiç bloklama yok."""
         if self.model is None:
             return
         with self._busy_lock:
             if self._busy:
                 return
             self._busy = True
+        # YOLO inference (~100-200ms) ayrı daemon thread'de — lane_detection ile aynı pattern
+        threading.Thread(target=self._infer, args=(msg,), daemon=True).start()
+
+    def _infer(self, msg):
+        """Background thread: YOLO inference + publish. Spin thread serbest kalır."""
         try:
             frame = _imgmsg_to_numpy(msg)
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            results = self.model.predict(frame_bgr, conf=0.5, device=_YOLO_DEVICE, imgsz=640, verbose=False)
+            results = self.model.predict(
+                frame_bgr, conf=0.5, device=_YOLO_DEVICE, imgsz=640, verbose=False)
 
-            # Aynı karede birden fazla tespit varsa sadece en yüksek conf'lu olanı yayınla
             best_class = None
             best_conf = 0.0
             best_distance = 200.0
-            best_box = None
 
             for r in results:
                 for box in r.boxes:
-                    cls  = int(box.cls[0])
                     conf = box.conf[0].item()
-                    class_name = self.model.names[cls] if self.model.names else str(cls)
-
+                    if conf <= best_conf:
+                        continue
+                    cls = int(box.cls[0])
                     x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                    mesafe = self._get_distance_from_bbox(x1, y1, x2, y2)
+                    best_conf = conf
+                    best_class = self.model.names[cls] if self.model.names else str(cls)
+                    best_distance = self._get_distance_from_bbox(x1, y1, x2, y2) or 200.0
 
-                    if conf > best_conf:
-                        best_conf = conf
-                        best_class = class_name
-                        best_distance = mesafe if mesafe is not None else 200.0
-
-            # Tek mesaj yayınla (frame başına 1 detection + 1 distance)
             if best_class is not None:
                 detection_msg = String()
                 detection_msg.data = best_class
@@ -191,14 +200,14 @@ class ObjectDetectionNode(Node):
                 distance_msg.data = best_distance
                 self.distance_publisher.publish(distance_msg)
 
-                # Log azaltma
                 if not hasattr(self, '_last_logged_class'):
                     self._last_logged_class = ''
                     self._same_class_count = 0
-                
+
                 if best_class != self._last_logged_class:
                     if self._same_class_count > 1:
-                        self.get_logger().info(f'Tespit özet: {self._last_logged_class} ({self._same_class_count}x tekrar)')
+                        self.get_logger().info(
+                            f'Tespit özet: {self._last_logged_class} ({self._same_class_count}x tekrar)')
                     self.get_logger().info(
                         f'Tespit: {best_class} (conf: {best_conf:.2f}, mesafe: {best_distance:.1f} cm)')
                     self._last_logged_class = best_class
