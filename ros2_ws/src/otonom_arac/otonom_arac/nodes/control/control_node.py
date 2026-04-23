@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from std_msgs.msg import Float32, String, Int32
 from sensor_msgs.msg import LaserScan
 import time
@@ -79,7 +81,10 @@ class ControlNode(Node):
 
         self.control_timer = self.create_timer(0.1, self.control_loop)
 
-        self.imu_timer = self.create_timer(0.02, self.imu_okuma)
+        # IMU timer kendi thread'inde çalışır — serial readline() control_loop'u bloklamamaz
+        self._imu_cb_group = MutuallyExclusiveCallbackGroup()
+        self.imu_timer = self.create_timer(0.02, self.imu_okuma,
+                                           callback_group=self._imu_cb_group)
 
         self.get_logger().info('Control node başlatıldı')
 
@@ -338,8 +343,12 @@ class ControlNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = ControlNode()
+    # MultiThreadedExecutor: imu_timer (serial blocking) ve control_loop ayrı thread'lerde
+    # çalışır — biri diğerini bloklayamaz → control jitter ortadan kalkar
+    executor = MultiThreadedExecutor(num_threads=3)
+    executor.add_node(node)
     try:
-        rclpy.spin(node)
+        executor.spin()
     except KeyboardInterrupt:
         pass
     finally:

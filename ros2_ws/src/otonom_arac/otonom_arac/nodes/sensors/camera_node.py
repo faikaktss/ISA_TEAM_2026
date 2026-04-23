@@ -9,6 +9,7 @@ import numpy as np
 import math
 import time
 import threading
+import gc
 import cv2
 from otonom_arac.perf.metrics import FPSMeter, CallbackTimer, PerfPublisher
 
@@ -174,7 +175,9 @@ try:
             self.runtime_params = sl.RuntimeParameters()
 
             init_params = sl.InitParameters()
-            init_params.camera_resolution = sl.RESOLUTION.HD720
+            # VGA (672x376): ham frame 1280x720x4=3.7MB yerine 672x376x4=1.01MB
+            # Grab süresi azalır, latency düşer. Pipeline çıkışı 640x360 olarak sabit kalır.
+            init_params.camera_resolution = sl.RESOLUTION.VGA
             init_params.camera_fps = 30
             init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE
             init_params.coordinate_units = sl.UNIT.CENTIMETER
@@ -193,12 +196,13 @@ try:
             if err == sl.ERROR_CODE.SUCCESS:
                 self.zed.retrieve_image(self.image, sl.VIEW.LEFT, sl.MEM.CPU)
                 image_numpy = self.image.get_data()
+                # cv2.cvtColor çıktısı zaten C-contiguous — np.ascontiguousarray kopyası gereksiz
                 image_rgb = cv2.cvtColor(image_numpy, cv2.COLOR_RGBA2RGB)
                 point_cloud = None
                 if want_point_cloud:
                     self.zed.retrieve_measure(self.point_cloud, sl.MEASURE.XYZ)
                     point_cloud = self.point_cloud
-                return np.ascontiguousarray(image_rgb), point_cloud
+                return image_rgb, point_cloud
             return None, None
 
         def get_distance(self, point_cloud, x, y):
@@ -358,10 +362,37 @@ class CameraNode(Node):
         # Sadece PC timer kalıyor — 5 Hz, ZED capture loop'tan bağımsız.
         self._zed_timer = None  # devre dışı — capture loop publish ediyor
         self._rs_timer  = None  # devre dışı — capture loop publish ediyor
+
+        # Pre-allocate: Image() nesneleri ve bytearray buffer'ları bir kere oluşturulur,
+        # her frame sadece içleri doldurulur — tobytes() allocation + GC baskısı sıfıra iner.
+        # ZED preview: 640×360×3 = 691,200 bytes
+        self._zed_msg = Image()
+        self._zed_msg.encoding = 'rgb8'
+        self._zed_msg.is_bigendian = False
+        self._zed_msg.height = 360
+        self._zed_msg.width  = 640
+        self._zed_msg.step   = 640 * 3
+        self._zed_buf = bytearray(640 * 360 * 3)
+        self._zed_msg.data = self._zed_buf
+        # RealSense: 640×480×3 = 921,600 bytes
+        self._rs_msg = Image()
+        self._rs_msg.encoding = 'rgb8'
+        self._rs_msg.is_bigendian = False
+        self._rs_msg.height = 480
+        self._rs_msg.width  = 640
+        self._rs_msg.step   = 640 * 3
+        self._rs_buf = bytearray(640 * 480 * 3)
+        self._rs_msg.data = self._rs_buf
         self._pc_timer  = self.create_timer(1.0/5,  self._publish_pc_callback,
                                             callback_group=self._cb_group)
         self._last_point_cloud = None  # PC timer için son point cloud'u sakla
         self._pc_data_lock = threading.Lock()
+        # ZED publish interval jitter ölçümü
+        self._zed_last_pub_ns: int = 0
+        self._zed_pub_interval_max_ms: float = 0.0
+        self._zed_stutter_count: int = 0
+        self._perf.add_value('zed_interval_max', lambda: f'{self._zed_pub_interval_max_ms:.1f}ms')
+        self._perf.add_value('zed_stutter_cnt', lambda: str(self._zed_stutter_count))
 
     def _zed_capture_loop(self):
         """ZED capture loop — kendi thread'inde sürekli çalışır ve doğrudan publish eder.
@@ -383,15 +414,36 @@ class CameraNode(Node):
                     try:
                         self._zed_cb_timer.start()
                         start_pub_ns = time.monotonic_ns()
-                        small = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_LINEAR)
-                        # Stamp: capture anı (ROS clock offset hesabı — monotonic farkı koru)
+                        # INTER_NEAREST: GUI preview için yeterli kalite, INTER_LINEAR'dan ~2x hızlı
+                        small = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_NEAREST)
+                        # Pre-allocated buffer'a in-place yaz — tobytes() allocation yok
+                        # Buffer boyutu değiştiyse (ilk frame veya çözünürlük değişimi) yeniden tahsis et
+                        needed = small.nbytes
+                        if len(self._zed_buf) != needed:
+                            self._zed_buf = bytearray(needed)
+                            self._zed_msg.height = small.shape[0]
+                            self._zed_msg.width  = small.shape[1]
+                            self._zed_msg.step   = small.shape[1] * small.shape[2]
+                        self._zed_buf[:] = small.ravel()  # in-place kopyalama
+                        self._zed_msg.data = self._zed_buf
                         stamp = self.get_clock().now().to_msg()
-                        msg = _numpy_to_imgmsg(small, encoding='rgb8')
-                        msg.header.stamp = stamp
-                        msg.header.frame_id = 'zed_camera_link'
+                        self._zed_msg.header.stamp = stamp
+                        self._zed_msg.header.frame_id = 'zed_camera_link'
+                        msg = self._zed_msg
                         self.zed_publisher.publish(msg)
                         self.zed_preview_publisher.publish(msg)
                         self._zed_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
+                        # Publish interval jitter ölçümü
+                        if self._zed_last_pub_ns > 0:
+                            interval_ms = (capture_ns - self._zed_last_pub_ns) / 1e6
+                            if interval_ms > self._zed_pub_interval_max_ms:
+                                self._zed_pub_interval_max_ms = interval_ms
+                            if interval_ms > 50.0:  # 33ms nominal + %50 tolerans
+                                self._zed_stutter_count += 1
+                                self.get_logger().warn(
+                                    f'[STUTTER] ZED publish interval {interval_ms:.1f}ms '
+                                    f'(toplam: {self._zed_stutter_count})')
+                        self._zed_last_pub_ns = capture_ns
                         if pc is not None:
                             with self._pc_data_lock:
                                 self._last_point_cloud = (pc, capture_ns)
@@ -418,10 +470,18 @@ class CameraNode(Node):
                     try:
                         self._rs_cb_timer.start()
                         start_pub_ns = time.monotonic_ns()
-                        rs_msg = _numpy_to_imgmsg(frame, encoding='rgb8')
-                        rs_msg.header.stamp = self.get_clock().now().to_msg()
-                        rs_msg.header.frame_id = 'realsense_camera_link'
-                        self.realsense_publisher.publish(rs_msg)
+                        # Pre-allocated buffer'a in-place yaz — tobytes() allocation yok
+                        needed = frame.nbytes
+                        if len(self._rs_buf) != needed:
+                            self._rs_buf = bytearray(needed)
+                            self._rs_msg.height = frame.shape[0]
+                            self._rs_msg.width  = frame.shape[1]
+                            self._rs_msg.step   = frame.shape[1] * frame.shape[2]
+                        self._rs_buf[:] = frame.ravel()  # in-place kopyalama
+                        self._rs_msg.data = self._rs_buf
+                        self._rs_msg.header.stamp = self.get_clock().now().to_msg()
+                        self._rs_msg.header.frame_id = 'realsense_camera_link'
+                        self.realsense_publisher.publish(self._rs_msg)
                         self._rs_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
                         self._perf.tick()
                     except Exception as pub_err:
@@ -524,6 +584,11 @@ class CameraNode(Node):
     
 
 def main(args=None):
+    # ── GC Optimizasyonu ──
+    # gc.freeze(): import sırasında oluşturulan nesneleri ölümsüz nesle taşı → gen-2 tarama süresi azalır.
+    gc.freeze()
+    gc.set_threshold(1000, 15, 15)
+
     rclpy.init(args=args)
     camera_node = CameraNode()
     executor = MultiThreadedExecutor(num_threads=4)
