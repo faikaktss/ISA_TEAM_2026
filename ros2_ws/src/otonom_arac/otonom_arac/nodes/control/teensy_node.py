@@ -73,9 +73,8 @@ if ROS2_AVAILABLE:
             
             # Todo: Timer - 50 Hz (0.02 saniye)
             self.timer = self.create_timer(0.02, self.send_to_teensy)
-            # TERMINAL: 1s özet sayaçları
+            # TERMINAL: 50 çağrıda bir log sayacı
             self._cmd_count = 0
-            self._last_summary_time = time.time()
             
             self.get_logger().info('Teensy node başlatıldı - 50Hz çalışıyor')
         
@@ -140,17 +139,15 @@ if ROS2_AVAILABLE:
                         self._same_command_count = 1
                     else:
                         self._same_command_count += 1
-                    # TERMINAL: her 1 saniyede bir özet (50 komut ≈ 1s)
+                    # TERMINAL: her 50 çağrıda bir (~1s) log bas
                     self._cmd_count += 1
-                    _now = time.time()
-                    if _now - self._last_summary_time >= 1.0:
+                    if self._cmd_count >= 50:
                         mod_str = 'MANUEL' if self.manual_mode else 'OTONOM'
                         print(
-                            f'[TEENSY] CH1(sag_sol)={sag_sol} | CH3(ileri_geri)={ileri_geri} | '
+                            f'[TEENSY] CH1(direksiyon)={sag_sol} | CH3(hız)={ileri_geri} | '
                             f'CH7(vites)={vites} | CH10(otonom)={otonom} | mod={mod_str}',
                             flush=True)
                         self._cmd_count = 0
-                        self._last_summary_time = _now
                 except Exception as e:
                     self.get_logger().error(f'Teensy yazma hatası: {e}')
                     # TERMINAL: yazma hatası

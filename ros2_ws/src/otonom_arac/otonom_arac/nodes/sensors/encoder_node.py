@@ -82,8 +82,8 @@ if ROS2_AVAILABLE:
             self.last_time = time.time()
 
             self.timer = self.create_timer(0.02,self.read_encoder)
-            # TERMINAL: 1s özet timer + takip değişkenleri
-            self._status_timer = self.create_timer(5.0, self._terminal_status_1s)
+            # TERMINAL: 50 çağrıda bir log sayacı
+            self._enc_log_count = 0
             self._last_speed = 0.0
             self._no_data_count = 0
 
@@ -114,20 +114,20 @@ if ROS2_AVAILABLE:
 
                     self.last_distance = distance
                     self.last_time = current_time
+
+                    # TERMINAL: her 50 çağrıda bir (~1s) log bas
+                    self._enc_log_count += 1
+                    if self._enc_log_count >= 50:
+                        print(
+                            f'[ENCODER] mesafe={distance} mm | hız={self._last_speed:.1f} mm/s',
+                            flush=True)
+                        self._enc_log_count = 0
                 else:
                     # TERMINAL: veri gelmiyorsa sayı
                     self._no_data_count += 1
 
             except Exception as e:
                 self.get_logger().warning(f'Encoder okuma hatası: {e}')
-
-        # TERMINAL: 1 saniyede bir encoder özeti
-        def _terminal_status_1s(self):
-            if self._no_data_count > 40:  # ~50Hz * 40 ≈ 0.8s
-                print(f'[ENCODER] ✗ Veri gelmiyor — Arduino bağlı mı?', flush=True)
-            else:
-                print(f'[ENCODER] mesafe={self.last_distance} mm | hız={self._last_speed:.1f}', flush=True)
-
 
     def main(args=None):
         #Todo: Ana fonksiyon node'u başlat

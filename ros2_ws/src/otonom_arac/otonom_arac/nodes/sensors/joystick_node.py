@@ -36,6 +36,8 @@ if ROS2_AVAILABLE:
             self.mode_pub = self.create_publisher(Bool, '/joystick/manual_mode', 10)
             
             self.timer = self.create_timer(0.02, self.read_joystick)
+            # TERMINAL: 50 çağrıda bir log sayacı
+            self._joy_log_count = 0
             
             self.get_logger().info('Joystick Node başlatıldı - 50Hz')
         
@@ -93,6 +95,15 @@ if ROS2_AVAILABLE:
                 mode_msg = Bool()
                 mode_msg.data = (otonom == 0)
                 self.mode_pub.publish(mode_msg)
+
+                # TERMINAL: her 50 çağrıda bir (~1s) log bas
+                self._joy_log_count += 1
+                if self._joy_log_count >= 50:
+                    print(
+                        f'[JOYSTICK] CH1(direksiyon)={dumen} | CH3(hız)={ileri} | '
+                        f'CH7(vites)={vites} | CH10(mod)={otonom}',
+                        flush=True)
+                    self._joy_log_count = 0
 
             except ValueError:
                 pass  # bozuk satır, sessizce atla
