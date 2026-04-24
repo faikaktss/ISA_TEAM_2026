@@ -386,16 +386,16 @@ class CameraNode(Node):
         self._zed_timer = None  # devre dışı — capture loop publish ediyor
         self._rs_timer  = None  # devre dışı — capture loop publish ediyor
 
-        # Pre-allocate: Image() nesneleri ve bytearray buffer'ları bir kere oluşturulur,
-        # her frame sadece içleri doldurulur — tobytes() allocation + GC baskısı sıfıra iner.
-        # ZED preview: 640×360×3 = 691,200 bytes
+        # FIX ADIM-E: ZED 640×360 → 320×180 (691KB → 173KB)
+        # _zed_publish_loop resize+serialize toplamı 56-110ms → 33ms budget aşıyordu.
+        # 4x küçük buffer: zed_cb 56-110ms → ~15ms hedefi, gui_zed 3fps → 25fps+.
         self._zed_msg = Image()
         self._zed_msg.encoding = 'rgb8'
         self._zed_msg.is_bigendian = False
-        self._zed_msg.height = 360
-        self._zed_msg.width  = 640
-        self._zed_msg.step   = 640 * 3
-        self._zed_buf = bytearray(640 * 360 * 3)
+        self._zed_msg.height = 180
+        self._zed_msg.width  = 320
+        self._zed_msg.step   = 320 * 3
+        self._zed_buf = bytearray(320 * 180 * 3)
         self._zed_msg.data = self._zed_buf
         # Pre-allocated numpy view: np.frombuffer her frame'de oluşturulmuyor
         self._zed_np_view = np.frombuffer(self._zed_buf, dtype=np.uint8)
@@ -535,7 +535,8 @@ class CameraNode(Node):
 
                 # PROBE: resize süresi
                 _t0 = time.monotonic()
-                small = cv2.resize(zed_rgb, (640, 360), interpolation=cv2.INTER_NEAREST)
+                # FIX ADIM-E: 320×180 (173KB) — 691KB'den 4x küçük
+                small = cv2.resize(zed_rgb, (320, 180), interpolation=cv2.INTER_NEAREST)
                 _resize_ms = (time.monotonic() - _t0) * 1000.0
 
                 # Pre-allocated buffer kontrolü

@@ -348,6 +348,9 @@ def _ros_node_class():
 
                     # BEV publish: pre-alloc buffer ile tobytes() yok
                     bev_rgb = cv2.cvtColor(bev, cv2.COLOR_BGR2RGB)
+                    # FIX ADIM-F: BEV 640×480 → 320×240 (921KB → 230KB)
+                    # gui_bev 2fps → 10fps+ hedefi: DDS serialize 4x azalır.
+                    bev_rgb = cv2.resize(bev_rgb, (320, 240), interpolation=cv2.INTER_NEAREST)
                     needed = bev_rgb.nbytes
                     if len(self._bev_buf) != needed:
                         self._bev_buf = bytearray(needed)
