@@ -13,7 +13,7 @@ if ROS2_AVAILABLE:
         def __init__(self):
             super().__init__('joystick_node')
             
-            self.declare_parameter('port', '/dev/ttyUSB7')
+            self.declare_parameter('port', '/dev/ttyUSB0')
             self.declare_parameter('baudrate', 9600)
             
             port = self.get_parameter('port').value
