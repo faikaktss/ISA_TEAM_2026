@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rclpy.callback_groups import ReentrantCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
+from rclpy.executors import SingleThreadedExecutor
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32MultiArray
 import numpy as np
@@ -258,7 +258,11 @@ if REALSENSE_AVAILABLE:
                 return None
             # np.asanyarray: zero-copy view — cv2.cvtColor kopyayı kendisi alır
             frame = np.asanyarray(color_frame.get_data())
-            return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # FIX ADIM-B: 640×480 → 320×240 (921KB → 230KB)
+            # DDS serialize süresi 70ms → ~15ms, rs_cap 10fps → 30fps hedefi.
+            # INTER_NEAREST: en hızlı — kalite fark etmez, sadece GUI preview.
+            return cv2.resize(rgb, (320, 240), interpolation=cv2.INTER_NEAREST)
 
         def stop(self):
             self.pipeline.stop()
@@ -395,14 +399,15 @@ class CameraNode(Node):
         self._zed_msg.data = self._zed_buf
         # Pre-allocated numpy view: np.frombuffer her frame'de oluşturulmuyor
         self._zed_np_view = np.frombuffer(self._zed_buf, dtype=np.uint8)
-        # RealSense: 640×480×3 = 921,600 bytes
+        # FIX ADIM-B: RealSense 640×480 → 320×240 (921,600 → 230,400 bytes)
+        # DDS serialize baskısı 4x azalır: rs_cb 70ms → ~15ms hedefi.
         self._rs_msg = Image()
         self._rs_msg.encoding = 'rgb8'
         self._rs_msg.is_bigendian = False
-        self._rs_msg.height = 480
-        self._rs_msg.width  = 640
-        self._rs_msg.step   = 640 * 3
-        self._rs_buf = bytearray(640 * 480 * 3)
+        self._rs_msg.height = 240
+        self._rs_msg.width  = 320
+        self._rs_msg.step   = 320 * 3
+        self._rs_buf = bytearray(320 * 240 * 3)
         self._rs_msg.data = self._rs_buf
         self._rs_np_view = np.frombuffer(self._rs_buf, dtype=np.uint8)
         # DEPTH_MODE.NONE: PC devre dışı — timer oluşturulmuyor
@@ -421,6 +426,13 @@ class CameraNode(Node):
         FIX SORUN-1: Publish tamamen ayrı _zed_publish_loop thread'ine taşındı.
         grab() artık publish'i beklemez → GIL çakışması sıfır, jitter ortadan kalkar.
         """
+        # FIX ADIM-D: Thread'e hafif OS öncelik avantajı — RS thread ve executor ile yarışı kazanır.
+        # nice(-5): default 0'dan daha yüksek öncelik, root gerekmez (-20..19 arası).
+        try:
+            import os as _os
+            _os.nice(-5)
+        except OSError:
+            pass  # root yoksa sessizce devam et
         # PROBE: sayaçlar
         _probe_zed_cap_count = 0
         _probe_zed_grab_sum = 0.0
@@ -477,6 +489,12 @@ class CameraNode(Node):
         FIX SORUN-1: grab() ile publish() GIL çakışması giderildi — tamamen ayrı thread'ler.
         grab() bir sonraki frame'e geçerken bu thread ROS serializasyonunu halleder.
         """
+        # FIX ADIM-D: Publish thread'e de OS öncelik avantajı
+        try:
+            import os as _os
+            _os.nice(-5)
+        except OSError:
+            pass
         # PROBE: sayaçlar
         _probe_pub_count   = 0
         _probe_wait_sum    = 0.0
@@ -716,7 +734,12 @@ def main(args=None):
 
     rclpy.init(args=args)
     camera_node = CameraNode()
-    executor = MultiThreadedExecutor(num_threads=4)
+    # FIX ADIM-A: MultiThreadedExecutor(4) → SingleThreadedExecutor
+    # camera_node'unda ROS callback YOK (ZED/RS timer devre dışı).
+    # 4 boş executor thread GIL için yarışıyor → _zed_publish_loop event.wait()
+    # içinde 133–267ms beklemek zorunda kalıyordu (thread starvation).
+    # SingleThreadedExecutor: GIL baskısı sıfır, publish starvation ortadan kalkar.
+    executor = SingleThreadedExecutor()
     executor.add_node(camera_node)
 
     try:

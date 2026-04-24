@@ -574,6 +574,8 @@ class MainWindow(QWidget):
             self._probe_zed_show_sum = 0.0
             self._probe_rs_show_sum  = 0.0
             self._probe_total_sum    = 0.0
+            # FIX ADIM-C: lidar render throttle — son render zamanı
+            self._last_lidar_render_time = 0.0
 
         _t_ui_total = time.monotonic()
 
@@ -650,13 +652,20 @@ class MainWindow(QWidget):
                 lidar_snapshot = node.lidar_data
             if lidar_snapshot is not None:
                 if ADVANCED_LIDAR:
-                    _t_lidar = time.perf_counter()
-                    self.label_lidar.update_points(*lidar_snapshot)
-                    _lidar_ms = (time.perf_counter() - _t_lidar) * 1000.0
-                    if _lidar_ms > node._lidar_render_max_ms:
-                        node._lidar_render_max_ms = _lidar_ms
-                    if _lidar_ms > 15.0:
-                        node.get_logger().warn(f'[STUTTER] Lidar render {_lidar_ms:.1f}ms')
+                    # FIX ADIM-C: Lidar render throttle — max 10fps (100ms arası)
+                    # Lidar ~20Hz geliyor ama Qt scatter plot her frame'de 15-21ms Qt
+                    # main thread'i blokluyor → ZED/RS frame'leri kaçırılıyordu.
+                    # 100ms'de bir render: lidar görsel kalitesi yeterli, ZED/RS kazanır.
+                    _now_lidar = time.perf_counter()
+                    if (_now_lidar - self._last_lidar_render_time) >= 0.10:
+                        _t_lidar = time.perf_counter()
+                        self.label_lidar.update_points(*lidar_snapshot)
+                        _lidar_ms = (time.perf_counter() - _t_lidar) * 1000.0
+                        self._last_lidar_render_time = _now_lidar
+                        if _lidar_ms > node._lidar_render_max_ms:
+                            node._lidar_render_max_ms = _lidar_ms
+                        if _lidar_ms > 15.0:
+                            node.get_logger().warn(f'[STUTTER] Lidar render {_lidar_ms:.1f}ms')
                 else:
                     self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
 
