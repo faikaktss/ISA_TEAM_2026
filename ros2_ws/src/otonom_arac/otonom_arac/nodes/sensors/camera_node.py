@@ -421,16 +421,54 @@ class CameraNode(Node):
         FIX SORUN-1: Publish tamamen ayrı _zed_publish_loop thread'ine taşındı.
         grab() artık publish'i beklemez → GIL çakışması sıfır, jitter ortadan kalkar.
         """
+        # PROBE: sayaçlar
+        _probe_zed_cap_count = 0
+        _probe_zed_grab_sum = 0.0
+        _probe_zed_put_sum  = 0.0
+        _probe_zed_eset_sum = 0.0
+
         while self._running and self.camera is not None:
             try:
+                # PROBE: grab süresi
+                _t0 = time.monotonic()
                 frame, _pc, frame_ns = self.camera.grab_frame()
+                _grab_ms = (time.monotonic() - _t0) * 1000.0
+
                 if frame is not None:
                     # ZED SDK gerçek capture timestamp (UNIX ns)
                     capture_ns = frame_ns if frame_ns is not None else time.time_ns()
                     self._zed_cap_fps.tick()
-                    # FIX SORUN-1: holder'a koy, publish thread'i uyandır — grab() serbest kalır
+
+                    # PROBE: holder.put süresi
+                    _t1 = time.monotonic()
                     self._zed_holder.put(frame, capture_ns=capture_ns)
+                    _put_ms = (time.monotonic() - _t1) * 1000.0
+
+                    # PROBE: event.set süresi
+                    _t2 = time.monotonic()
                     self._zed_pub_event.set()
+                    _eset_ms = (time.monotonic() - _t2) * 1000.0
+
+                    # PROBE: per-frame print
+                    print(f'[ZED] grab={_grab_ms:.2f}ms | holder_put={_put_ms:.3f}ms | event_set={_eset_ms:.3f}ms', flush=True)
+
+                    # PROBE: SUMMARY her 30 frame'de bir
+                    _probe_zed_grab_sum += _grab_ms
+                    _probe_zed_put_sum  += _put_ms
+                    _probe_zed_eset_sum += _eset_ms
+                    _probe_zed_cap_count += 1
+                    if _probe_zed_cap_count % 30 == 0:
+                        _n = 30
+                        print(
+                            f'[SUMMARY] ZED_cap_fps≈{_n / (_probe_zed_grab_sum / 1000.0):.1f} '
+                            f'| ZED_drop={self._zed_holder.dropped()} '
+                            f'| grab_avg={_probe_zed_grab_sum/_n:.2f}ms '
+                            f'| put_avg={_probe_zed_put_sum/_n:.3f}ms',
+                            flush=True
+                        )
+                        _probe_zed_grab_sum = 0.0
+                        _probe_zed_put_sum  = 0.0
+                        _probe_zed_eset_sum = 0.0
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
@@ -439,12 +477,24 @@ class CameraNode(Node):
         FIX SORUN-1: grab() ile publish() GIL çakışması giderildi — tamamen ayrı thread'ler.
         grab() bir sonraki frame'e geçerken bu thread ROS serializasyonunu halleder.
         """
+        # PROBE: sayaçlar
+        _probe_pub_count   = 0
+        _probe_wait_sum    = 0.0
+        _probe_cvt_sum     = 0.0
+        _probe_resize_sum  = 0.0
+        _probe_copyto_sum  = 0.0
+        _probe_pub_sum     = 0.0
+        _probe_total_sum   = 0.0
+
         while self._running:
-            # Yeni frame gelene kadar bekle (timeout: node kapanma sinyali için)
+            # PROBE: event_wait süresi
+            _tw0 = time.monotonic()
             signalled = self._zed_pub_event.wait(timeout=0.1)
+            _wait_ms = (time.monotonic() - _tw0) * 1000.0
+
             if not signalled:
                 continue
-            self._zed_pub_event.clear()  # sinyali tüket
+            self._zed_pub_event.clear()
 
             if not self._running:
                 break
@@ -452,47 +502,92 @@ class CameraNode(Node):
             try:
                 zed_frame, _pc, capture_ns = self._zed_holder.get()
                 if zed_frame is None:
-                    continue  # başka thread daha hızlı tükettiyse geç
+                    continue
 
                 capture_ns = capture_ns or time.time_ns()
+                _t_total = time.monotonic()
 
                 self._zed_cb_timer.start()
                 start_pub_ns = time.monotonic_ns()
 
-                # BUG-A FIX: cvtColor T2'ye taşındı — T1'in grab-sonrası GIL baskısı sıfırlandı.
-                # RGBA→RGB: 672×376×4 → 672×376×3. GIL tutulur ama grab() T1'de çoktan bitti.
+                # PROBE: cvtColor süresi
+                _t0 = time.monotonic()
                 zed_rgb = cv2.cvtColor(zed_frame, cv2.COLOR_RGBA2RGB)
-                # INTER_NEAREST: GUI preview için yeterli, INTER_LINEAR'dan ~2x hızlı
-                small = cv2.resize(zed_rgb, (640, 360), interpolation=cv2.INTER_NEAREST)
+                _cvt_ms = (time.monotonic() - _t0) * 1000.0
 
-                # Pre-allocated buffer'a in-place yaz — tobytes() allocation yok
+                # PROBE: resize süresi
+                _t0 = time.monotonic()
+                small = cv2.resize(zed_rgb, (640, 360), interpolation=cv2.INTER_NEAREST)
+                _resize_ms = (time.monotonic() - _t0) * 1000.0
+
+                # Pre-allocated buffer kontrolü
                 needed = small.nbytes
                 if len(self._zed_buf) != needed:
-                    # Çözünürlük değişiminde yeniden tahsis et (nadir durum)
                     self._zed_buf = bytearray(needed)
                     self._zed_np_view = np.frombuffer(self._zed_buf, dtype=np.uint8)
                     self._zed_msg.height = small.shape[0]
                     self._zed_msg.width  = small.shape[1]
                     self._zed_msg.step   = small.shape[1] * small.shape[2]
 
-                # FIX SORUN-5: np.copyto ile sıfır ara allocation — tobytes() yok
+                # PROBE: copyto süresi
+                _t0 = time.monotonic()
                 np.copyto(self._zed_np_view, small.ravel())
+                _copyto_ms = (time.monotonic() - _t0) * 1000.0
+
                 self._zed_msg.data = self._zed_buf
-                # ZED SDK gerçek capture zamanını stamp olarak kullan
-                # GUI age_ms = şimdiki_zaman - capture_ns → gerçek end-to-end latency
                 self._zed_msg.header.stamp.sec = capture_ns // 1_000_000_000
                 self._zed_msg.header.stamp.nanosec = capture_ns % 1_000_000_000
                 self._zed_msg.header.frame_id = 'zed_camera_link'
-                self.zed_publisher.publish(self._zed_msg)
 
+                # PROBE: publish süresi
+                _t0 = time.monotonic()
+                self.zed_publisher.publish(self._zed_msg)
+                _pub_ms = (time.monotonic() - _t0) * 1000.0
+
+                _total_ms = (time.monotonic() - _t_total) * 1000.0
                 self._zed_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
+
+                # PROBE: per-frame print
+                print(
+                    f'[ZED_PUB] event_wait={_wait_ms:.2f}ms | cvtColor={_cvt_ms:.2f}ms | '
+                    f'resize={_resize_ms:.2f}ms | copyto={_copyto_ms:.3f}ms | '
+                    f'publish={_pub_ms:.2f}ms | TOTAL={_total_ms:.2f}ms',
+                    flush=True
+                )
+
+                # PROBE: SUMMARY her 30 frame'de bir
+                _probe_wait_sum   += _wait_ms
+                _probe_cvt_sum    += _cvt_ms
+                _probe_resize_sum += _resize_ms
+                _probe_copyto_sum += _copyto_ms
+                _probe_pub_sum    += _pub_ms
+                _probe_total_sum  += _total_ms
+                _probe_pub_count  += 1
+                if _probe_pub_count % 30 == 0:
+                    _n = 30
+                    print(
+                        f'[SUMMARY] ZED_pub_fps≈{1000.0*_n/_probe_total_sum:.1f} '
+                        f'| wait_avg={_probe_wait_sum/_n:.2f}ms '
+                        f'| cvt_avg={_probe_cvt_sum/_n:.2f}ms '
+                        f'| resize_avg={_probe_resize_sum/_n:.2f}ms '
+                        f'| copyto_avg={_probe_copyto_sum/_n:.3f}ms '
+                        f'| pub_avg={_probe_pub_sum/_n:.2f}ms '
+                        f'| total_avg={_probe_total_sum/_n:.2f}ms',
+                        flush=True
+                    )
+                    _probe_wait_sum   = 0.0
+                    _probe_cvt_sum    = 0.0
+                    _probe_resize_sum = 0.0
+                    _probe_copyto_sum = 0.0
+                    _probe_pub_sum    = 0.0
+                    _probe_total_sum  = 0.0
 
                 # Publish interval jitter ölçümü
                 if self._zed_last_pub_ns > 0:
                     interval_ms = (capture_ns - self._zed_last_pub_ns) / 1e6
                     if interval_ms > self._zed_pub_interval_max_ms:
                         self._zed_pub_interval_max_ms = interval_ms
-                    if interval_ms > 50.0:  # 33ms nominal + %50 tolerans
+                    if interval_ms > 50.0:
                         self._zed_stutter_count += 1
                         self.get_logger().warn(
                             f'[STUTTER] ZED publish interval {interval_ms:.1f}ms '
@@ -508,21 +603,28 @@ class CameraNode(Node):
         """RealSense capture loop — kendi thread'inde sürekli çalışır ve doğrudan publish eder.
         Timer'a bırakmak yerine capture anında publish: quantization delay ortadan kalkar.
         """
+        # PROBE: sayaçlar
+        _probe_rs_count      = 0
+        _probe_rs_getf_sum   = 0.0
+        _probe_rs_copyto_sum = 0.0
+        _probe_rs_pub_sum    = 0.0
+        _probe_rs_total_sum  = 0.0
+
         while self._running and self.realsense is not None:
             try:
+                # PROBE: get_frame süresi
+                _t0 = time.monotonic()
                 frame = self.realsense.get_frame()
+                _getf_ms = (time.monotonic() - _t0) * 1000.0
+
                 if frame is not None:
-                    # BUG-B FIX: time.monotonic_ns() → time.time_ns() (wall clock).
-                    # gui_node age hesabı: time.time_ns() - capture_ns.
-                    # Farklı clock bazları (monotonic vs wall) anlamsız age değerleri üretiyordu.
                     capture_ns = time.time_ns()
                     self._rs_cap_fps.tick()
                     self._rs_holder.put(frame, capture_ns=capture_ns)
-                    # Capture anında doğrudan publish
+                    _t_total = time.monotonic()
                     try:
                         self._rs_cb_timer.start()
                         start_pub_ns = time.monotonic_ns()
-                        # Pre-allocated buffer'a in-place yaz — tobytes() allocation yok
                         needed = frame.nbytes
                         if len(self._rs_buf) != needed:
                             self._rs_buf = bytearray(needed)
@@ -530,33 +632,68 @@ class CameraNode(Node):
                             self._rs_msg.height = frame.shape[0]
                             self._rs_msg.width  = frame.shape[1]
                             self._rs_msg.step   = frame.shape[1] * frame.shape[2]
-                        # FIX SORUN-5: np.copyto ile sıfır ara allocation
+
+                        # PROBE: copyto süresi
+                        _t1 = time.monotonic()
                         np.copyto(self._rs_np_view, frame.ravel())
+                        _copyto_ms = (time.monotonic() - _t1) * 1000.0
+
                         self._rs_msg.data = self._rs_buf
                         self._rs_msg.header.stamp = self.get_clock().now().to_msg()
                         self._rs_msg.header.frame_id = 'realsense_camera_link'
+
+                        # PROBE: publish süresi
+                        _t1 = time.monotonic()
                         self.realsense_publisher.publish(self._rs_msg)
+                        _pub_ms = (time.monotonic() - _t1) * 1000.0
+
+                        _total_ms = (time.monotonic() - _t_total) * 1000.0
                         self._rs_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
+
+                        # PROBE: per-frame print
+                        print(
+                            f'[RS] get_frame={_getf_ms:.2f}ms | copyto={_copyto_ms:.3f}ms | '
+                            f'publish={_pub_ms:.2f}ms | TOTAL={_total_ms:.2f}ms',
+                            flush=True
+                        )
+
+                        # PROBE: SUMMARY her 30 frame'de bir
+                        _probe_rs_getf_sum   += _getf_ms
+                        _probe_rs_copyto_sum += _copyto_ms
+                        _probe_rs_pub_sum    += _pub_ms
+                        _probe_rs_total_sum  += _total_ms
+                        _probe_rs_count      += 1
+                        if _probe_rs_count % 30 == 0:
+                            _n = 30
+                            print(
+                                f'[SUMMARY] RS_fps≈{1000.0*_n/_probe_rs_getf_sum:.1f} '
+                                f'| RS_drop={self._rs_holder.dropped()} '
+                                f'| getframe_avg={_probe_rs_getf_sum/_n:.2f}ms '
+                                f'| copyto_avg={_probe_rs_copyto_sum/_n:.3f}ms '
+                                f'| pub_avg={_probe_rs_pub_sum/_n:.2f}ms '
+                                f'| total_avg={_probe_rs_total_sum/_n:.2f}ms',
+                                flush=True
+                            )
+                            _probe_rs_getf_sum   = 0.0
+                            _probe_rs_copyto_sum = 0.0
+                            _probe_rs_pub_sum    = 0.0
+                            _probe_rs_total_sum  = 0.0
+
                         self._perf.tick()
                     except Exception as pub_err:
                         self.get_logger().error(f'RS inline publish hatası: {pub_err}')
                     finally:
                         self._rs_cb_timer.stop()
                 else:
-                    # FIX SORUN-4: get_frame() None döndüğünde (exception/timeout) CPU spin engelle.
-                    # timeout_ms=33 ile normalde buraya düşmez; düşerse diğer thread'lere CPU ver.
+                    # FIX SORUN-4: None gelince CPU spin engelle
                     time.sleep(0.001)
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
-    # _publish_zed_callback / _publish_rs_callback / _publish_pc_callback
-    # KALDIRILDI — timer'lar None, bu method'lar hiç çağrılmıyordu.
-    # ZED artık _zed_publish_loop thread'inde, RS _rs_capture_loop'ta publish ediyor.
 
     def destroy_node(self):
         """Node kapanırken thread'leri durdur."""
         self._running = False
-        # _zed_pub_event'i set ederek publish thread'in wait()'ten çıkmasını sağla
         self._zed_pub_event.set()
         for t in (self._zed_thread, self._zed_pub_thread, self._rs_thread):
             if t and t.is_alive():

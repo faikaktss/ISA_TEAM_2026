@@ -567,13 +567,23 @@ class MainWindow(QWidget):
     def update_ui(self):
         node = self.ros_node
 
+        # PROBE: GUI sayaçlar (ilk çağrıda init)
+        if not hasattr(self, '_probe_gui_count'):
+            self._probe_gui_count    = 0
+            self._probe_lock_sum     = 0.0
+            self._probe_zed_show_sum = 0.0
+            self._probe_rs_show_sum  = 0.0
+            self._probe_total_sum    = 0.0
+
+        _t_ui_total = time.monotonic()
+
         # ── Jitter ölçümü: QTimer 33ms nominal, 50ms+ = stutter frame ──
         now_perf = time.perf_counter()
         if self._last_ui_time > 0.0:
             interval_ms = (now_perf - self._last_ui_time) * 1000.0
             if interval_ms > node._ui_interval_max_ms:
                 node._ui_interval_max_ms = interval_ms
-            if interval_ms > 50.0:  # 33ms nominal + %50 tolerans
+            if interval_ms > 50.0:
                 node._ui_stutter_count += 1
                 node.get_logger().warn(
                     f'[STUTTER] UI interval {interval_ms:.1f}ms '
@@ -589,6 +599,8 @@ class MainWindow(QWidget):
             self.lbl_vites.setText(f"Vites: {node.vites}")
             self.lbl_algoritma.setText(f"Algoritma: {node.algorithm}")
 
+            # PROBE: _frame_lock bekleme süresi
+            _t_lock = time.monotonic()
             with node._frame_lock:
                 zed_snap = node.zed_frame
                 zed_ver = node.zed_frame_version
@@ -599,18 +611,27 @@ class MainWindow(QWidget):
                 bev_snap = node.bev_frame
                 bev_ver = node.bev_frame_version
                 bev_ns = node.bev_capture_ns
+            _lock_ms = (time.monotonic() - _t_lock) * 1000.0
 
             now_ns = time.time_ns()
 
+            # PROBE: ZED _show_frame süresi
+            _zed_show_ms = 0.0
             if zed_snap is not None and zed_ver != self._last_versions['zed']:
+                _t0 = time.monotonic()
                 self._show_frame(self.label_zed, zed_snap)
+                _zed_show_ms = (time.monotonic() - _t0) * 1000.0
                 self._last_versions['zed'] = zed_ver
                 node._gui_zed_fps.tick()
                 if zed_ns:
                     node.zed_render_age_ms = (now_ns - zed_ns) / 1e6
 
+            # PROBE: RS _show_frame süresi
+            _rs_show_ms = 0.0
             if rs_snap is not None and rs_ver != self._last_versions['rs']:
+                _t0 = time.monotonic()
                 self._show_frame(self.label_realsense, rs_snap)
+                _rs_show_ms = (time.monotonic() - _t0) * 1000.0
                 self._last_versions['rs'] = rs_ver
                 node._gui_rs_fps.tick()
                 if rs_ns:
@@ -634,10 +655,42 @@ class MainWindow(QWidget):
                     _lidar_ms = (time.perf_counter() - _t_lidar) * 1000.0
                     if _lidar_ms > node._lidar_render_max_ms:
                         node._lidar_render_max_ms = _lidar_ms
-                    if _lidar_ms > 15.0:  # 15ms+ Qt main thread'i bloke ediyor
+                    if _lidar_ms > 15.0:
                         node.get_logger().warn(f'[STUTTER] Lidar render {_lidar_ms:.1f}ms')
                 else:
                     self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
+
+            _total_ms = (time.monotonic() - _t_ui_total) * 1000.0
+
+            # PROBE: per-frame GUI print
+            print(
+                f'[GUI] lock_wait={_lock_ms:.3f}ms | '
+                f'zed_show={_zed_show_ms:.2f}ms | rs_show={_rs_show_ms:.2f}ms | '
+                f'TOTAL={_total_ms:.2f}ms',
+                flush=True
+            )
+
+            # PROBE: SUMMARY her 30 çağrıda bir
+            self._probe_lock_sum     += _lock_ms
+            self._probe_zed_show_sum += _zed_show_ms
+            self._probe_rs_show_sum  += _rs_show_ms
+            self._probe_total_sum    += _total_ms
+            self._probe_gui_count    += 1
+            if self._probe_gui_count % 30 == 0:
+                _n = 30
+                print(
+                    f'[SUMMARY] GUI_fps≈{1000.0*_n/self._probe_total_sum:.1f} '
+                    f'| lock_avg={self._probe_lock_sum/_n:.3f}ms '
+                    f'| zed_show_avg={self._probe_zed_show_sum/_n:.2f}ms '
+                    f'| rs_show_avg={self._probe_rs_show_sum/_n:.2f}ms '
+                    f'| total_avg={self._probe_total_sum/_n:.2f}ms',
+                    flush=True
+                )
+                self._probe_lock_sum     = 0.0
+                self._probe_zed_show_sum = 0.0
+                self._probe_rs_show_sum  = 0.0
+                self._probe_total_sum    = 0.0
+
         finally:
             node._gui_render_timer.stop()
             node._perf.tick()
@@ -652,17 +705,29 @@ class MainWindow(QWidget):
             lw, lh = min_size.width(), min_size.height()
 
         h, w, ch = frame.shape
-        # QImage: frame.data pointer'ını tutar — contiguous array gerekli
+
+        # PROBE: QImage oluşturma süresi
+        _t0 = time.monotonic()
         qt_img = QImage(frame.data, w, h, ch * w, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(qt_img)
+        _qimage_ms = (time.monotonic() - _t0) * 1000.0
 
+        # PROBE: scaled süresi
+        _scaled_ms = 0.0
         if lw > 0 and lh > 0 and (w != lw or h != lh):
-            # FIX SORUN-7: QPixmap.scaled() — Qt C++ native resize, cv2.resize'dan daha hızlı.
-            # FastTransformation: bilinear kalitesinde Qt-native C++ interpolasyon.
-            # cv2.resize yok → Python→C++ geçiş overhead'i de kalktı.
+            _t0 = time.monotonic()
             pixmap = pixmap.scaled(lw, lh, Qt.KeepAspectRatio, Qt.FastTransformation)
+            _scaled_ms = (time.monotonic() - _t0) * 1000.0
 
         label.setPixmap(pixmap)
+
+        # PROBE: label adını bul ve bas
+        _lname = 'zed' if label is self.label_zed else ('rs' if label is self.label_realsense else 'bev')
+        print(
+            f'[GUI_SHOW] label={_lname} src={w}x{h} dst={lw}x{lh} | '
+            f'qimage={_qimage_ms:.2f}ms | scaled={_scaled_ms:.2f}ms',
+            flush=True
+        )
 
 
 def main(args=None):
