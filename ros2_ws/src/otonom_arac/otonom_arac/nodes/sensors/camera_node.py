@@ -461,9 +461,6 @@ class CameraNode(Node):
                     self._zed_pub_event.set()
                     _eset_ms = (time.monotonic() - _t2) * 1000.0
 
-                    # PROBE: per-frame print
-                    print(f'[ZED] grab={_grab_ms:.2f}ms | holder_put={_put_ms:.3f}ms | event_set={_eset_ms:.3f}ms', flush=True)
-
                     # PROBE: SUMMARY her 30 frame'de bir
                     _probe_zed_grab_sum += _grab_ms
                     _probe_zed_put_sum  += _put_ms
@@ -566,14 +563,6 @@ class CameraNode(Node):
                 _total_ms = (time.monotonic() - _t_total) * 1000.0
                 self._zed_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
 
-                # PROBE: per-frame print
-                print(
-                    f'[ZED_PUB] event_wait={_wait_ms:.2f}ms | cvtColor={_cvt_ms:.2f}ms | '
-                    f'resize={_resize_ms:.2f}ms | copyto={_copyto_ms:.3f}ms | '
-                    f'publish={_pub_ms:.2f}ms | TOTAL={_total_ms:.2f}ms',
-                    flush=True
-                )
-
                 # PROBE: SUMMARY her 30 frame'de bir
                 _probe_wait_sum   += _wait_ms
                 _probe_cvt_sum    += _cvt_ms
@@ -606,7 +595,7 @@ class CameraNode(Node):
                     interval_ms = (capture_ns - self._zed_last_pub_ns) / 1e6
                     if interval_ms > self._zed_pub_interval_max_ms:
                         self._zed_pub_interval_max_ms = interval_ms
-                    if interval_ms > 50.0:
+                    if interval_ms > 200.0:
                         self._zed_stutter_count += 1
                         self.get_logger().warn(
                             f'[STUTTER] ZED publish interval {interval_ms:.1f}ms '
@@ -668,13 +657,6 @@ class CameraNode(Node):
 
                         _total_ms = (time.monotonic() - _t_total) * 1000.0
                         self._rs_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
-
-                        # PROBE: per-frame print
-                        print(
-                            f'[RS] get_frame={_getf_ms:.2f}ms | copyto={_copyto_ms:.3f}ms | '
-                            f'publish={_pub_ms:.2f}ms | TOTAL={_total_ms:.2f}ms',
-                            flush=True
-                        )
 
                         # PROBE: SUMMARY her 30 frame'de bir
                         _probe_rs_getf_sum   += _getf_ms

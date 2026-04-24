@@ -671,14 +671,6 @@ class MainWindow(QWidget):
 
             _total_ms = (time.monotonic() - _t_ui_total) * 1000.0
 
-            # PROBE: per-frame GUI print
-            print(
-                f'[GUI] lock_wait={_lock_ms:.3f}ms | '
-                f'zed_show={_zed_show_ms:.2f}ms | rs_show={_rs_show_ms:.2f}ms | '
-                f'TOTAL={_total_ms:.2f}ms',
-                flush=True
-            )
-
             # PROBE: SUMMARY her 30 çağrıda bir
             self._probe_lock_sum     += _lock_ms
             self._probe_zed_show_sum += _zed_show_ms
@@ -730,13 +722,7 @@ class MainWindow(QWidget):
 
         label.setPixmap(pixmap)
 
-        # PROBE: label adını bul ve bas
-        _lname = 'zed' if label is self.label_zed else ('rs' if label is self.label_realsense else 'bev')
-        print(
-            f'[GUI_SHOW] label={_lname} src={w}x{h} dst={lw}x{lh} | '
-            f'qimage={_qimage_ms:.2f}ms | scaled={_scaled_ms:.2f}ms',
-            flush=True
-        )
+        pass  # _show_frame done
 
 
 def main(args=None):
