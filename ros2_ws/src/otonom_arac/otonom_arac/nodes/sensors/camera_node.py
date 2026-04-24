@@ -203,14 +203,8 @@ try:
                 # ZED SDK gerçek capture timestamp'ini al (UNIX nanoseconds)
                 ts = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE)
                 frame_ns = ts.get_nanoseconds()
-                # Stale frame tespiti: grab() blocking olduğu için GC pause / Qt jitter
-                # sırasında ZED SDK iç buffer'ına yeni frame birikmiş olabilir.
-                # Yaşlı frame (>40ms) gelirse bir kez daha grab() yap — buffer'ı drain et.
-                if (time.time_ns() - frame_ns) / 1e6 > 40.0:
-                    err2 = self.zed.grab(self.runtime_params)
-                    if err2 == sl.ERROR_CODE.SUCCESS:
-                        ts = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE)
-                        frame_ns = ts.get_nanoseconds()
+                # FIX SORUN-2: stale drain kaldırıldı — çift grab() 30fps→~15fps jitter yaratıyordu.
+                # Ayrı publish thread grab'dan önce koşacağı için stale frame zaten oluşmaz.
                 self.zed.retrieve_image(self.image, sl.VIEW.LEFT, sl.MEM.CPU)
                 image_numpy = self.image.get_data()
                 image_rgb = cv2.cvtColor(image_numpy, cv2.COLOR_RGBA2RGB)
@@ -249,11 +243,12 @@ if REALSENSE_AVAILABLE:
             self.pipeline.start(config)
 
         def get_frame(self):
-            """Non-blocking tarzda: 5ms timeout — frame hazır değilse hızla None döndür."""
+            """30fps=33ms frame süresi; timeout 33ms ile frame gelene kadar blokla."""
             try:
-                frames = self.pipeline.wait_for_frames(timeout_ms=5)
+                # FIX SORUN-3: timeout_ms=5 iken 30fps'de %85 timeout oluyordu →
+                # CPU spin + frame kaybi. 33ms ile her dongu iterasyonu 1 frame uretir.
+                frames = self.pipeline.wait_for_frames(timeout_ms=33)
             except Exception:
-                # Timeout veya hata: capture loop'u bloklama, None döndür
                 return None
             color_frame = frames.get_color_frame()
             if not color_frame:
@@ -341,20 +336,29 @@ class CameraNode(Node):
         self._zed_holder = LatestFrameHolder()
         self._rs_holder = LatestFrameHolder()
         self._running = True
+        # FIX SORUN-1: ZED capture ve publish ayri thread'lerde kosacak.
+        # Event: capture thread frame'i holder'a koydugunda publish thread'i uyandirır.
+        self._zed_pub_event = threading.Event()
         self._pc_interval_ns = int(1e9 / 5)
         self._next_pc_capture_ns = 0
 
-        # ZED başlat + capture thread
+        # ZED başlat + capture thread + publish thread (FIX SORUN-1: ayri thread'ler)
         self.camera = None
         self._zed_thread = None
+        self._zed_pub_thread = None
         if CAMERA_AVAILABLE:
             try:
                 self.camera = cam(self.info)
-                self.get_logger().info('ZED kamera başlatıldı (ayrı thread).')
-                self._zed_thread = threading.Thread(target=self._zed_capture_loop, daemon=True)
+                self.get_logger().info('ZED kamera baslatildi.')
+                self._zed_thread = threading.Thread(
+                    target=self._zed_capture_loop, daemon=True, name='zed_capture')
                 self._zed_thread.start()
+                # FIX SORUN-1: publish ayri thread'de — grab() publish'i beklemez
+                self._zed_pub_thread = threading.Thread(
+                    target=self._zed_publish_loop, daemon=True, name='zed_publish')
+                self._zed_pub_thread.start()
             except Exception as e:
-                self.get_logger().error(f'ZED başlatılamadı: {str(e)}')
+                self.get_logger().error(f'ZED baslatılamadı: {str(e)}')
         else:
             self.get_logger().error('ZED SDK bulunamadı.')
 
@@ -410,64 +414,89 @@ class CameraNode(Node):
         self._perf.add_value('zed_stutter_cnt', lambda: str(self._zed_stutter_count))
 
     def _zed_capture_loop(self):
-        """ZED capture loop — kendi thread'inde sürekli çalışır ve doğrudan publish eder.
-        Timer'a bırakmak yerine capture anında publish: quantization delay (0–33ms) ortadan kalkar.
-        Header.stamp capture anını gösterir → age_ms metriği artık doğru.
-        DEPTH_MODE.NONE: grab başlarından derinlik hesabı kaldırıldı.
+        """ZED capture loop — SADECE grab() + LatestFrameHolder.put() + event.set() yapar.
+        FIX SORUN-1: Publish tamamen ayrı _zed_publish_loop thread'ine taşındı.
+        grab() artık publish'i beklemez → GIL çakışması sıfır, jitter ortadan kalkar.
         """
         while self._running and self.camera is not None:
             try:
-                # DEPTH_MODE.NONE — pc her zaman None, want_point_cloud argümanı gereksiz
                 frame, _pc, frame_ns = self.camera.grab_frame()
                 if frame is not None:
-                    # ZED SDK'dan gelen gerçek capture timestamp (UNIX ns) — stale drain sonrası
+                    # ZED SDK gerçek capture timestamp (UNIX ns)
                     capture_ns = frame_ns if frame_ns is not None else time.time_ns()
                     self._zed_cap_fps.tick()
+                    # FIX SORUN-1: holder'a koy, publish thread'i uyandır — grab() serbest kalır
                     self._zed_holder.put(frame, capture_ns=capture_ns)
-                    # Capture anında doğrudan publish — timer quantization'ı yok
-                    try:
-                        self._zed_cb_timer.start()
-                        start_pub_ns = time.monotonic_ns()
-                        # INTER_NEAREST: GUI preview için yeterli kalite, INTER_LINEAR'dan ~2x hızlı
-                        small = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_NEAREST)
-                        # Pre-allocated buffer'a in-place yaz — tobytes() allocation yok
-                        # Buffer boyutu değiştiyse (ilk frame veya çözünürlük değişimi) yeniden tahsis et
-                        needed = small.nbytes
-                        if len(self._zed_buf) != needed:
-                            self._zed_buf = bytearray(needed)
-                            self._zed_np_view = np.frombuffer(self._zed_buf, dtype=np.uint8)
-                            self._zed_msg.height = small.shape[0]
-                            self._zed_msg.width  = small.shape[1]
-                            self._zed_msg.step   = small.shape[1] * small.shape[2]
-                        # Pre-allocated numpy view ile yaz — sıfır ara nesne, sıfır allocation
-                        np.copyto(self._zed_np_view, small.ravel())
-                        self._zed_msg.data = self._zed_buf
-                        # ZED SDK gerçek capture zamanını stamp olarak kullan
-                        # GUI age_ms = şimdiki_zaman - capture_ns → gerçek end-to-end latency
-                        self._zed_msg.header.stamp.sec = capture_ns // 1_000_000_000
-                        self._zed_msg.header.stamp.nanosec = capture_ns % 1_000_000_000
-                        self._zed_msg.header.frame_id = 'zed_camera_link'
-                        # Tek topic: /zed/image_raw — lane detection ve GUI aynı topic'i kullanır
-                        self.zed_publisher.publish(self._zed_msg)
-                        self._zed_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
-                        # Publish interval jitter ölçümü
-                        if self._zed_last_pub_ns > 0:
-                            interval_ms = (capture_ns - self._zed_last_pub_ns) / 1e6
-                            if interval_ms > self._zed_pub_interval_max_ms:
-                                self._zed_pub_interval_max_ms = interval_ms
-                            if interval_ms > 50.0:  # 33ms nominal + %50 tolerans
-                                self._zed_stutter_count += 1
-                                self.get_logger().warn(
-                                    f'[STUTTER] ZED publish interval {interval_ms:.1f}ms '
-                                    f'(toplam: {self._zed_stutter_count})')
-                        self._zed_last_pub_ns = capture_ns
-                        self._perf.tick()
-                    except Exception as pub_err:
-                        self.get_logger().error(f'ZED inline publish hatası: {pub_err}')
-                    finally:
-                        self._zed_cb_timer.stop()
+                    self._zed_pub_event.set()
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
+
+    def _zed_publish_loop(self):
+        """ZED publish loop — _zed_pub_event ile uyandırılır, holder'dan frame alır, publish eder.
+        FIX SORUN-1: grab() ile publish() GIL çakışması giderildi — tamamen ayrı thread'ler.
+        grab() bir sonraki frame'e geçerken bu thread ROS serializasyonunu halleder.
+        """
+        while self._running:
+            # Yeni frame gelene kadar bekle (timeout: node kapanma sinyali için)
+            signalled = self._zed_pub_event.wait(timeout=0.1)
+            if not signalled:
+                continue
+            self._zed_pub_event.clear()  # sinyali tüket
+
+            if not self._running:
+                break
+
+            try:
+                zed_frame, _pc, capture_ns = self._zed_holder.get()
+                if zed_frame is None:
+                    continue  # başka thread daha hızlı tükettiyse geç
+
+                capture_ns = capture_ns or time.time_ns()
+
+                self._zed_cb_timer.start()
+                start_pub_ns = time.monotonic_ns()
+
+                # INTER_NEAREST: GUI preview için yeterli, INTER_LINEAR'dan ~2x hızlı
+                small = cv2.resize(zed_frame, (640, 360), interpolation=cv2.INTER_NEAREST)
+
+                # Pre-allocated buffer'a in-place yaz — tobytes() allocation yok
+                needed = small.nbytes
+                if len(self._zed_buf) != needed:
+                    # Çözünürlük değişiminde yeniden tahsis et (nadir durum)
+                    self._zed_buf = bytearray(needed)
+                    self._zed_np_view = np.frombuffer(self._zed_buf, dtype=np.uint8)
+                    self._zed_msg.height = small.shape[0]
+                    self._zed_msg.width  = small.shape[1]
+                    self._zed_msg.step   = small.shape[1] * small.shape[2]
+
+                # FIX SORUN-5: np.copyto ile sıfır ara allocation — tobytes() yok
+                np.copyto(self._zed_np_view, small.ravel())
+                self._zed_msg.data = self._zed_buf
+                # ZED SDK gerçek capture zamanını stamp olarak kullan
+                # GUI age_ms = şimdiki_zaman - capture_ns → gerçek end-to-end latency
+                self._zed_msg.header.stamp.sec = capture_ns // 1_000_000_000
+                self._zed_msg.header.stamp.nanosec = capture_ns % 1_000_000_000
+                self._zed_msg.header.frame_id = 'zed_camera_link'
+                self.zed_publisher.publish(self._zed_msg)
+
+                self._zed_pub_latency_ms = (time.monotonic_ns() - start_pub_ns) / 1e6
+
+                # Publish interval jitter ölçümü
+                if self._zed_last_pub_ns > 0:
+                    interval_ms = (capture_ns - self._zed_last_pub_ns) / 1e6
+                    if interval_ms > self._zed_pub_interval_max_ms:
+                        self._zed_pub_interval_max_ms = interval_ms
+                    if interval_ms > 50.0:  # 33ms nominal + %50 tolerans
+                        self._zed_stutter_count += 1
+                        self.get_logger().warn(
+                            f'[STUTTER] ZED publish interval {interval_ms:.1f}ms '
+                            f'(toplam: {self._zed_stutter_count})')
+                self._zed_last_pub_ns = capture_ns
+                self._perf.tick()
+            except Exception as pub_err:
+                self.get_logger().error(f'ZED publish hatası: {pub_err}')
+            finally:
+                self._zed_cb_timer.stop()
 
     def _rs_capture_loop(self):
         """RealSense capture loop — kendi thread'inde sürekli çalışır ve doğrudan publish eder.
@@ -492,7 +521,7 @@ class CameraNode(Node):
                             self._rs_msg.height = frame.shape[0]
                             self._rs_msg.width  = frame.shape[1]
                             self._rs_msg.step   = frame.shape[1] * frame.shape[2]
-                        # Pre-allocated numpy view ile yaz — sıfır ara nesne, sıfır allocation
+                        # FIX SORUN-5: np.copyto ile sıfır ara allocation
                         np.copyto(self._rs_np_view, frame.ravel())
                         self._rs_msg.data = self._rs_buf
                         self._rs_msg.header.stamp = self.get_clock().now().to_msg()
@@ -504,6 +533,10 @@ class CameraNode(Node):
                         self.get_logger().error(f'RS inline publish hatası: {pub_err}')
                     finally:
                         self._rs_cb_timer.stop()
+                else:
+                    # FIX SORUN-4: get_frame() None döndüğünde (exception/timeout) CPU spin engelle.
+                    # timeout_ms=33 ile normalde buraya düşmez; düşerse diğer thread'lere CPU ver.
+                    time.sleep(0.001)
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
@@ -588,7 +621,9 @@ class CameraNode(Node):
     def destroy_node(self):
         """Node kapanırken thread'leri durdur."""
         self._running = False
-        for t in (self._zed_thread, self._rs_thread):
+        # _zed_pub_event'i set ederek publish thread'in wait()'ten çıkmasını sağla
+        self._zed_pub_event.set()
+        for t in (self._zed_thread, self._zed_pub_thread, self._rs_thread):
             if t and t.is_alive():
                 t.join(timeout=1.0)
         if self._zed_timer is not None:

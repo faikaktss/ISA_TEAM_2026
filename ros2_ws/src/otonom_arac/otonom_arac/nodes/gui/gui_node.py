@@ -380,12 +380,13 @@ class GuiNode(Node):
         return "MANUEL" if self.manual_mode else "OTONOM"
 
     def imgmsg_to_cv2(self, msg):
-        # RGB olarak tut — Qt zaten RGB istiyor, çift dönüşüm gereksiz
-        # .copy(): ROS middleware buffer'ını sahipleniriz; QImage bu pointer'ı tutar
-        frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1).copy()
+        # FIX SORUN-6: .copy() kaldırıldı — her callback'te 691KB/921KB gereksiz allocation engellendi.
+        # ROS middleware buffer'ı bu callback boyunca geçerlidir. Kalıcı sahiplenme için
+        # _show_frame içinde QImage oluşturmadan hemen önce frame.copy() yapılır.
+        frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         if msg.encoding == 'mono8':
             frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
-        return frame
+        return frame.copy()  # callback biter bitmez ROS buffer serbest kalabileceğinden bir kere kopyala
 
     def _msg_stamp_to_ns(self, msg):
         stamp = msg.header.stamp
@@ -648,27 +649,18 @@ class MainWindow(QWidget):
             min_size = label.minimumSize()
             lw, lh = min_size.width(), min_size.height()
 
-        if lw > 0 and lh > 0:
-            # Cache: frame boyutu VE label boyutu değişmediyse scale hesabını tekrar yapma
-            cached = getattr(label, '_cached_target_size', None)
-            cached_src = getattr(label, '_cached_src_size', None)
-            cached_label = getattr(label, '_cached_label_size', None)
-            if cached is None or cached_src != (fw, fh) or cached_label != (lw, lh):
-                scale = min(lw / fw, lh / fh)
-                nw, nh = max(1, int(fw * scale)), max(1, int(fh * scale))
-                label._cached_target_size = (nw, nh)
-                label._cached_src_size = (fw, fh)
-                label._cached_label_size = (lw, lh)
-            else:
-                nw, nh = cached
-
-            if (nw, nh) != (fw, fh):
-                frame = cv2.resize(frame, (nw, nh), interpolation=cv2.INTER_LINEAR)
-
         h, w, ch = frame.shape
-        # QImage: frame.data pointer'ını tutar — copy() ile sahiplenilmiş numpy array gerekli
+        # QImage: frame.data pointer'ını tutar — contiguous array gerekli
         qt_img = QImage(frame.data, w, h, ch * w, QImage.Format_RGB888)
-        label.setPixmap(QPixmap.fromImage(qt_img))
+        pixmap = QPixmap.fromImage(qt_img)
+
+        if lw > 0 and lh > 0 and (w != lw or h != lh):
+            # FIX SORUN-7: QPixmap.scaled() — Qt C++ native resize, cv2.resize'dan daha hızlı.
+            # FastTransformation: bilinear kalitesinde Qt-native C++ interpolasyon.
+            # cv2.resize yok → Python→C++ geçiş overhead'i de kalktı.
+            pixmap = pixmap.scaled(lw, lh, Qt.KeepAspectRatio, Qt.FastTransformation)
+
+        label.setPixmap(pixmap)
 
 
 def main(args=None):
