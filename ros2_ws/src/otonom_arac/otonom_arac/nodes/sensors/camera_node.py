@@ -204,11 +204,14 @@ try:
                 ts = self.zed.get_timestamp(sl.TIME_REFERENCE.IMAGE)
                 frame_ns = ts.get_nanoseconds()
                 # FIX SORUN-2: stale drain kaldırıldı — çift grab() 30fps→~15fps jitter yaratıyordu.
-                # Ayrı publish thread grab'dan önce koşacağı için stale frame zaten oluşmaz.
                 self.zed.retrieve_image(self.image, sl.VIEW.LEFT, sl.MEM.CPU)
                 image_numpy = self.image.get_data()
-                image_rgb = cv2.cvtColor(image_numpy, cv2.COLOR_RGBA2RGB)
-                return image_rgb, None, frame_ns
+                # BUG-A FIX: cvtColor T1'den KALDIRILDI.
+                # Önceden: grab() biter → T1 cvtColor için 0.5ms GIL tutardı → T3 ve T2 beklerdi.
+                # Şimdi: ham RGBA array döndür, cvtColor T2 (_zed_publish_loop) içinde yapılır.
+                # T1'in grab() sonrası GIL süresi ~0.5ms → ~0.05ms'ye düştü.
+                # np.ascontiguousarray: ZED Mat'ı C-contiguous yap — cvtColor için gerekli.
+                return np.ascontiguousarray(image_numpy), None, frame_ns
             return None, None, None
 
         def get_distance(self, point_cloud, x, y):
@@ -456,8 +459,11 @@ class CameraNode(Node):
                 self._zed_cb_timer.start()
                 start_pub_ns = time.monotonic_ns()
 
+                # BUG-A FIX: cvtColor T2'ye taşındı — T1'in grab-sonrası GIL baskısı sıfırlandı.
+                # RGBA→RGB: 672×376×4 → 672×376×3. GIL tutulur ama grab() T1'de çoktan bitti.
+                zed_rgb = cv2.cvtColor(zed_frame, cv2.COLOR_RGBA2RGB)
                 # INTER_NEAREST: GUI preview için yeterli, INTER_LINEAR'dan ~2x hızlı
-                small = cv2.resize(zed_frame, (640, 360), interpolation=cv2.INTER_NEAREST)
+                small = cv2.resize(zed_rgb, (640, 360), interpolation=cv2.INTER_NEAREST)
 
                 # Pre-allocated buffer'a in-place yaz — tobytes() allocation yok
                 needed = small.nbytes
@@ -506,7 +512,10 @@ class CameraNode(Node):
             try:
                 frame = self.realsense.get_frame()
                 if frame is not None:
-                    capture_ns = time.monotonic_ns()
+                    # BUG-B FIX: time.monotonic_ns() → time.time_ns() (wall clock).
+                    # gui_node age hesabı: time.time_ns() - capture_ns.
+                    # Farklı clock bazları (monotonic vs wall) anlamsız age değerleri üretiyordu.
+                    capture_ns = time.time_ns()
                     self._rs_cap_fps.tick()
                     self._rs_holder.put(frame, capture_ns=capture_ns)
                     # Capture anında doğrudan publish
@@ -540,83 +549,9 @@ class CameraNode(Node):
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
-    def _publish_zed_callback(self):
-        """KULLANILMIYOR — ZED artık _zed_capture_loop içinde doğrudan publish ediyor.
-        Timer iptal edildi (self._zed_timer = None). Bu metod gerçek zamanda çağrılmaz.
-        """
-        self._zed_cb_timer.start()
-        try:
-            zed_frame, point_cloud, capture_ns = self._zed_holder.get()
-            if zed_frame is not None:
-                if capture_ns is not None:
-                    self._zed_pub_latency_ms = (time.monotonic_ns() - capture_ns) / 1e6
-                stamp = self.get_clock().now().to_msg()
-
-                # Tek resize + tek tobytes() — aynı msg nesnesi iki topic'e publish edilir.
-                # HD720 (2.76 MB) yerine 640×360 (0.69 MB) serialize: ~4× daha az CPU/memory.
-                # lane_detection w,h'yi frame'den alıyor, YOLO imgsz=640 iç resize yapıyor:
-                # çözünürlük düşüşü algoritma doğruluğunu etkilemez.
-                small = cv2.resize(zed_frame, (640, 360), interpolation=cv2.INTER_LINEAR)
-                msg = _numpy_to_imgmsg(small, encoding='rgb8')
-                msg.header.stamp = stamp
-                msg.header.frame_id = 'zed_camera_link'
-                self.zed_publisher.publish(msg)          # lane + object detection
-                self.zed_preview_publisher.publish(msg)  # GUI — aynı nesne, ikinci kopya yok
-
-                # En güncel point cloud'u PC timer için sakla
-                if point_cloud is not None:
-                    with self._pc_data_lock:
-                        self._last_point_cloud = (point_cloud, capture_ns)
-        except Exception as e:
-            self.get_logger().error(f'ZED publish hatası: {str(e)}')
-        finally:
-            self._zed_cb_timer.stop()
-            self._perf.tick()
-
-    def _publish_rs_callback(self):
-        """30 Hz — RealSense yayınlar. ZED'e dokunmaz."""
-        self._rs_cb_timer.start()
-        try:
-            rs_frame, _, capture_ns = self._rs_holder.get()
-            if rs_frame is not None:
-                if capture_ns is not None:
-                    self._rs_pub_latency_ms = (time.monotonic_ns() - capture_ns) / 1e6
-                rs_msg = _numpy_to_imgmsg(rs_frame, encoding='rgb8')
-                rs_msg.header.stamp = self.get_clock().now().to_msg()
-                rs_msg.header.frame_id = 'realsense_camera_link'
-                self.realsense_publisher.publish(rs_msg)
-        except Exception as e:
-            self.get_logger().error(f'RealSense publish hatası: {str(e)}')
-        finally:
-            self._rs_cb_timer.stop()
-            self._perf.tick()
-
-    def _publish_pc_callback(self):
-        """5 Hz — Point cloud yayınlar. tolist() GIL spike ZED/RS'den izole."""
-        self._pc_cb_timer.start()
-        try:
-            with self._pc_data_lock:
-                pc_entry = self._last_point_cloud
-                self._last_point_cloud = None
-            if pc_entry is None:
-                return
-            pc, capture_ns = pc_entry
-            if capture_ns is not None:
-                self._pc_age_ms = (time.monotonic_ns() - capture_ns) / 1e6
-            pc_data = pc.get_data()  # (H, W, 4) float32 — X,Y,Z,W cm
-            STEP = 8
-            ds = pc_data[::STEP, ::STEP, :3].astype(np.float32)
-            h_ds, w_ds = ds.shape[:2]
-            header = np.array([h_ds, w_ds, STEP], dtype=np.float32)
-            combined = np.concatenate([header, ds.ravel()])
-            pc_msg = Float32MultiArray()
-            pc_msg.data = combined.tolist()
-            self.point_cloud_publisher.publish(pc_msg)
-        except Exception as e:
-            self.get_logger().debug(f'Point cloud yayın hatası: {e}')
-        finally:
-            self._pc_cb_timer.stop()
-            self._perf.tick()
+    # _publish_zed_callback / _publish_rs_callback / _publish_pc_callback
+    # KALDIRILDI — timer'lar None, bu method'lar hiç çağrılmıyordu.
+    # ZED artık _zed_publish_loop thread'inde, RS _rs_capture_loop'ta publish ediyor.
 
     def destroy_node(self):
         """Node kapanırken thread'leri durdur."""

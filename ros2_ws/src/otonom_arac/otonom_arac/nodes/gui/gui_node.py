@@ -208,6 +208,8 @@ class GuiNode(Node):
         self._dbscan_event = threading.Event()   # yeni veri geldi sinyali
         self._dbscan_stop  = threading.Event()   # node kapanırken dur sinyali
         if ADVANCED_LIDAR:
+            # BUG-D FIX: DBSCAN nesnesi bir kez oluşturuluyor, her iterasyonda yeniden allocation yok.
+            self._dbscan = DBSCAN(eps=200, min_samples=4)
             self._dbscan_thread = threading.Thread(
                 target=self._dbscan_worker_loop, daemon=True, name='dbscan_worker')
             self._dbscan_thread.start()
@@ -367,8 +369,8 @@ class GuiNode(Node):
                 y = ranges_arr[valid_mask] * 1000.0 * np.cos(angles)
                 points_np = np.column_stack([x, y])
 
-                dbscan = DBSCAN(eps=200, min_samples=4)
-                labels = dbscan.fit(points_np).labels_
+                # BUG-D FIX: self._dbscan — __init__'de bir kez oluşturuldu, yeniden allocation yok
+                labels = self._dbscan.fit(points_np).labels_
                 label_to_name = self._cluster_tracker.update_clusters(points_np, labels)
                 with self._lidar_lock:
                     self.lidar_data = (points_np, labels, label_to_name)
