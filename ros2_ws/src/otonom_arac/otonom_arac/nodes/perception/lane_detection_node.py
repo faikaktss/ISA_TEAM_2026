@@ -366,12 +366,11 @@ def _ros_node_class():
                             self._lane_no_serit_logged = True
                     else:
                         self._lane_no_serit_logged = False
-                    # TERMINAL: 1 saniyede bir özet
-                    if _now - self._lane_last_status >= 1.0:
-                        _fps = self._lane_fps_count / (_now - self._lane_last_status)
+                    # TERMINAL: 10 saniyede bir özet
+                    if _now - self._lane_last_status >= 10.0:
                         print(
-                            f'[LANE] açı={self.det.smooth_aci:.1f}° | '
-                            f'offset={self.det.smooth_kayma:.1f} | fps={_fps:.1f}',
+                            f'[LANE] \u2713 Aktif | açı={self.det.smooth_aci:.1f}° | '
+                            f'offset={self.det.smooth_kayma:.1f}',
                             flush=True)
                         self._lane_fps_count = 0
                         self._lane_last_status = _now

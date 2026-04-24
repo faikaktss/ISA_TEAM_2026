@@ -145,10 +145,9 @@ if ROS2_AVAILABLE:
                     _now = time.time()
                     if _now - self._last_summary_time >= 1.0:
                         mod_str = 'MANUEL' if self.manual_mode else 'OTONOM'
-                        _hz = self._cmd_count / (_now - self._last_summary_time)
                         print(
-                            f'[TEENSY] ✓ sag_sol={sag_sol} | ileri_geri={ileri_geri} | '
-                            f'vites={vites} | mod={mod_str} | {_hz:.0f}Hz',
+                            f'[TEENSY] CH1(sag_sol)={sag_sol} | CH3(ileri_geri)={ileri_geri} | '
+                            f'CH7(vites)={vites} | CH10(otonom)={otonom} | mod={mod_str}',
                             flush=True)
                         self._cmd_count = 0
                         self._last_summary_time = _now

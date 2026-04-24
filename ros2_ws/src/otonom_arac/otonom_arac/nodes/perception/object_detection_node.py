@@ -101,7 +101,7 @@ class ObjectDetectionNode(Node):
         self._det_total_count = 0
         self._det_last_class = '-'
         self._det_last_summary = _time.time()
-        self.create_timer(5.0, self._terminal_summary_5s)
+        # LOG DÜZENLEME: 5s özet timer kaldırıldı
 
     def point_cloud_callback(self, msg):
         """
@@ -223,8 +223,8 @@ class ObjectDetectionNode(Node):
                         f'Tespit: {best_class} (conf: {best_conf:.2f}, mesafe: {best_distance:.1f} cm)')
                     # TERMINAL: tabela değişince bas
                     print(
-                        f'[DETECTION] ✓ Tabela: {best_class} | '
-                        f'mesafe: {best_distance/100:.1f}m | güven: %{best_conf*100:.0f}',
+                        f'[DETECTION] \u2713 Tabela: {best_class} | '
+                        f'mesafe={best_distance/100:.1f}m | güven: %{best_conf*100:.0f}',
                         flush=True)
                     self._last_logged_class = best_class
                     self._same_class_count = 1
@@ -233,26 +233,17 @@ class ObjectDetectionNode(Node):
                 # TERMINAL: toplam sayım güncelle
                 self._det_total_count += 1
                 self._det_last_class = best_class
+            else:
+                # LOG DÜZENLEMETabela yok — sadece önceden bir tabela varken değişince bas
+                if hasattr(self, '_last_logged_class') and self._last_logged_class != '':
+                    print('[DETECTION] Tabela yok', flush=True)
+                    self._last_logged_class = ''
 
         except Exception as e:
             self.get_logger().error(f'Object detection hatasi: {str(e)}')
         finally:
             with self._busy_lock:
                 self._busy = False
-
-    # TERMINAL: 5 saniyede bir detection özeti
-    def _terminal_summary_5s(self):
-        import time as _time
-        _now = _time.time()
-        _elapsed = _now - self._det_last_summary
-        _fps = self._det_total_count / _elapsed if _elapsed > 0 else 0
-        print(
-            f'[DETECTION] fps={_fps:.1f} | son tabela={self._det_last_class} | '
-            f'toplam algılama={self._det_total_count}',
-            flush=True)
-        self._det_total_count = 0
-        self._det_last_summary = _now
-
 
 def main(args=None):
     rclpy.init(args=args)

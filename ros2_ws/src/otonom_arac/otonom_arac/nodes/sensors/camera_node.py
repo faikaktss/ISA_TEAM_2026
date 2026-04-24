@@ -390,7 +390,7 @@ class CameraNode(Node):
         self._zed_timer = None  # devre dışı — capture loop publish ediyor
         self._rs_timer  = None  # devre dışı — capture loop publish ediyor
         # TERMINAL: 5s fps özet timer
-        self._cam_status_timer = self.create_timer(5.0, self._terminal_cam_status_5s)
+        # LOG DÜZENLEME: 5s kamera fps timer kaldırıldı
         self._cam_zed_fps_prev = 0
         self._cam_rs_fps_prev  = 0
 
@@ -699,22 +699,6 @@ class CameraNode(Node):
             except Exception:
                 time.sleep(0.001)  # hata döngüsünde CPU spike engelle
 
-
-    # TERMINAL: 5 saniyede bir kamera fps özeti
-    def _terminal_cam_status_5s(self):
-        zed_fps  = self._zed_cap_fps.fps()
-        rs_fps   = self._rs_cap_fps.fps()
-        zed_drop = self._zed_holder.dropped()
-        rs_drop  = self._rs_holder.dropped()
-        print(
-            f'[CAM] ZED={zed_fps:.0f}fps (dropped={zed_drop}) | '
-            f'RS={rs_fps:.0f}fps (dropped={rs_drop})',
-            flush=True)
-        # TERMINAL: FPS uyarısı
-        if zed_fps < 20 and self.camera is not None:
-            print(f'[CAM] ⚠ ZED FPS düştü: {zed_fps:.0f}fps (beklenen 30fps)', flush=True)
-        if rs_fps < 20 and self.realsense is not None:
-            print(f'[CAM] ⚠ RS FPS düştü: {rs_fps:.0f}fps (beklenen 30fps)', flush=True)
 
     def destroy_node(self):
         """Node kapanırken thread'leri durdur."""

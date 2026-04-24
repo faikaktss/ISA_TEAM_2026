@@ -179,7 +179,7 @@ class LidarNode(Node):
         # 10 Hz publish timer — sadece son taraması yayınlar
         self.timer = self.create_timer(0.1, self.timer_callback)
         # TERMINAL: 1s özet timer
-        self._status_timer = self.create_timer(1.0, self._terminal_status_1s)
+        self._status_timer = self.create_timer(10.0, self._terminal_status_1s)
 
     def _lidar_read_loop(self):
         """Arka plan thread'i: iter_measures() burada bloklar, ana executor etkilenmez."""
@@ -303,10 +303,8 @@ class LidarNode(Node):
         if self._last_scan_time > 0 and (_now - self._last_scan_time) > 3.0:
             print(f'[LIDAR] ✗ Tarama verisi gelmiyor! ({_now-self._last_scan_time:.0f}s süredir)', flush=True)
         elif self._last_scan_time > 0:
-            _engel_str = ['yok', 'durağan', 'hareketli'][min(self._last_engel, 2)] if self._last_engel >= 0 else 'bilinmiyor'
             print(
-                f'[LIDAR] engel={_engel_str} | ön_mesafe={self._lidar_on_mesafe:.2f}m | '
-                f'nokta_sayısı={self._lidar_nokta_sayisi} | 10Hz',
+                f'[LIDAR] ✓ Aktif | ön_mesafe={self._lidar_on_mesafe:.2f}m | engel={self._last_engel}',
                 flush=True)
 
     def destroy_node(self):

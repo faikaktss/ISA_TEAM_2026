@@ -83,7 +83,7 @@ if ROS2_AVAILABLE:
 
             self.timer = self.create_timer(0.02,self.read_encoder)
             # TERMINAL: 1s özet timer + takip değişkenleri
-            self._status_timer = self.create_timer(1.0, self._terminal_status_1s)
+            self._status_timer = self.create_timer(5.0, self._terminal_status_1s)
             self._last_speed = 0.0
             self._no_data_count = 0
 

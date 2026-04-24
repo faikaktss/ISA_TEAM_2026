@@ -579,17 +579,15 @@ class MainWindow(QWidget):
 
         _t_ui_total = time.monotonic()
 
-        # ── Jitter ölçümü: QTimer 33ms nominal, 50ms+ = stutter frame ──
+        # ── Jitter ölçümü: QTimer 33ms nominal ──
         now_perf = time.perf_counter()
         if self._last_ui_time > 0.0:
             interval_ms = (now_perf - self._last_ui_time) * 1000.0
             if interval_ms > node._ui_interval_max_ms:
                 node._ui_interval_max_ms = interval_ms
+            # LOG DÜZENLEME: STUTTER warn kaldırıldı
             if interval_ms > 50.0:
                 node._ui_stutter_count += 1
-                node.get_logger().warn(
-                    f'[STUTTER] UI interval {interval_ms:.1f}ms '
-                    f'(toplam: {node._ui_stutter_count})')
         self._last_ui_time = now_perf
 
         node._gui_render_timer.start()
@@ -664,33 +662,19 @@ class MainWindow(QWidget):
                         self._last_lidar_render_time = _now_lidar
                         if _lidar_ms > node._lidar_render_max_ms:
                             node._lidar_render_max_ms = _lidar_ms
-                        if _lidar_ms > 15.0:
-                            node.get_logger().warn(f'[STUTTER] Lidar render {_lidar_ms:.1f}ms')
+                        # LOG DÜZENLEME: lidar stutter warn kaldırıldı
                 else:
                     self.label_lidar.setText(f"Lidar\n{len(lidar_snapshot)} nokta")
 
             _total_ms = (time.monotonic() - _t_ui_total) * 1000.0
 
-            # PROBE: SUMMARY her 30 çağrıda bir
+            # LOG DÜZENLEME: SUMMARY print kaldırıldı — periyodik fps logu yok
             self._probe_lock_sum     += _lock_ms
             self._probe_zed_show_sum += _zed_show_ms
             self._probe_rs_show_sum  += _rs_show_ms
             self._probe_total_sum    += _total_ms
             self._probe_gui_count    += 1
-            if self._probe_gui_count % 30 == 0:
-                _n = 30
-                print(
-                    f'[SUMMARY] GUI_fps≈{1000.0*_n/self._probe_total_sum:.1f} '
-                    f'| lock_avg={self._probe_lock_sum/_n:.3f}ms '
-                    f'| zed_show_avg={self._probe_zed_show_sum/_n:.2f}ms '
-                    f'| rs_show_avg={self._probe_rs_show_sum/_n:.2f}ms '
-                    f'| total_avg={self._probe_total_sum/_n:.2f}ms',
-                    flush=True
-                )
-                self._probe_lock_sum     = 0.0
-                self._probe_zed_show_sum = 0.0
-                self._probe_rs_show_sum  = 0.0
-                self._probe_total_sum    = 0.0
+            # (SUMMARY print silindi)
 
         finally:
             node._gui_render_timer.stop()

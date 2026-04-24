@@ -87,10 +87,7 @@ class ControlNode(Node):
             self.get_logger().error('pyserial bulunamadı, arduino bağlantısı kurulamıyor')
 
         self.control_timer = self.create_timer(0.1, self.control_loop)
-        # TERMINAL: 1 saniyede bir durum özeti
-        self._status_1s_timer = self.create_timer(1.0, self._terminal_status_1s)
-        # TERMINAL: 5 saniyede bir sistem sağlık özeti
-        self._health_5s_timer = self.create_timer(5.0, self._terminal_health_5s)
+        # LOG DÜZENLEME: 1s ve 5s periyodik timer kaldırıldı
 
         # IMU timer kendi thread'inde çalışır — serial readline() control_loop'u bloklamamaz
         self._imu_cb_group = MutuallyExclusiveCallbackGroup()
@@ -98,9 +95,17 @@ class ControlNode(Node):
                                            callback_group=self._imu_cb_group)
 
         self.get_logger().info('Control node başlatıldı')
-        # TERMINAL: başlangıç özeti
-        arduino_str = 'bağlı' if self.arduino else 'YOK'
-        print(f'[CONTROL] Başlatıldı | Arduino: {arduino_str} | Port: {arduino_port}', flush=True)
+        # LOG DÜZENLEME: startup bağlantı durumu
+        if self.arduino:
+            print(f'[CONTROL] Arduino: BAĞLI {arduino_port}', flush=True)
+        else:
+            print(f'[CONTROL] Arduino: BAĞLANAMADI {arduino_port}', flush=True)
+        # IMU 10s log için takip
+        self._imu_aktif_logged = False
+        self._imu_last_log_time = 0.0
+        self._imu_kesilen_logged = False
+        # Engel değişim takibi
+        self._engel_prev = 0
 
     def imu_okuma(self):
         """Arduino'dan IMU açısını oku ve /imu/angle topic'ine yayınla"""
@@ -117,6 +122,13 @@ class ControlNode(Node):
                         self.imu_angle = float(line)
                         # TERMINAL: IMU zaman güncelle
                         self._imu_last_time = time.time()
+                        # LOG DÜZENLEME: ilk kez ve her 10s'de bir IMU aktif logu
+                        _now = time.time()
+                        if not self._imu_aktif_logged or (_now - self._imu_last_log_time) >= 10.0:
+                            print(f'[CONTROL] IMU aktif: {self.imu_angle:.1f}°', flush=True)
+                            self._imu_aktif_logged = True
+                            self._imu_last_log_time = _now
+                            self._imu_kesilen_logged = False
                         imu_msg = Float32()
                         imu_msg.data = self.imu_angle
                         self.imu_pub.publish(imu_msg)
@@ -124,6 +136,12 @@ class ControlNode(Node):
                         pass
         except Exception as e:
             self.get_logger().warning(f'IMU okuma hatası: {e}')
+        # LOG DÜZENLEME: IMU 5s kesilirse uyar
+        _now2 = time.time()
+        if self._imu_aktif_logged and self._imu_last_time > 0 and \
+                (_now2 - self._imu_last_time) > 5.0 and not self._imu_kesilen_logged:
+            print('[CONTROL] ⚠ IMU VERİSİ KESİLDİ', flush=True)
+            self._imu_kesilen_logged = True
 
     def lane_angle_callback(self, msg):
         self.current_angle = int(msg.data)
@@ -155,7 +173,16 @@ class ControlNode(Node):
     def lidar_obstacle_callback(self, msg):
         """lidar_node'dan gelen hazir engel durumu: 0=yok, 1=durugan, 2=hareketli/kritik"""
         self._obstacle_topic_aktif = True
-        self.engel_durumu = msg.data
+        yeni = msg.data
+        # LOG DÜZENLEME: engel durumu değişince bas
+        if yeni != self._engel_prev:
+            engel_map = {0: 'yok', 1: 'durağan', 2: 'hareketli'}
+            if yeni == 0:
+                print('[CONTROL] ✓ Engel kalktı', flush=True)
+            else:
+                print(f'[CONTROL] ⚠ ENGEL: {engel_map.get(yeni, str(yeni))}', flush=True)
+            self._engel_prev = yeni
+        self.engel_durumu = yeni
         # TERMINAL: lidar zaman güncelle
         self._lidar_last_time = time.time()
 
@@ -359,44 +386,7 @@ class ControlNode(Node):
                 else:
                     self.get_logger().debug('Aci verisi yok, bekliyorum')
 
-    # TERMINAL: 1 saniyede bir IMU + state özeti
-    def _terminal_status_1s(self):
-        _now = time.time()
-        engel_str = ['YOK', 'SABİT', 'HAREKETLİ'][min(self.engel_durumu, 2)]
-        angle_str = str(self.current_angle) if self.current_angle is not None else '-'
-        offset_str = f'{self.current_offset:.1f}' if self.current_offset is not None else '-'
-        print(
-            f'[CONTROL] IMU={self.imu_angle:.1f}° | state={self.state} | '
-            f'engel={engel_str} | açı={angle_str} | offset={offset_str}',
-            flush=True)
-        # IMU timeout uyarısı
-        if self._imu_last_time > 0 and (_now - self._imu_last_time) > 3.0:
-            print(f'[CONTROL] ⚠ IMU verisi gelmiyor! ({_now - self._imu_last_time:.0f}s süredir)', flush=True)
-        # Lane timeout uyarısı
-        if self._lane_last_time > 0 and (_now - self._lane_last_time) > 3.0:
-            print(f'[CONTROL] ⚠ Lane açısı gelmiyor! Kör gidiyorum.', flush=True)
-
-    # TERMINAL: 5 saniyede bir sistem sağlık özeti
-    def _terminal_health_5s(self):
-        _now = time.time()
-        def _durum(last_t, val_str):
-            if last_t == 0.0:
-                return f'✗ VERİ YOK  '
-            ago = _now - last_t
-            ok = ago <= 3.0
-            return f'{"✓" if ok else "✗"} {val_str:<12}| {ago:.0f}s önce'
-        imu_d    = _durum(self._imu_last_time,       f'{self.imu_angle:.1f}°')
-        lane_d   = _durum(self._lane_last_time,       f'açı={self.current_angle or "-"}')
-        det_d    = _durum(self._detection_last_time,  str(self.current_tabela or '-'))
-        lidar_d  = _durum(self._lidar_last_time,      f'engel={self.engel_durumu}')
-        state_s  = _now - self._state_start_time
-        print('\n━━ SİSTEM ÖZET [5s] ' + '━'*36, flush=True)
-        print(f'[SYS] IMU       : {imu_d}', flush=True)
-        print(f'[SYS] Lane      : {lane_d}', flush=True)
-        print(f'[SYS] Detection : {det_d}', flush=True)
-        print(f'[SYS] LiDAR     : {lidar_d}', flush=True)
-        print(f'[SYS] State     : {self.state:<20}| {state_s:.0f}s süredir', flush=True)
-        print('━'*54, flush=True)
+    # LOG DÜZENLEME: _terminal_status_1s ve _terminal_health_5s kaldırıldı
 
     def destroy_node(self):
         if self.arduino:
