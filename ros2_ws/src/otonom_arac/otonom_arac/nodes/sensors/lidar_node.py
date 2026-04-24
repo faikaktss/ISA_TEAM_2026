@@ -142,6 +142,14 @@ class LidarNode(Node):
         # DBSCAN instance (her frame'de yeniden oluşturmak yerine)
         self._dbscan = DBSCAN(eps=200, min_samples=4) if SKLEARN_AVAILABLE else None
 
+        # TERMINAL: takip değişkenleri
+        self._last_engel = -1
+        self._last_scan_time = 0.0
+        self._lidar_scan_count = 0
+        self._lidar_last_status = 0.0
+        self._lidar_on_mesafe = 0.0
+        self._lidar_nokta_sayisi = 0
+
         # RPLidar bağlantısı
         self.lidar = None
         if RPLIDAR_AVAILABLE:
@@ -149,11 +157,16 @@ class LidarNode(Node):
                 self.lidar = RPLidar(lidar_port, baudrate=lidar_baudrate)
                 self.lidar.start_motor()
                 self.get_logger().info(f'RPLidar bağlandı: {lidar_port}')
+                # TERMINAL: başlangıç logu
+                print(f'[LIDAR] Başlatıldı | topic: /lidar/scan subscribe edildi | Port: {lidar_port}', flush=True)
             except Exception as e:
                 self.get_logger().warn(f'RPLidar bağlanamadı: {e}')
+                # TERMINAL: bağlantı hatası
+                print(f'[LIDAR] ✗ Bağlantı kurulamadı: {lidar_port} — {e}', flush=True)
                 self.lidar = None
         else:
             self.get_logger().warn('rplidar kütüphanesi yok. pip install rplidar-roboticia')
+            print('[LIDAR] ⚠ rplidar kütüphanesi yok — donanım bağlanamaz', flush=True)
 
         if not SKLEARN_AVAILABLE:
             self.get_logger().warn('sklearn yok — DBSCAN devre dışı. pip install scikit-learn')
@@ -163,8 +176,10 @@ class LidarNode(Node):
             self._read_thread = threading.Thread(target=self._lidar_read_loop, daemon=True)
             self._read_thread.start()
 
-        # 10 Hz publish timer — sadece son taramayı yayınlar
+        # 10 Hz publish timer — sadece son taraması yayınlar
         self.timer = self.create_timer(0.1, self.timer_callback)
+        # TERMINAL: 1s özet timer
+        self._status_timer = self.create_timer(1.0, self._terminal_status_1s)
 
     def _lidar_read_loop(self):
         """Arka plan thread'i: iter_measures() burada bloklar, ana executor etkilenmez."""
@@ -263,6 +278,36 @@ class LidarNode(Node):
         obs_msg = Int32()
         obs_msg.data = engel_durum
         self.obstacle_publisher.publish(obs_msg)
+
+        # TERMINAL: engel durumu değişince aninda bas
+        if engel_durum != self._last_engel:
+            if engel_durum == 0:
+                print('[LIDAR] ✓ Engel kalktı', flush=True)
+            elif engel_durum == 1:
+                _m = on / 1000.0 if on > 0 else 0.0
+                print(f'[LIDAR] ⚠ ENGEL TESPİT: durağan | mesafe={_m:.2f}m', flush=True)
+            elif engel_durum == 2:
+                _m = on / 1000.0 if on > 0 else 0.0
+                print(f'[LIDAR] ⚠ ENGEL TESPİT: hareketli/kritik | mesafe={_m:.2f}m', flush=True)
+            self._last_engel = engel_durum
+        # TERMINAL: özet için takip
+        import time as _time
+        self._last_scan_time = _time.time()
+        self._lidar_on_mesafe = on / 1000.0 if on > 0 else 0.0
+        self._lidar_nokta_sayisi = len(tarama)
+
+    # TERMINAL: 1 saniyede bir lidar özeti
+    def _terminal_status_1s(self):
+        import time as _time
+        _now = _time.time()
+        if self._last_scan_time > 0 and (_now - self._last_scan_time) > 3.0:
+            print(f'[LIDAR] ✗ Tarama verisi gelmiyor! ({_now-self._last_scan_time:.0f}s süredir)', flush=True)
+        elif self._last_scan_time > 0:
+            _engel_str = ['yok', 'durağan', 'hareketli'][min(self._last_engel, 2)] if self._last_engel >= 0 else 'bilinmiyor'
+            print(
+                f'[LIDAR] engel={_engel_str} | ön_mesafe={self._lidar_on_mesafe:.2f}m | '
+                f'nokta_sayısı={self._lidar_nokta_sayisi} | 10Hz',
+                flush=True)
 
     def destroy_node(self):
         self._running = False

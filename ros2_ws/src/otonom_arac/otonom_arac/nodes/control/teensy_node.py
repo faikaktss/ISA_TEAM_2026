@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 try:
     import rclpy
     from rclpy.node import Node
@@ -28,8 +29,12 @@ if ROS2_AVAILABLE:
             try:
                 self.teensy = serial.Serial(teensy_port, teensy_baudrate, timeout=1)
                 self.get_logger().info(f'Teensy bağlandı: {teensy_port} @ {teensy_baudrate}')
+                # TERMINAL: bağlantı özeti
+                print(f'[TEENSY] Bağlandı: {teensy_port} @ {teensy_baudrate} baud | 50Hz', flush=True)
             except Exception as e:
                 self.get_logger().error(f'Teensy bağlanamadı: {e}')
+                # TERMINAL: bağlantı hatası
+                print(f'[TEENSY] ✗ Bağlantı kurulamadı: {teensy_port} — {e}', flush=True)
                 raise
             
             # Todo: Durum değişkenleri - MANUEL MOD
@@ -68,6 +73,9 @@ if ROS2_AVAILABLE:
             
             # Todo: Timer - 50 Hz (0.02 saniye)
             self.timer = self.create_timer(0.02, self.send_to_teensy)
+            # TERMINAL: 1s özet sayaçları
+            self._cmd_count = 0
+            self._last_summary_time = time.time()
             
             self.get_logger().info('Teensy node başlatıldı - 50Hz çalışıyor')
         
@@ -125,20 +133,29 @@ if ROS2_AVAILABLE:
             if self.teensy:
                 try:
                     self.teensy.write(command.encode())
-                    # Log azaltma: Aynı komut tekrar ediyorsa ilk ve son kez log yaz
-                    # 50 tekrar → sadece 2 log (başlangıç + bitiş)
+                    # Komut değişince logla
                     if command.strip() != self._last_command:
-                        # Önceki komut bittiyse kaç kez tekrar ettiğini logla
-                        if self._same_command_count > 1:
-                            self.get_logger().info(f'Teensy → (önceki komut {self._same_command_count}x tekrar etti)')
-                        # Yeni komutu logla
                         self.get_logger().info(f'Teensy → {command.strip()}')
                         self._last_command = command.strip()
                         self._same_command_count = 1
                     else:
                         self._same_command_count += 1
+                    # TERMINAL: her 1 saniyede bir özet (50 komut ≈ 1s)
+                    self._cmd_count += 1
+                    _now = time.time()
+                    if _now - self._last_summary_time >= 1.0:
+                        mod_str = 'MANUEL' if self.manual_mode else 'OTONOM'
+                        _hz = self._cmd_count / (_now - self._last_summary_time)
+                        print(
+                            f'[TEENSY] ✓ sag_sol={sag_sol} | ileri_geri={ileri_geri} | '
+                            f'vites={vites} | mod={mod_str} | {_hz:.0f}Hz',
+                            flush=True)
+                        self._cmd_count = 0
+                        self._last_summary_time = _now
                 except Exception as e:
                     self.get_logger().error(f'Teensy yazma hatası: {e}')
+                    # TERMINAL: yazma hatası
+                    print(f'[TEENSY] ✗ YAZMA HATASI: {e}', flush=True)
         
         def destroy_node(self):
             """Node kapanırken Teensy bağlantısını kapat"""

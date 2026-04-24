@@ -63,11 +63,13 @@ if ROS2_AVAILABLE:
             #Todo: Ardunio bağlantısı
             try:
                 self.arduino =Arduino(COM=port, baudrate=baudrate,timeout=1)
-                # NOT: time.sleep(2) kaldırıldı — Arduino reset süresi için
-                # ilk birkaç okuma None dönebilir, read_encoder bunu handle ediyor
                 self.get_logger().info(f'Arduino Encoder bağlandı: {port} @ {baudrate}')
+                # TERMINAL: başlangıç logu
+                print(f'[ENCODER] Başlatıldı | Port: {port} @ {baudrate}', flush=True)
             except Exception as e:
                 self.get_logger().error(f'Arduino Encoder bağlantı hatası: {e}')
+                # TERMINAL: bağlantı hatası
+                print(f'[ENCODER] ✗ Port açılamadı: {port} — {e}', flush=True)
                 raise
 
             #Todo: Veri yayınlanacak topicler
@@ -80,6 +82,10 @@ if ROS2_AVAILABLE:
             self.last_time = time.time()
 
             self.timer = self.create_timer(0.02,self.read_encoder)
+            # TERMINAL: 1s özet timer + takip değişkenleri
+            self._status_timer = self.create_timer(1.0, self._terminal_status_1s)
+            self._last_speed = 0.0
+            self._no_data_count = 0
 
             self.get_logger().info('Encoder Node başlatıldı - 50Hz')
 
@@ -97,6 +103,9 @@ if ROS2_AVAILABLE:
 
                     if time_diff > 0:
                         speed=(distance - self.last_distance) /time_diff
+                        # TERMINAL: hız güncelle
+                        self._last_speed = float(speed)
+                        self._no_data_count = 0
 
                         speed_msg = Float32()
                         speed_msg.data = float(speed)
@@ -105,9 +114,19 @@ if ROS2_AVAILABLE:
 
                     self.last_distance = distance
                     self.last_time = current_time
+                else:
+                    # TERMINAL: veri gelmiyorsa sayı
+                    self._no_data_count += 1
 
             except Exception as e:
                 self.get_logger().warning(f'Encoder okuma hatası: {e}')
+
+        # TERMINAL: 1 saniyede bir encoder özeti
+        def _terminal_status_1s(self):
+            if self._no_data_count > 40:  # ~50Hz * 40 ≈ 0.8s
+                print(f'[ENCODER] ✗ Veri gelmiyor — Arduino bağlı mı?', flush=True)
+            else:
+                print(f'[ENCODER] mesafe={self.last_distance} mm | hız={self._last_speed:.1f}', flush=True)
 
 
     def main(args=None):

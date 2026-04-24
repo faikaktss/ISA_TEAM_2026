@@ -84,13 +84,24 @@ class ObjectDetectionNode(Node):
             try:
                 self.model = YOLO(model_path)
                 self.get_logger().info(f'YOLO modeli yüklendi (device: {_YOLO_DEVICE})')
+                # TERMINAL: başlangıç logu
+                print(f'[DETECTION] Başlatıldı | YOLO modeli yüklendi ({_YOLO_DEVICE})', flush=True)
             except Exception as e:
                 self.get_logger().error(
                     f'YOLO modeli yüklenemedi: {e}\n'
                     f'Model dosyası bozuk olabilir. Modeli yeniden kopyalayın.')
+                # TERMINAL: model hatası
+                print(f'[DETECTION] ✗ Model yüklenemedi: {e}', flush=True)
                 self.model = None
         else:
             self.get_logger().error('YOLO bulunamadı, nesne tespiti çalışmayacak.')
+            print('[DETECTION] ✗ YOLO bulunamadı — nesne tespiti devre dışı', flush=True)
+        # TERMINAL: 5s özet için sayaçlar
+        import time as _time
+        self._det_total_count = 0
+        self._det_last_class = '-'
+        self._det_last_summary = _time.time()
+        self.create_timer(5.0, self._terminal_summary_5s)
 
     def point_cloud_callback(self, msg):
         """
@@ -210,16 +221,37 @@ class ObjectDetectionNode(Node):
                             f'Tespit özet: {self._last_logged_class} ({self._same_class_count}x tekrar)')
                     self.get_logger().info(
                         f'Tespit: {best_class} (conf: {best_conf:.2f}, mesafe: {best_distance:.1f} cm)')
+                    # TERMINAL: tabela değişince bas
+                    print(
+                        f'[DETECTION] ✓ Tabela: {best_class} | '
+                        f'mesafe: {best_distance/100:.1f}m | güven: %{best_conf*100:.0f}',
+                        flush=True)
                     self._last_logged_class = best_class
                     self._same_class_count = 1
                 else:
                     self._same_class_count += 1
+                # TERMINAL: toplam sayım güncelle
+                self._det_total_count += 1
+                self._det_last_class = best_class
 
         except Exception as e:
             self.get_logger().error(f'Object detection hatasi: {str(e)}')
         finally:
             with self._busy_lock:
                 self._busy = False
+
+    # TERMINAL: 5 saniyede bir detection özeti
+    def _terminal_summary_5s(self):
+        import time as _time
+        _now = _time.time()
+        _elapsed = _now - self._det_last_summary
+        _fps = self._det_total_count / _elapsed if _elapsed > 0 else 0
+        print(
+            f'[DETECTION] fps={_fps:.1f} | son tabela={self._det_last_class} | '
+            f'toplam algılama={self._det_total_count}',
+            flush=True)
+        self._det_total_count = 0
+        self._det_last_summary = _now
 
 
 def main(args=None):

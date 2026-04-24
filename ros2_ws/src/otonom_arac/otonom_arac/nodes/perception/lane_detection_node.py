@@ -322,6 +322,13 @@ def _ros_node_class():
                 self._bev_msg.is_bigendian = False
                 self.get_logger().info('Serit algilama (BEV) basladi')
                 self.get_logger().info(f'SRC (640x360): {self.det.tf.src.tolist()}')
+                # TERMINAL: başlangıç logu + takip değişkenleri
+                print('[LANE] Başlatıldı | /zed/image_raw subscribe edildi', flush=True)
+                import time as _time
+                self._lane_fps_count = 0
+                self._lane_last_status = _time.time()
+                self._lane_last_frame  = 0.0
+                self._lane_no_serit_logged = False
                 # Güvenlik kontrolü: src noktaları frame sınırları içinde mi?
                 src = self.det.tf.src
                 if src[:, 0].max() > 640 or src[:, 1].max() > 360:
@@ -340,11 +347,37 @@ def _ros_node_class():
                 threading.Thread(target=self._process, args=(msg,), daemon=True).start()
 
             def _process(self, msg):
+                import time as _time
                 try:
                     fr  = _imgmsg_to_numpy(msg)
                     bgr = cv2.cvtColor(fr, cv2.COLOR_RGB2BGR)
                     h,w = bgr.shape[:2]
                     res,bev,_ = self.det.process(bgr,w,h)
+                    # TERMINAL: frame zamanı güncelle + fps say
+                    _now = _time.time()
+                    self._lane_last_frame = _now
+                    self._lane_fps_count += 1
+                    # Şerit bulunamazsa uyar
+                    _lf = self.det.swf.lf_prev
+                    _rf = self.det.swf.rf_prev
+                    if _lf is None and _rf is None:
+                        if not self._lane_no_serit_logged:
+                            print('[LANE] ⚠ Şerit tespit edilemiyor — düz gidiliyor', flush=True)
+                            self._lane_no_serit_logged = True
+                    else:
+                        self._lane_no_serit_logged = False
+                    # TERMINAL: 1 saniyede bir özet
+                    if _now - self._lane_last_status >= 1.0:
+                        _fps = self._lane_fps_count / (_now - self._lane_last_status)
+                        print(
+                            f'[LANE] açı={self.det.smooth_aci:.1f}° | '
+                            f'offset={self.det.smooth_kayma:.1f} | fps={_fps:.1f}',
+                            flush=True)
+                        self._lane_fps_count = 0
+                        self._lane_last_status = _now
+                        # Görüntü timeout kontrolü
+                        if self._lane_last_frame > 0 and (_now - self._lane_last_frame) > 3.0:
+                            print(f'[LANE] ⚠ Kamera görüntüsü gelmiyor! ({_now-self._lane_last_frame:.0f}s süredir)', flush=True)
 
                     # BEV publish: pre-alloc buffer ile tobytes() yok
                     bev_rgb = cv2.cvtColor(bev, cv2.COLOR_BGR2RGB)
