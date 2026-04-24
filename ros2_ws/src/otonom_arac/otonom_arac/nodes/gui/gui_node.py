@@ -643,6 +643,11 @@ class MainWindow(QWidget):
         fh, fw = frame.shape[:2]
         lw, lh = label.width(), label.height()
 
+        # Pencere henüz layout edilmediyse (ilk frame) minimumSize() ile fallback yap
+        if lw <= 0 or lh <= 0:
+            min_size = label.minimumSize()
+            lw, lh = min_size.width(), min_size.height()
+
         if lw > 0 and lh > 0:
             # Cache: frame boyutu VE label boyutu değişmediyse scale hesabını tekrar yapma
             cached = getattr(label, '_cached_target_size', None)
