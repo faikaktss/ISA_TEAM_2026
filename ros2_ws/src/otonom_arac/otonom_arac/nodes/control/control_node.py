@@ -106,6 +106,9 @@ class ControlNode(Node):
         self._imu_kesilen_logged = False
         # Engel değişim takibi
         self._engel_prev = 0
+        # Debounce: 3 kez üst üste aynı değer gelince log bas
+        self._engel_candidate = 0
+        self._engel_candidate_count = 0
 
     def imu_okuma(self):
         """Arduino'dan IMU açısını oku ve /imu/angle topic'ine yayınla"""
@@ -174,11 +177,16 @@ class ControlNode(Node):
         """lidar_node'dan gelen hazir engel durumu: 0=yok, 1=durugan, 2=hareketli/kritik"""
         self._obstacle_topic_aktif = True
         yeni = msg.data
-        # LOG DÜZENLEME: engel durumu değişince bas
-        if yeni != self._engel_prev:
+        # DEBOUNCE: aynı değer 3 kez üst üste gelirse log bas (titreşen LiDAR koruması)
+        if yeni == self._engel_candidate:
+            self._engel_candidate_count += 1
+        else:
+            self._engel_candidate = yeni
+            self._engel_candidate_count = 1
+        if self._engel_candidate_count == 3 and yeni != self._engel_prev:
             engel_map = {0: 'yok', 1: 'durağan', 2: 'hareketli'}
             if yeni == 0:
-                print('[CONTROL] ✓ Engel kalktı', flush=True)
+                print('[CONTROL] ✓ Engel kalkı', flush=True)
             else:
                 print(f'[CONTROL] ⚠ ENGEL: {engel_map.get(yeni, str(yeni))}', flush=True)
             self._engel_prev = yeni
