@@ -100,13 +100,29 @@ class PerspectiveTransformer:
 
 #Todo: Sadece beyaz şeritleri bulur
 class WhiteLaneDetector:
+    # Mevcut init imzası korunuyor — brightness parametresi default olarak kalıyor
     def __init__(self, brightness=165, cl=50, ch=150):
         self.bt, self.cl, self.ch = brightness, cl, ch
+        self._adaptive = True   # otomatik eşikleme aktif
+        self._bt_smooth = float(brightness)  # smoothed brightness threshold
+        self._alpha = 0.15  # düzleştirme katsayısı (düşük = yavaş adapt)
 
     def detect(self, bev):
         hls = cv2.cvtColor(bev, cv2.COLOR_BGR2HLS)
         l = hls[:, :, 1]
-        _, white = cv2.threshold(l, self.bt, 255, cv2.THRESH_BINARY)
+
+        if self._adaptive:
+            # Görüntünün ortalama parlaklığına göre eşiği otomatik ayarla
+            mean_val = float(cv2.mean(l)[0])
+            # Hedef eşik: ortalamanın %10 üstü, minimum 120 maksimum 220 arasında
+            target = float(np.clip(mean_val * 1.10, 120, 220))
+            # Exponential smoothing: ani değişimlerde eşik sıçramasını önler
+            self._bt_smooth = self._alpha * target + (1 - self._alpha) * self._bt_smooth
+            bt = int(self._bt_smooth)
+        else:
+            bt = self.bt  # adaptive kapalıysa sabit değer kullan
+
+        _, white = cv2.threshold(l, bt, 255, cv2.THRESH_BINARY)
         edges = cv2.Canny(cv2.GaussianBlur(l, (5, 5), 0), self.cl, self.ch)
         return cv2.bitwise_or(white, edges)
 
@@ -370,7 +386,8 @@ def _ros_node_class():
                     if _now - self._lane_last_status >= 10.0:
                         print(
                             f'[LANE] \u2713 Aktif | açı={self.det.smooth_aci:.1f}° | '
-                            f'offset={self.det.smooth_kayma:.1f}',
+                            f'offset={self.det.smooth_kayma:.1f} | '
+                            f'eşik={self.det.wd._bt_smooth:.0f}',
                             flush=True)
                         self._lane_fps_count = 0
                         self._lane_last_status = _now

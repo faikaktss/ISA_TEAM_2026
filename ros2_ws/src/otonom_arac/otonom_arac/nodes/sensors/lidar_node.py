@@ -5,7 +5,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
-from std_msgs.msg import Float32MultiArray, Int32
+from std_msgs.msg import Float32MultiArray, Float32, Int32, Bool
 
 try:
     from rplidar import RPLidar
@@ -131,6 +131,8 @@ class LidarNode(Node):
         self.scan_publisher     = self.create_publisher(LaserScan,         '/lidar/scan',      10)
         self.distance_publisher = self.create_publisher(Float32MultiArray, '/lidar/distances', 10)
         self.obstacle_publisher = self.create_publisher(Int32,             '/lidar/obstacle',  10)
+        self.tunnel_pub         = self.create_publisher(Float32,           '/lidar/tunnel_offset', 10)
+        self.tunnel_mode_pub    = self.create_publisher(Bool,              '/lidar/in_tunnel', 10)
 
         # Algoritma bileşenleri
         self.tracker     = ClusterTracker()
@@ -278,6 +280,21 @@ class LidarNode(Node):
         obs_msg = Int32()
         obs_msg.data = engel_durum
         self.obstacle_publisher.publish(obs_msg)
+
+        # Tünel offset hesaplama
+        # Pozitif değer = sağ duvar daha yakın = araç sağa kaymış = sola dönmeli
+        tunnel_offset = 0.0
+        if sol > 0 and sag > 0 and sol < 2000 and sag < 2000:
+            tunnel_offset = float(sag - sol)  # mm cinsinden fark
+        tunnel_off_msg = Float32()
+        tunnel_off_msg.data = tunnel_offset
+        self.tunnel_pub.publish(tunnel_off_msg)
+
+        # Tünel mod tespiti: iki yan duvar da görünüyor + önde yol açık
+        in_tunnel = bool(sol > 0 and sag > 0 and sol < 2000 and sag < 2000 and on > 500)
+        tun_msg = Bool()
+        tun_msg.data = in_tunnel
+        self.tunnel_mode_pub.publish(tun_msg)
 
         # TERMINAL: engel durumu değişince aninda bas
         if engel_durum != self._last_engel:

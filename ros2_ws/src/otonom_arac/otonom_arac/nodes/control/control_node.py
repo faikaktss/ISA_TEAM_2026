@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from std_msgs.msg import Float32, String, Int32
+from std_msgs.msg import Float32, Float32MultiArray, String, Int32, Bool
 from sensor_msgs.msg import LaserScan
 import time
 
@@ -36,6 +36,12 @@ class ControlNode(Node):
         # lidar_node'dan gelen hazır engel durumu (0/1/2)
         self.lidar_obstacle_sub = self.create_subscription(
             Int32, '/lidar/obstacle', self.lidar_obstacle_callback, 10)
+        self.lidar_distances_sub = self.create_subscription(
+            Float32MultiArray, '/lidar/distances', self.lidar_distances_callback, 10)
+        self.tunnel_offset_sub = self.create_subscription(
+            Float32, '/lidar/tunnel_offset', self.tunnel_offset_callback, 10)
+        self.in_tunnel_sub = self.create_subscription(
+            Bool, '/lidar/in_tunnel', self.in_tunnel_callback, 10)
 
         self.sag_sol_pub = self.create_publisher(Int32, '/control/sag_sol', 10)
         self.ileri_geri_pub = self.create_publisher(Int32, '/control/ileri_geri', 10)
@@ -56,6 +62,11 @@ class ControlNode(Node):
         self.tabela_gecmisi = []
         self.yeni_tab = None
         self.durakPixel = 0
+
+        self.lidar_sol_mesafe = 9999.0
+        self.lidar_sag_mesafe = 9999.0
+        self.tunnel_offset = 0.0
+        self.in_tunnel = False
 
         self.solRedCount = 0
         self.sagRedCount = 0
@@ -172,6 +183,17 @@ class ControlNode(Node):
         self.tabela_distance = msg.data
         if self.current_tabela == "durak":
             self.durakPixel = int(1000.0 / max(self.tabela_distance, 0.5))
+
+    def lidar_distances_callback(self, msg):
+        if len(msg.data) >= 4:
+            self.lidar_sol_mesafe = msg.data[1]
+            self.lidar_sag_mesafe = msg.data[2]
+
+    def tunnel_offset_callback(self, msg):
+        self.tunnel_offset = msg.data
+
+    def in_tunnel_callback(self, msg):
+        self.in_tunnel = msg.data
 
     def lidar_obstacle_callback(self, msg):
         """lidar_node'dan gelen hazir engel durumu: 0=yok, 1=durugan, 2=hareketli/kritik"""
@@ -360,6 +382,56 @@ class ControlNode(Node):
                 self.tabela_gecmisi.clear()
                 self.gecis('lane_following')
 
+        elif self.state == 'park_ileri_hizala':
+            self.get_logger().info('PARK: park_ileri_hizala') if self.state_counter == 1 else None
+            self.send_control_command(0, ileri_geri=30, vites=0)
+            if self.state_counter >= 30:
+                self.gecis('park_saga_gir')
+
+        elif self.state == 'park_saga_gir':
+            self.get_logger().info('PARK: park_saga_gir') if self.state_counter == 1 else None
+            self.send_control_command(25, ileri_geri=30, vites=0)
+            if self.state_counter >= 20:
+                self.gecis('park_dur1')
+
+        elif self.state == 'park_dur1':
+            self.get_logger().info('PARK: park_dur1') if self.state_counter == 1 else None
+            self.send_control_command(0, ileri_geri=0, vites=0)
+            if self.state_counter >= 15:
+                self.gecis('park_geri_al')
+
+        elif self.state == 'park_geri_al':
+            self.get_logger().info('PARK: park_geri_al') if self.state_counter == 1 else None
+            # Engel koruması: sol mesafe 150mm altına düşerse hemen park_dur2'ye geç
+            if self.lidar_sol_mesafe < 150:
+                self.get_logger().info('PARK: park_geri_al → engel koruması (sol < 150mm)')
+                self.gecis('park_dur2')
+            else:
+                self.send_control_command(-15, ileri_geri=0, vites=1)
+                if self.state_counter >= 20:
+                    self.gecis('park_dur2')
+
+        elif self.state == 'park_dur2':
+            self.get_logger().info('PARK: park_dur2') if self.state_counter == 1 else None
+            self.send_control_command(0, ileri_geri=0, vites=0)
+            if self.state_counter >= 50:
+                self.gecis('park_cikis_sol')
+
+        elif self.state == 'park_cikis_sol':
+            self.get_logger().info('PARK: park_cikis_sol') if self.state_counter == 1 else None
+            self.send_control_command(-20, ileri_geri=40, vites=0)
+            if self.state_counter >= 25:
+                self.gecis('park_cikis_ileri')
+
+        elif self.state == 'park_cikis_ileri':
+            self.get_logger().info('PARK: park_cikis_ileri') if self.state_counter == 1 else None
+            if self.current_angle is not None:
+                self.send_control_command(self.current_angle, ileri_geri=50, vites=0)
+            if self.state_counter >= 30:
+                self.yeni_tab = None
+                self.tabela_gecmisi.clear()
+                self.gecis('lane_following')
+
         elif self.state == 'park_bekle':
             if self.current_tabela == "sol_yasak" or self.state_counter >= 100:
                 self.yeni_tab = None
@@ -381,10 +453,16 @@ class ControlNode(Node):
                 self.get_logger().info('SAĞ tabelası - Sağa dönüyorum')
                 self.gecis('sag_don')
             elif self.yeni_tab == "park_yasakiki":
-                self.get_logger().info('PARK YASAK - Bekliyorum')
-                self.gecis('park_bekle')
+                self.get_logger().info('PARK görevi başlıyor')
+                self.gecis('park_ileri_hizala')
             else:
-                if self.current_angle is not None:
+                if self.in_tunnel:
+                    # Tünel modu: LiDAR ile duvar takibi
+                    correction = -self.tunnel_offset * 0.03
+                    correction = max(-20, min(20, int(correction)))
+                    self.send_control_command(correction, ileri_geri=40, vites=0)
+                    self.get_logger().debug(f'Tünel modu: offset={self.tunnel_offset:.0f}mm, düzeltme={correction}')
+                elif self.current_angle is not None:
                     angle = self.current_angle
                     if angle < 0:
                         angle -= 4
