@@ -1,4 +1,3 @@
-
 import math
 import threading
 import numpy as np
@@ -21,14 +20,14 @@ except ImportError:
 
 
 class ClusterTracker:
-    """Kümelere A/B/C... gibi kalıcı kimlikler atar (2024-2025 mantığı)."""
+    """Kümelere A/B/C... gibi kalıcı kimlikler atar."""
 
-    HAREKET_ESIGI = 80   
-    ESLESME_MESAFE = 300 
+    HAREKET_ESIGI = 80
+    ESLESME_MESAFE = 300
 
     def __init__(self):
         self._sonraki_id = 0
-        self._kümeler = {}   
+        self._kümeler = {}
 
     def _yeni_harf(self):
         harf = chr(ord('A') + self._sonraki_id % 26)
@@ -36,10 +35,6 @@ class ClusterTracker:
         return harf
 
     def guncelle(self, mevcutlar):
-        """
-        mevcutlar: [(cx, cy), ...] — bu frame'deki küme merkezleri
-        döndürür: {id_harf: {'merkez': (x,y), 'hareketli': bool}}
-        """
         eslesmemis_ids = set(self._kümeler.keys())
         yeni_kumeler = {}
 
@@ -60,10 +55,14 @@ class ClusterTracker:
                 if len(gecmis) > 10:
                     gecmis.pop(0)
                 hareketli = self._hareket_var(gecmis)
-                yeni_kumeler[en_yakin_id] = {'merkez': (cx, cy), 'gecmis': gecmis, 'hareketli': hareketli}
+                yeni_kumeler[en_yakin_id] = {
+                    'merkez': (cx, cy), 'gecmis': gecmis, 'hareketli': hareketli
+                }
             else:
                 harf = self._yeni_harf()
-                yeni_kumeler[harf] = {'merkez': (cx, cy), 'gecmis': [(cx, cy)], 'hareketli': False}
+                yeni_kumeler[harf] = {
+                    'merkez': (cx, cy), 'gecmis': [(cx, cy)], 'hareketli': False
+                }
 
         self._kümeler = yeni_kumeler
         return yeni_kumeler
@@ -84,16 +83,12 @@ class EngelTakip:
       2 = hareketli/kritik (<300 mm veya hareket eden)
     """
 
-    KRITIK_MESAFE = 300   # mm
-    UYARI_MESAFE  = 500   # mm
+    KRITIK_MESAFE = 300
+    UYARI_MESAFE  = 500
     YAY_MIN = 60
     YAY_MAX = 120
 
     def degerlendir(self, kümeler, tarama_noktalari):
-        """
-        kümeler: ClusterTracker.guncelle() çıktısı
-        tarama_noktalari: [(aci_derece, mesafe_mm), ...]
-        """
         on_noktalar = [
             d for a, d in tarama_noktalari
             if self.YAY_MIN <= a <= self.YAY_MAX and 0 < d < 6000
@@ -128,28 +123,25 @@ class LidarNode(Node):
         lidar_baudrate = self.get_parameter('lidar_baudrate').value
 
         # Publisher'lar
-        self.scan_publisher     = self.create_publisher(LaserScan,         '/lidar/scan',      10)
-        self.distance_publisher = self.create_publisher(Float32MultiArray, '/lidar/distances', 10)
-        self.obstacle_publisher = self.create_publisher(Int32,             '/lidar/obstacle',  10)
-        self.tunnel_pub         = self.create_publisher(Float32,           '/lidar/tunnel_offset', 10)
-        self.tunnel_mode_pub    = self.create_publisher(Bool,              '/lidar/in_tunnel', 10)
+        self.scan_publisher          = self.create_publisher(LaserScan,         '/lidar/scan',          10)
+        self.distance_publisher      = self.create_publisher(Float32MultiArray, '/lidar/distances',     10)
+        self.obstacle_publisher      = self.create_publisher(Int32,             '/lidar/obstacle',      10)
+        self.tunnel_offset_publisher = self.create_publisher(Float32,           '/lidar/tunnel_offset', 10)
+        self.in_tunnel_publisher     = self.create_publisher(Bool,              '/lidar/in_tunnel',     10)
 
         # Algoritma bileşenleri
-        self.tracker     = ClusterTracker()
-        self.engel_takip = EngelTakip()
-        self._tarama     = []   # [(aci, mesafe), ...]
+        self.tracker      = ClusterTracker()
+        self.engel_takip  = EngelTakip()
+        self._tarama      = []
         self._tarama_lock = threading.Lock()
-        self._running = True
+        self._running     = True
 
-        # DBSCAN instance (her frame'de yeniden oluşturmak yerine)
         self._dbscan = DBSCAN(eps=200, min_samples=4) if SKLEARN_AVAILABLE else None
 
-        # TERMINAL: takip değişkenleri
-        self._last_engel = -1
-        self._last_scan_time = 0.0
-        self._lidar_scan_count = 0
-        self._lidar_last_status = 0.0
-        self._lidar_on_mesafe = 0.0
+        # Terminal takip değişkenleri
+        self._last_engel       = -1
+        self._last_scan_time   = 0.0
+        self._lidar_on_mesafe  = 0.0
         self._lidar_nokta_sayisi = 0
 
         # RPLidar bağlantısı
@@ -159,11 +151,9 @@ class LidarNode(Node):
                 self.lidar = RPLidar(lidar_port, baudrate=lidar_baudrate)
                 self.lidar.start_motor()
                 self.get_logger().info(f'RPLidar bağlandı: {lidar_port}')
-                # TERMINAL: başlangıç logu
-                print(f'[LIDAR] Başlatıldı | topic: /lidar/scan subscribe edildi | Port: {lidar_port}', flush=True)
+                print(f'[LIDAR] Başlatıldı | Port: {lidar_port}', flush=True)
             except Exception as e:
                 self.get_logger().warn(f'RPLidar bağlanamadı: {e}')
-                # TERMINAL: bağlantı hatası
                 print(f'[LIDAR] ✗ Bağlantı kurulamadı: {lidar_port} — {e}', flush=True)
                 self.lidar = None
         else:
@@ -173,14 +163,11 @@ class LidarNode(Node):
         if not SKLEARN_AVAILABLE:
             self.get_logger().warn('sklearn yok — DBSCAN devre dışı. pip install scikit-learn')
 
-        # Lidar okuma ayrı thread'de — iter_measures() bloklayıcı!
         if self.lidar is not None:
             self._read_thread = threading.Thread(target=self._lidar_read_loop, daemon=True)
             self._read_thread.start()
 
-        # 10 Hz publish timer — sadece son taraması yayınlar
-        self.timer = self.create_timer(0.1, self.timer_callback)
-        # TERMINAL: 1s özet timer
+        self.timer        = self.create_timer(0.1,  self.timer_callback)
         self._status_timer = self.create_timer(10.0, self._terminal_status_1s)
 
     def _lidar_read_loop(self):
@@ -191,9 +178,6 @@ class LidarNode(Node):
                     break
                 if kalite > 0 and mesafe > 0:
                     with self._tarama_lock:
-                        if yeni_scan and self._tarama:
-                            # Yeni tarama başladı — mevcut taramayı kaydet
-                            pass  # timer_callback'te publish edilecek
                         if yeni_scan:
                             self._tarama = []
                         self._tarama.append((float(aci), float(mesafe)))
@@ -221,6 +205,7 @@ class LidarNode(Node):
     def _yayinla(self, tarama):
         stamp = self.get_clock().now().to_msg()
 
+        # --- LaserScan yayını ---
         scan_msg = LaserScan()
         scan_msg.header.stamp    = stamp
         scan_msg.header.frame_id = 'lidar_link'
@@ -240,6 +225,7 @@ class LidarNode(Node):
         scan_msg.ranges = ranges
         self.scan_publisher.publish(scan_msg)
 
+        # --- Yön mesafeleri ---
         def min_yay(a1, a2):
             vals = [d for a, d in tarama if a1 <= a % 360 <= a2 and 0 < d < 6000]
             return min(vals) if vals else 0.0
@@ -247,16 +233,40 @@ class LidarNode(Node):
         on   = min_yay(60,  120)
         sol  = min_yay(150, 210)
         arka = min_yay(240, 300)
-        sag_vals = [d for a, d in tarama if ((330 <= a % 360 <= 360) or (0 <= a % 360 <= 30)) and 0 < d < 6000]
-        sag  = min(sag_vals) if sag_vals else 0.0
+        sag_vals = [
+            d for a, d in tarama
+            if ((330 <= a % 360 <= 360) or (0 <= a % 360 <= 30)) and 0 < d < 6000
+        ]
+        sag = min(sag_vals) if sag_vals else 0.0
 
         dist_msg = Float32MultiArray()
         dist_msg.data = [float(on), float(sol), float(sag), float(arka)]
         self.distance_publisher.publish(dist_msg)
 
+        # --- Tünel tespiti ---
+        # Her iki yan duvar da 2000 mm içindeyse ve önde yol varsa tünel içindeyiz
+        in_tunnel = bool(sol > 0 and sag > 0 and sol < 2000 and sag < 2000 and on > 500)
+
+        # Pozitif offset → sol duvar daha uzak, sağ duvar daha yakın → sola dönmeli
+        # sol - sag > 0  ⟹  sol > sag  ⟹  araç sağa kaymış  ⟹  sola düzelt
+        tunnel_offset = float(sol - sag)   # DÜZELTME: önceden (sag - sol) idi — işaret hatalıydı
+
+        in_tunnel_msg = Bool()
+        in_tunnel_msg.data = in_tunnel
+        self.in_tunnel_publisher.publish(in_tunnel_msg)
+
+        offset_msg = Float32()
+        offset_msg.data = tunnel_offset
+        self.tunnel_offset_publisher.publish(offset_msg)
+
+        if in_tunnel:
+            self.get_logger().debug(
+                f'Tünel: sol={sol:.0f}mm sag={sag:.0f}mm offset={tunnel_offset:.0f}mm'
+            )
+
+        # --- Engel tespiti (DBSCAN + ClusterTracker) ---
         engel_durum = 0
         if self._dbscan is not None and tarama:
-            # Polar → Kartezyen (mm)
             pts = []
             for aci, mesafe in tarama:
                 if 0 < mesafe < 6000:
@@ -266,7 +276,6 @@ class LidarNode(Node):
             if len(pts) >= 4:
                 pts_arr = np.array(pts)
                 labels  = self._dbscan.fit_predict(pts_arr)
-                # Küme merkezleri
                 merkezler = []
                 for lbl in set(labels):
                     if lbl == -1:
@@ -274,29 +283,14 @@ class LidarNode(Node):
                     mask = labels == lbl
                     merkezler.append(tuple(pts_arr[mask].mean(axis=0)))
 
-                kümeler = self.tracker.guncelle(merkezler)
+                kümeler   = self.tracker.guncelle(merkezler)
                 engel_durum = self.engel_takip.degerlendir(kümeler, tarama)
 
         obs_msg = Int32()
         obs_msg.data = engel_durum
         self.obstacle_publisher.publish(obs_msg)
 
-        # Tünel offset hesaplama
-        # Pozitif değer = sağ duvar daha yakın = araç sağa kaymış = sola dönmeli
-        tunnel_offset = 0.0
-        if sol > 0 and sag > 0 and sol < 2000 and sag < 2000:
-            tunnel_offset = float(sag - sol)  # mm cinsinden fark
-        tunnel_off_msg = Float32()
-        tunnel_off_msg.data = tunnel_offset
-        self.tunnel_pub.publish(tunnel_off_msg)
-
-        # Tünel mod tespiti: iki yan duvar da görünüyor + önde yol açık
-        in_tunnel = bool(sol > 0 and sag > 0 and sol < 2000 and sag < 2000 and on > 500)
-        tun_msg = Bool()
-        tun_msg.data = in_tunnel
-        self.tunnel_mode_pub.publish(tun_msg)
-
-        # TERMINAL: engel durumu değişince aninda bas
+        # Terminal: engel durumu değişince bas
         if engel_durum != self._last_engel:
             if engel_durum == 0:
                 print('[LIDAR] ✓ Engel kalktı', flush=True)
@@ -307,22 +301,22 @@ class LidarNode(Node):
                 _m = on / 1000.0 if on > 0 else 0.0
                 print(f'[LIDAR] ⚠ ENGEL TESPİT: hareketli/kritik | mesafe={_m:.2f}m', flush=True)
             self._last_engel = engel_durum
-        # TERMINAL: özet için takip
+
         import time as _time
-        self._last_scan_time = _time.time()
-        self._lidar_on_mesafe = on / 1000.0 if on > 0 else 0.0
+        self._last_scan_time    = _time.time()
+        self._lidar_on_mesafe   = on / 1000.0 if on > 0 else 0.0
         self._lidar_nokta_sayisi = len(tarama)
 
-    # TERMINAL: 1 saniyede bir lidar özeti
     def _terminal_status_1s(self):
         import time as _time
         _now = _time.time()
         if self._last_scan_time > 0 and (_now - self._last_scan_time) > 3.0:
-            print(f'[LIDAR] ✗ Tarama verisi gelmiyor! ({_now-self._last_scan_time:.0f}s süredir)', flush=True)
+            print(f'[LIDAR] ✗ Tarama verisi gelmiyor! ({_now - self._last_scan_time:.0f}s süredir)', flush=True)
         elif self._last_scan_time > 0:
             print(
                 f'[LIDAR] ✓ Aktif | ön_mesafe={self._lidar_on_mesafe:.2f}m | engel={self._last_engel}',
-                flush=True)
+                flush=True
+            )
 
     def destroy_node(self):
         self._running = False
